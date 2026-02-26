@@ -1,0 +1,1165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Core Enums
+// -----------------------------------------------------------------------------
+
+enum PlanTier {
+  FREE
+  SOLO
+  TEAM
+  AGENCY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAST_DUE
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  CO_WORKER
+  LISTING_SUPPORT
+}
+
+enum ContactSource {
+  LINE
+  WEBSITE
+  REFERRAL
+  FACEBOOK
+  WALK_IN
+  COLD_CALL
+}
+
+enum PotentialTierValue {
+  A
+  B
+  C
+  D
+}
+
+enum ContactStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED_WON
+  CLOSED_LOST
+  UNQUALIFIED
+  REACTIVATE
+}
+
+enum Timeline {
+  IMMEDIATE
+  ONE_TO_THREE_MONTHS
+  THREE_TO_SIX_MONTHS
+  SIX_PLUS_MONTHS
+}
+
+enum PurchasePurpose {
+  OWN_USE
+  INVESTMENT
+  BOTH
+}
+
+enum FinancingMethod {
+  CASH
+  MORTGAGE
+  MIXED
+}
+
+enum PropertyType {
+  HOUSE
+  CONDO
+  TOWNHOUSE
+  LAND
+  COMMERCIAL
+  OTHER
+}
+
+enum ListingType {
+  SELL
+  RENT
+  SELL_AND_RENT
+}
+
+enum ListingGrade {
+  A
+  B
+  C
+  D
+}
+
+enum ListingStatus {
+  NEW
+  ACTIVE
+  RESERVED
+  SOLD
+  EXPIRED
+  WITHDRAWN
+}
+
+enum DealType {
+  BUY_SIDE
+  SELL_SIDE
+}
+
+enum DealStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum PipelineType {
+  BUYER
+  SELLER
+}
+
+enum EntityType {
+  LISTING
+  DEAL
+  CONTACT
+  PROJECT
+  PIPELINE_STAGE
+  USER
+  WORKSPACE
+  WEBSITE
+  GENERAL
+}
+
+enum ActionType {
+  CREATED
+  UPDATED
+  DELETED
+  ARCHIVED
+  RESTORED
+  STATUS_CHANGED
+  STAGE_CHANGED
+  COMMENT_ADDED
+  MENTION
+  PHOTO_UPLOADED
+  LOGIN
+  EXPORT
+}
+
+enum NotificationType {
+  ACTION_REMINDER
+  LISTING_EXPIRY
+  STAGE_CHANGE
+  MENTION
+  SMART_MATCH
+}
+
+enum ModuleType {
+  LISTINGS
+  BUYER_CRM
+  SELLER_CRM
+  CRM
+  CONTACTS
+  DEALS
+}
+
+enum ReminderType {
+  NOTIFICATION_ONLY
+  NOTIFICATION_LINE
+  NOTIFICATION_EMAIL
+}
+
+enum PlaybookActionType {
+  CALL
+  LINE_MESSAGE
+  EMAIL
+  SITE_VISIT
+  SEND_REPORT
+  SEND_LISTING
+  SCHEDULE_VIEWING
+  SEND_CONTRACT
+  INTERNAL_NOTE
+  CUSTOM
+}
+
+enum CommissionType {
+  PERCENTAGE
+  FIXED_FEE
+}
+
+enum AgreementStatus {
+  ACTIVE
+  EXPIRED
+  RENEWED
+  CANCELLED
+}
+
+enum MatchStatus {
+  NEW
+  SENT
+  VIEWED
+  INTERESTED
+  NOT_INTERESTED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+enum FileType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+  DROPDOWN
+  MULTI_SELECT
+  BOOLEAN
+  URL
+}
+
+enum WebsitePageType {
+  HOMEPAGE
+  LISTING_SEARCH
+  LISTING_DETAIL
+  ABOUT
+  BLOG
+  CONTACT
+  CUSTOM
+}
+
+enum WebsiteSectionType {
+  HERO
+  LISTING_GRID
+  FEATURED_LISTINGS
+  ABOUT
+  TEAM
+  TESTIMONIALS
+  STATS
+  CTA
+  BLOG_FEED
+  CONTACT_FORM
+  CUSTOM_HTML
+}
+
+enum DeliveredVia {
+  NONE
+  EMAIL
+  LINE
+  BOTH
+}
+
+enum AIReportType {
+  MARKETING_REPORT
+  LISTING_COMPARISON
+}
+
+enum AIQueryType {
+  CONVERSATIONAL
+  REPORT_GENERATION
+  AUTOFILL
+  AGENT_ASSISTANT
+}
+
+// -----------------------------------------------------------------------------
+// Core Tables
+// -----------------------------------------------------------------------------
+
+// 10.1 Workspace Table
+model WorkspaceInvitation {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String           @map("workspace_id") @db.Uuid
+  email       String
+  role        UserRole
+  status      InvitationStatus @default(PENDING)
+  invitedAt   DateTime         @default(now()) @map("invited_at")
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, email])
+  @@map("workspace_invitations")
+}
+
+model Workspace {
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String             @map("workspace_name")
+  planTier              PlanTier           @default(FREE) @map("plan_tier")
+  industry              String             @default("Real Estate")
+  logoUrl               String?            @map("logo_url")
+  primaryColor          String?            @map("primary_color")
+  lineNotifyToken       String?            @map("line_notify_token")
+  subscriptionStatus    SubscriptionStatus @default(ACTIVE) @map("subscription_status")
+  subscriptionRenewedAt DateTime?          @map("subscription_renewed_at")
+  createdAt             DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  users            User[]
+  contacts         Contact[]
+  listings         Listing[]
+  projects         Project[]
+  deals            Deal[]
+  pipelineStages   PipelineStage[]
+  activityLogs     ActivityLog[]
+  notifications    Notification[]
+  potentialConfigs PotentialConfig[]
+  playbooks        StageActionPlaybook[]
+  savedFilters     SavedFilter[]
+  media            Media[]
+  customFieldDefs  CustomFieldDefinition[]
+  tags             Tag[]
+  auditLogs        AuditLog[]
+  websitePages     WebsitePage[]
+  formSubmissions  FormSubmission[]
+  blogPosts        BlogPost[]
+  aiReports        AIReport[]
+  aiQueryLogs      AIQueryLog[]
+  invitations      WorkspaceInvitation[]
+
+  @@map("workspaces")
+}
+
+// 10.2 User Table
+model User {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid // Auth mapping usually depends on Supabase auth.users.id
+  workspaceId     String    @map("workspace_id") @db.Uuid
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
+  email           String    @unique
+  phone           String?
+  lineId          String?   @map("line_id")
+  role            UserRole
+  profilePhotoUrl String?   @map("profile_photo_url")
+  isActive        Boolean   @default(true) @map("is_active")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  workspace                Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignedContacts         Contact[]               @relation("AssignedToUser")
+  createdContacts          Contact[]               @relation("CreatedByUser_Contact")
+  updatedContacts          Contact[]               @relation("UpdatedByUser_Contact")
+  createdListings          Listing[]               @relation("CreatedByUser_Listing")
+  updatedListings          Listing[]               @relation("UpdatedByUser_Listing")
+  listingUpdates           ListingUpdate[]
+  createdProjects          Project[]               @relation("CreatedByUser_Project")
+  updatedProjects          Project[]               @relation("UpdatedByUser_Project")
+  assignedDeals            Deal[]                  @relation("AssignedToUser_Deal")
+  createdDeals             Deal[]                  @relation("CreatedByUser_Deal")
+  updatedDeals             Deal[]                  @relation("UpdatedByUser_Deal")
+  createdPipelineStages    PipelineStage[]
+  stageHistoryChanges      PipelineStageHistory[]
+  authoredComments         Comment[]
+  activityLogs             ActivityLog[]
+  notifications            Notification[]
+  createdPotentialConfigs  PotentialConfig[]       @relation("CreatedByUser_PotentialConfig")
+  updatedPotentialConfigs  PotentialConfig[]       @relation("UpdatedByUser_PotentialConfig")
+  createdPlaybooks         StageActionPlaybook[]   @relation("CreatedByUser_StageActionPlaybook")
+  updatedPlaybooks         StageActionPlaybook[]   @relation("UpdatedByUser_StageActionPlaybook")
+  savedFilters             SavedFilter[]
+  assignedAgreements       ExclusiveAgreement[]    @relation("AssignedToUser_Agreement")
+  createdAgreements        ExclusiveAgreement[]    @relation("CreatedByUser_Agreement")
+  updatedAgreements        ExclusiveAgreement[]    @relation("UpdatedByUser_Agreement")
+  uploadedMedia            Media[]
+  createdCustomFieldDefs   CustomFieldDefinition[]
+  updatedCustomFieldValues CustomFieldValue[]
+  createdTags              Tag[]
+  auditLogs                AuditLog[]
+  authoredBlogPosts        BlogPost[]
+  generatedAIReports       AIReport[]
+  aiQueryLogs              AIQueryLog[]
+
+  @@index([workspaceId])
+  @@map("users")
+}
+
+// 10.3 Contact Table
+model Contact {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId        String              @map("workspace_id") @db.Uuid
+  contactType        String[]            @map("contact_type") // Array of strings or specific enum table mapping. 'Buyer', 'Seller', 'Both', 'Referrer'
+  firstName          String              @map("first_name")
+  lastName           String              @map("last_name")
+  nickname           String?
+  phonePrimary       String?             @map("phone_primary")
+  phoneSecondary     String?             @map("phone_secondary")
+  lineId             String?             @map("line_id")
+  email              String?
+  nationality        String?
+  idCardOrPassportNo String?             @map("id_card_or_passport_no")
+  contactSource      ContactSource?      @map("contact_source")
+  referredById       String?             @map("referred_by_id") @db.Uuid
+  assignedToId       String?             @map("assigned_to_id") @db.Uuid
+  potentialTier      PotentialTierValue? @map("potential_tier")
+  contactStatus      ContactStatus?      @map("contact_status")
+  tags               String[] // Array of Tag IDs or String names
+  notes              String?             @db.Text
+
+  // Buyer requirements
+  budgetMin             Float?           @map("budget_min")
+  budgetMax             Float?           @map("budget_max")
+  preferredZoneIds      String[]         @map("preferred_zone_ids") // References to Zone IDs
+  preferredPropertyType PropertyType[]   @map("preferred_property_type")
+  preferredBedrooms     Int?             @map("preferred_bedrooms")
+  preferredSizeMin      Float?           @map("preferred_size_min")
+  preferredSizeMax      Float?           @map("preferred_size_max")
+  preferredFloorMin     Int?             @map("preferred_floor_min")
+  preferredFloorMax     Int?             @map("preferred_floor_max")
+  preferredFacilities   String[]         @map("preferred_facilities")
+  hasPet                Boolean?         @map("has_pet")
+  hasEvCar              Boolean?         @map("has_ev_car")
+  parkingSlotsNeeded    Int?             @map("parking_slots_needed")
+  painPoints            String?          @map("pain_points") @db.Text
+  specialRequirements   String?          @map("special_requirements") @db.Text
+  timeline              Timeline?
+  purposeOfPurchase     PurchasePurpose? @map("purpose_of_purchase")
+  financingMethod       FinancingMethod? @map("financing_method")
+  preApprovedAmount     Float?           @map("pre_approved_amount")
+  preApprovalExpiryDate DateTime?        @map("pre_approval_expiry_date") @db.Date
+
+  // Follow Up state
+  lastContactedAt        DateTime? @map("last_contacted_at")
+  lastActionDate         DateTime? @map("last_action_date")
+  actionReminderInterval Int?      @map("action_reminder_interval")
+  reactivateOn           DateTime? @map("reactivate_on") @db.Date
+
+  archived        Boolean  @default(false)
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdById     String?  @map("created_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+
+  // Relations
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  referredBy    Contact?  @relation("ReferredBy", fields: [referredById], references: [id])
+  referrals     Contact[] @relation("ReferredBy")
+  assignedTo    User?     @relation("AssignedToUser", fields: [assignedToId], references: [id])
+  createdBy     User?     @relation("CreatedByUser_Contact", fields: [createdById], references: [id])
+  lastUpdatedBy User?     @relation("UpdatedByUser_Contact", fields: [lastUpdatedById], references: [id])
+
+  sellerListings        Listing[]             @relation("ListingSellerContact")
+  buyerDeals            Deal[]                @relation("DealBuyerContact")
+  sellerDeals           Deal[]                @relation("DealSellerContact")
+  taggedInComments      Comment[]             @relation("CommentTaggedContact")
+  agreements            ExclusiveAgreement[]
+  listingMatches        ListingContactMatch[]
+  formSubmissionsAsLead FormSubmission[]      @relation("FormSubmissionAutoContact")
+
+  @@index([workspaceId])
+  @@index([phonePrimary, email])
+  @@map("contacts")
+}
+
+// 10.4 Listing Table
+model Listing {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId        String        @map("workspace_id") @db.Uuid
+  listingName        String        @map("listing_name")
+  projectId          String?       @map("project_id") @db.Uuid
+  projectName        String?       @map("project_name")
+  inProject          Boolean       @default(true) @map("in_project")
+  propertyType       PropertyType  @map("property_type")
+  listingType        ListingType   @map("listing_type")
+  listingGrade       ListingGrade? @map("listing_grade")
+  listingStatus      ListingStatus @default(NEW) @map("listing_status")
+  exclusiveAgreement Boolean       @default(false) @map("exclusive_agreement")
+
+  sellerContactId String? @map("seller_contact_id") @db.Uuid
+  sellerPhone     String? @map("seller_phone")
+  sellerLine      String? @map("seller_line")
+
+  streetSoi     String?  @map("street_soi")
+  zone          String? // References Zone somehow or text
+  bts           String?
+  mrt           String?
+  unitNo        String?  @map("unit_no")
+  bedrooms      Int?
+  bathrooms     Int?
+  sizeRai       Float?   @map("size_rai")
+  sizeNgan      Float?   @map("size_ngan")
+  sizeWa        Float?   @map("size_wa")
+  sizeSqm       Float?   @map("size_sqm")
+  floor         Int?
+  stories       Int?
+  building      String?
+  view          String?
+  direction     String?
+  parkingSlots  Int?     @map("parking_slots")
+  maidsRoom     Boolean? @map("maids_room")
+  unitCondition String?  @map("unit_condition")
+
+  askingPrice  Float?  @map("asking_price")
+  priceRemark  String? @map("price_remark") @db.Text
+  rentalPrice  Float?  @map("rental_price")
+  rentalRemark String? @map("rental_remark") @db.Text
+
+  matchingTags     String[] @map("matching_tags") // Array of tag string or tag ids
+  googleMapsLink   String?  @map("google_maps_link")
+  agreementFileUrl String?  @map("agreement_file_url")
+  unitPhotos       String[] @map("unit_photos") // Array of URLs
+  mediaFilesUrl    String[] @map("media_files_url") // Array of URLs
+
+  ddpropertyUrl      String? @map("ddproperty_url")
+  livinginsiderUrl   String? @map("livinginsider_url")
+  propertyhubUrl     String? @map("propertyhub_url")
+  facebookGroupUrl   String? @map("facebook_group_url")
+  facebookPageUrl    String? @map("facebook_page_url")
+  tiktokUrl          String? @map("tiktok_url")
+  instagramUrl       String? @map("instagram_url")
+  youtubeUrl         String? @map("youtube_url")
+  marketingReportUrl String? @map("marketing_report_url")
+
+  commissionRate Float?  @map("commission_rate")
+  featuredFlag   Boolean @default(false) @map("featured_flag")
+  focusFlag      Boolean @default(false) @map("focus_flag")
+  websiteVisible Boolean @default(false) @map("website_visible")
+
+  daysOnMarket           Int?      @map("days_on_market")
+  askingPriceHistory     Json?     @map("asking_price_history") @db.JsonB
+  listingStatusChangedAt DateTime? @map("listing_status_changed_at")
+  lastActionDate         DateTime? @map("last_action_date")
+  archived               Boolean   @default(false)
+
+  createdById     String?  @map("created_by_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+
+  // Relations
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project       Project?  @relation(fields: [projectId], references: [id])
+  sellerContact Contact?  @relation("ListingSellerContact", fields: [sellerContactId], references: [id])
+  createdBy     User?     @relation("CreatedByUser_Listing", fields: [createdById], references: [id])
+  lastUpdatedBy User?     @relation("UpdatedByUser_Listing", fields: [lastUpdatedById], references: [id])
+
+  updates             ListingUpdate[]
+  relatedDeals        Deal[]
+  taggedInComments    Comment[]             @relation("CommentTaggedListing")
+  exclusiveAgreements ExclusiveAgreement[]
+  contactMatches      ListingContactMatch[]
+  formSubmissions     FormSubmission[]      @relation("FormSubmissionListing")
+
+  @@index([workspaceId])
+  @@index([listingStatus])
+  @@index([createdAt])
+  @@map("listings")
+}
+
+// 10.5 Listing Update Table (Change Log)
+model ListingUpdate {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId    String   @map("listing_id") @db.Uuid
+  status       String
+  fieldChanged String   @map("field_changed")
+  oldValue     String?  @map("old_value") @db.Text
+  newValue     String?  @map("new_value") @db.Text
+  updatedAt    DateTime @default(now()) @map("updated_at")
+  updatedById  String?  @map("updated_by_id") @db.Uuid
+
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  updatedBy User?   @relation(fields: [updatedById], references: [id])
+
+  @@index([listingId])
+  @@map("listing_updates")
+}
+
+// 10.6 Project Table (Condominium / Development)
+model Project {
+  id                      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId             String       @map("workspace_id") @db.Uuid
+  nameThai                String       @map("project_name_thai")
+  nameEnglish             String       @map("project_name_english")
+  propertyType            PropertyType @map("property_type")
+  zoneId                  String?      @map("zone_id") @db.Uuid
+  bts                     String?
+  mrt                     String?
+  matchingTags            String[]     @map("matching_tags")
+  developer               String?
+  yearBuilt               Int?         @map("year_built")
+  numberOfBuildings       Int?         @map("number_of_buildings")
+  numberOfFloors          Int?         @map("number_of_floors")
+  numberOfUnits           Int?         @map("number_of_units")
+  parkingSlotRatio        String?      @map("parking_slot_ratio")
+  parkingSlotTradeAllow   Boolean?     @map("parking_slot_trade_allow")
+  facilities              String[]
+  maintenanceFee          Float?       @map("maintenance_fee")
+  maintenanceFeeTerms     String?      @map("maintenance_fee_payment_terms")
+  maintenanceFeeRatio     String?      @map("maintenance_fee_collection_ratio")
+  juristicCompany         String?      @map("juristic_company")
+  avgSalePriceSqm         Float?       @map("avg_sale_price_sqm")
+  avgRentalPriceSqm       Float?       @map("avg_rental_price_sqm")
+  unitTypes               String[]     @map("unit_types")
+  floorToCeilingHeight    Float?       @map("floor_to_ceiling_height")
+  maxUnitsPerFloor        Int?         @map("max_units_per_floor")
+  projectSegment          String?      @map("project_segment")
+  comparableProjects      String[]     @map("comparable_projects")
+  bestView                String?      @map("best_view")
+  bestDirection           String?      @map("best_direction")
+  bestUnitPosition        String?      @map("best_unit_position")
+  householdNatRatio       String?      @map("household_nationality_ratio") @db.Text
+  nearestStationType      String?      @map("nearest_station_type")
+  nearestStationDistance  String?      @map("nearest_station_distance")
+  nearestStationTransport String?      @map("nearest_station_transport")
+  targetCustomerGroup     String?      @map("target_customer_group") @db.Text
+  strengths               String?      @db.Text
+  weaknesses              String?      @db.Text
+  googleMapsLink          String?      @map("google_maps_link")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdById     String?  @map("created_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+
+  // Relations
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  zone          Zone?     @relation(fields: [zoneId], references: [id])
+  createdBy     User?     @relation("CreatedByUser_Project", fields: [createdById], references: [id])
+  lastUpdatedBy User?     @relation("UpdatedByUser_Project", fields: [lastUpdatedById], references: [id])
+
+  listings Listing[]
+
+  @@index([workspaceId])
+  @@map("projects")
+}
+
+// 10.7 Zone Table
+model Zone {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nameEnglish String @map("zone_name_english")
+  nameThai    String @map("zone_name_thai")
+
+  projects Project[]
+
+  @@map("zones")
+}
+
+// 10.8 Deal Table
+model Deal {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId         String         @map("workspace_id") @db.Uuid
+  dealName            String         @map("deal_name")
+  dealType            DealType       @map("deal_type")
+  buyerContactId      String?        @map("buyer_contact_id") @db.Uuid
+  sellerContactId     String?        @map("seller_contact_id") @db.Uuid
+  listingId           String?        @map("listing_id") @db.Uuid
+  pipelineStageId     String         @map("pipeline_stage_id") @db.Uuid
+  dealStatus          DealStatus     @default(ACTIVE) @map("deal_status")
+  closedLostReason    String?        @map("closed_lost_reason")
+  leadSource          ContactSource? @map("lead_source")
+  estimatedDealValue  Float?         @map("estimated_deal_value")
+  commissionRate      Float?         @map("commission_rate")
+  estimatedCommission Float?         @map("estimated_commission")
+  notes               String?        @db.Text
+  assignedToId        String?        @map("assigned_to_id") @db.Uuid
+  lastActionDate      DateTime?      @map("last_action_date")
+  archived            Boolean        @default(false)
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdById     String?  @map("created_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+
+  // Relations
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  buyerContact  Contact?      @relation("DealBuyerContact", fields: [buyerContactId], references: [id])
+  sellerContact Contact?      @relation("DealSellerContact", fields: [sellerContactId], references: [id])
+  listing       Listing?      @relation(fields: [listingId], references: [id])
+  pipelineStage PipelineStage @relation(fields: [pipelineStageId], references: [id])
+  assignedTo    User?         @relation("AssignedToUser_Deal", fields: [assignedToId], references: [id])
+  createdBy     User?         @relation("CreatedByUser_Deal", fields: [createdById], references: [id])
+  lastUpdatedBy User?         @relation("UpdatedByUser_Deal", fields: [lastUpdatedById], references: [id])
+
+  stageHistory          PipelineStageHistory[]
+  formSubmissionsAsLead FormSubmission[]       @relation("FormSubmissionAutoDeal")
+
+  @@index([workspaceId])
+  @@index([pipelineStageId])
+  @@map("deals")
+}
+
+// 10.9 Pipeline Stage Table
+model PipelineStage {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId       String       @map("workspace_id") @db.Uuid
+  pipelineStageName String       @map("pipeline_stage_name")
+  pipelineType      PipelineType @map("pipeline_type")
+  stageOrder        Int          @map("stage_order")
+  stageColor        String?      @map("stage_color")
+  stageDescription  String?      @map("stage_description") @db.Text
+  isDefault         Boolean      @default(false) @map("is_default")
+  isActive          Boolean      @default(true) @map("is_active")
+
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation(fields: [createdById], references: [id])
+
+  deals       Deal[]
+  historyFrom PipelineStageHistory[] @relation("HistoryFromStage")
+  historyTo   PipelineStageHistory[] @relation("HistoryToStage")
+  playbooks   StageActionPlaybook[]
+
+  @@index([workspaceId])
+  @@map("pipeline_stages")
+}
+
+// 10.10 Pipeline Stage History Table
+model PipelineStageHistory {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dealId              String   @map("deal_id") @db.Uuid
+  fromStageId         String?  @map("from_stage_id") @db.Uuid
+  toStageId           String   @map("to_stage_id") @db.Uuid
+  changedById         String?  @map("changed_by_id") @db.Uuid
+  changedAt           DateTime @default(now()) @map("changed_at")
+  timeInPreviousStage Int?     @map("time_in_previous_stage") // Duration in days
+
+  deal      Deal           @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  fromStage PipelineStage? @relation("HistoryFromStage", fields: [fromStageId], references: [id])
+  toStage   PipelineStage  @relation("HistoryToStage", fields: [toStageId], references: [id])
+  changedBy User?          @relation(fields: [changedById], references: [id])
+
+  @@index([dealId])
+  @@map("pipeline_stage_history")
+}
+
+// 10.11 Comment Table
+model Comment {
+  id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType      EntityType @map("entity_type") // LISTING or DEAL
+  entityId        String     @map("entity_id") @db.Uuid
+  authorUserId    String     @map("author_user_id") @db.Uuid
+  content         String     @db.Text // Rich Text HTML or Markdown
+  mentions        String[]   @db.Uuid // Array of user IDs
+  taggedListingId String?    @map("tagged_listing_id") @db.Uuid
+  taggedContactId String?    @map("tagged_contact_id") @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at")
+  editedAt        DateTime?  @map("edited_at")
+  isDeleted       Boolean    @default(false) @map("is_deleted")
+
+  authorUser    User     @relation(fields: [authorUserId], references: [id])
+  taggedListing Listing? @relation("CommentTaggedListing", fields: [taggedListingId], references: [id])
+  taggedContact Contact? @relation("CommentTaggedContact", fields: [taggedContactId], references: [id])
+
+  @@index([entityId, entityType])
+  @@map("comments")
+}
+
+// 10.12 Activity Log Table
+model ActivityLog {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String     @map("workspace_id") @db.Uuid
+  entityType  EntityType @map("entity_type")
+  entityId    String     @map("entity_id") @db.Uuid
+  actionType  ActionType @map("action_type")
+  actorUserId String?    @map("actor_user_id") @db.Uuid
+  description String     @db.Text
+  metadata    Json?      @db.JsonB
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actorUser User?     @relation(fields: [actorUserId], references: [id])
+
+  @@index([workspaceId])
+  @@index([entityId, entityType])
+  @@map("activity_logs")
+}
+
+// 10.13 Notification Table
+model Notification {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String           @map("workspace_id") @db.Uuid
+  userId      String           @map("user_id") @db.Uuid
+  type        NotificationType
+  entityType  EntityType       @map("entity_type")
+  entityId    String           @map("entity_id") @db.Uuid
+  message     String           @db.Text
+  isRead      Boolean          @default(false) @map("is_read")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  readAt      DateTime?        @map("read_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId])
+  @@map("notifications")
+}
+
+// 10.14 Potential Config Table
+model PotentialConfig {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId      String       @map("workspace_id") @db.Uuid
+  module           ModuleType
+  potentialLabel   String       @map("potential_label") // A, B, C, D
+  potentialName    String?      @map("potential_name") // Hot, Warm
+  color            String?
+  reminderInterval Int?         @map("reminder_interval")
+  reminderType     ReminderType @default(NOTIFICATION_ONLY) @map("reminder_type")
+  description      String?      @db.Text
+  order            Int
+  isActive         Boolean      @default(true) @map("is_active")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdById     String?  @map("created_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy     User?     @relation("CreatedByUser_PotentialConfig", fields: [createdById], references: [id])
+  lastUpdatedBy User?     @relation("UpdatedByUser_PotentialConfig", fields: [lastUpdatedById], references: [id])
+
+  @@index([workspaceId])
+  @@map("potential_configs")
+}
+
+// 10.15 Stage Action Playbook Table
+model StageActionPlaybook {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId          String             @map("workspace_id") @db.Uuid
+  pipelineType         PipelineType       @map("pipeline_type")
+  pipelineStageId      String             @map("pipeline_stage_id") @db.Uuid
+  actionType           PlaybookActionType @map("action_type")
+  actionLabel          String             @map("action_label")
+  actionDescription    String?            @map("action_description") @db.Text
+  actionTemplate       String?            @map("action_template") @db.Text
+  reminderOverride     Boolean            @default(false) @map("reminder_override")
+  overrideIntervalDays Int?               @map("override_interval_days")
+  order                Int
+  isRequired           Boolean            @default(false) @map("is_required")
+  isActive             Boolean            @default(true) @map("is_active")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdById     String?  @map("created_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+
+  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  pipelineStage PipelineStage @relation(fields: [pipelineStageId], references: [id], onDelete: Cascade)
+  createdBy     User?         @relation("CreatedByUser_StageActionPlaybook", fields: [createdById], references: [id])
+  lastUpdatedBy User?         @relation("UpdatedByUser_StageActionPlaybook", fields: [lastUpdatedById], references: [id])
+
+  @@index([workspaceId, pipelineStageId])
+  @@map("stage_action_playbooks")
+}
+
+// 10.16 Saved Filter Table
+model SavedFilter {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String     @map("workspace_id") @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  module       ModuleType
+  filterName   String     @map("filter_name")
+  filterConfig Json       @map("filter_config") @db.JsonB
+  isShared     Boolean    @default(false) @map("is_shared")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, userId])
+  @@map("saved_filters")
+}
+
+// 10.17 Exclusive Agreement Table
+model ExclusiveAgreement {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId           String          @map("listing_id") @db.Uuid
+  sellerContactId     String?         @map("seller_contact_id") @db.Uuid
+  assignedAgentId     String?         @map("assigned_agent_id") @db.Uuid
+  startDate           DateTime        @map("start_date") @db.Date
+  endDate             DateTime        @map("end_date") @db.Date
+  commissionRate      Float?          @map("commission_rate")
+  commissionType      CommissionType  @default(PERCENTAGE) @map("commission_type")
+  fixedFeeAmount      Float?          @map("fixed_fee_amount")
+  agreementStatus     AgreementStatus @default(ACTIVE) @map("agreement_status")
+  renewalCount        Int             @default(0) @map("renewal_count")
+  previousAgreementId String?         @map("previous_agreement_id") @db.Uuid
+  agreementFileUrl    String?         @map("agreement_file_url")
+  notes               String?         @db.Text
+  reminderDaysBefore  Int?            @map("reminder_days_before")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  createdById     String?  @map("created_by_id") @db.Uuid
+  lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
+  lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
+
+  listing           Listing              @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  sellerContact     Contact?             @relation(fields: [sellerContactId], references: [id])
+  assignedAgent     User?                @relation("AssignedToUser_Agreement", fields: [assignedAgentId], references: [id])
+  previousAgreement ExclusiveAgreement?  @relation("AgreementRenewals", fields: [previousAgreementId], references: [id])
+  renewals          ExclusiveAgreement[] @relation("AgreementRenewals")
+  createdBy         User?                @relation("CreatedByUser_Agreement", fields: [createdById], references: [id])
+  lastUpdatedBy     User?                @relation("UpdatedByUser_Agreement", fields: [lastUpdatedById], references: [id])
+
+  @@index([listingId])
+  @@map("exclusive_agreements")
+}
+
+// 10.18 Listing-Contact Match Table
+model ListingContactMatch {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId     String      @map("listing_id") @db.Uuid
+  contactId     String      @map("contact_id") @db.Uuid
+  matchScore    Float       @map("match_score")
+  matchedFields Json        @map("matched_fields") @db.JsonB
+  matchStatus   MatchStatus @default(NEW) @map("match_status")
+  matchedAt     DateTime    @default(now()) @map("matched_at")
+  lastUpdatedAt DateTime    @updatedAt @map("last_updated_at")
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, contactId])
+  @@map("listing_contact_matches")
+}
+
+// 10.19 Media Table
+model Media {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId    String     @map("workspace_id") @db.Uuid
+  fileUrl        String     @map("file_url")
+  fileName       String     @map("file_name")
+  fileType       FileType   @map("file_type")
+  fileSizeBytes  Int        @map("file_size_bytes")
+  entityType     EntityType @map("entity_type")
+  entityId       String?    @map("entity_id") @db.Uuid
+  displayOrder   Int?       @map("display_order")
+  watermarkedUrl String?    @map("watermarked_url")
+  uploadedById   String?    @map("uploaded_by_id") @db.Uuid
+  uploadedAt     DateTime   @default(now()) @map("uploaded_at")
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploadedBy User?     @relation(fields: [uploadedById], references: [id])
+
+  @@index([workspaceId])
+  @@index([entityId, entityType])
+  @@map("media")
+}
+
+// 10.20 Custom Field Definition Table
+model CustomFieldDefinition {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String          @map("workspace_id") @db.Uuid
+  module          ModuleType
+  fieldName       String          @map("field_name")
+  fieldType       CustomFieldType @map("field_type")
+  dropdownOptions Json?           @map("dropdown_options") @db.JsonB
+  isRequired      Boolean         @default(false) @map("is_required")
+  displayOrder    Int             @map("display_order")
+  isActive        Boolean         @default(true) @map("is_active")
+
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User?              @relation(fields: [createdById], references: [id])
+  values    CustomFieldValue[]
+
+  @@index([workspaceId])
+  @@map("custom_field_definitions")
+}
+
+// 10.21 Custom Field Value Table
+model CustomFieldValue {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fieldId     String     @map("field_id") @db.Uuid
+  entityType  EntityType @map("entity_type")
+  entityId    String     @map("entity_id") @db.Uuid
+  value       String     @db.Text
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  updatedById String?    @map("updated_by_id") @db.Uuid
+
+  field     CustomFieldDefinition @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  updatedBy User?                 @relation(fields: [updatedById], references: [id])
+
+  @@index([entityId, entityType])
+  @@map("custom_field_values")
+}
+
+// 10.22 Tag Table
+model Tag {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String  @map("workspace_id") @db.Uuid
+  tagName     String  @map("tag_name")
+  tagColor    String? @map("tag_color")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String?  @map("created_by_id") @db.Uuid
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation(fields: [createdById], references: [id])
+
+  @@index([workspaceId])
+  @@map("tags")
+}
+
+// 10.23 Audit Log Table
+model AuditLog {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String     @map("workspace_id") @db.Uuid
+  entityType   EntityType @map("entity_type")
+  entityId     String     @map("entity_id") @db.Uuid
+  action       ActionType
+  fieldChanged String?    @map("field_changed")
+  oldValue     String?    @map("old_value") @db.Text
+  newValue     String?    @map("new_value") @db.Text
+  actorUserId  String?    @map("actor_user_id") @db.Uuid
+  ipAddress    String?    @map("ip_address")
+  timestamp    DateTime   @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actorUser User?     @relation(fields: [actorUserId], references: [id])
+
+  @@index([workspaceId])
+  @@index([entityId, entityType])
+  @@map("audit_logs")
+}
+
+// 10.24 Website Page Table
+model WebsitePage {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String          @map("workspace_id") @db.Uuid
+  pageType        WebsitePageType @map("page_type")
+  pageTitle       String          @map("page_title")
+  slug            String
+  metaTitle       String?         @map("meta_title")
+  metaDescription String?         @map("meta_description") @db.Text
+  ogImageUrl      String?         @map("og_image_url")
+  isPublished     Boolean         @default(false) @map("is_published")
+  displayOrder    Int             @map("display_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace       Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sections        WebsiteSection[]
+  formSubmissions FormSubmission[]
+
+  @@index([workspaceId])
+  @@map("website_pages")
+}
+
+// 10.25 Website Section Table
+model WebsiteSection {
+  id            String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pageId        String             @map("page_id") @db.Uuid
+  sectionType   WebsiteSectionType @map("section_type")
+  contentConfig Json               @map("content_config") @db.JsonB
+  displayOrder  Int                @map("display_order")
+  isVisible     Boolean            @default(true) @map("is_visible")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  page WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@map("website_sections")
+}
+
+// 10.26 Form Submission Table
+model FormSubmission {
+  id                   String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId          String  @map("workspace_id") @db.Uuid
+  sourcePageId         String? @map("source_page_id") @db.Uuid
+  sourceListingId      String? @map("source_listing_id") @db.Uuid
+  name                 String
+  phone                String?
+  email                String?
+  lineId               String? @map("line_id")
+  message              String? @db.Text
+  autoCreatedContactId String? @map("auto_created_contact_id") @db.Uuid
+  autoCreatedDealId    String? @map("auto_created_deal_id") @db.Uuid
+
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  workspace          Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sourcePage         WebsitePage? @relation(fields: [sourcePageId], references: [id])
+  sourceListing      Listing?     @relation("FormSubmissionListing", fields: [sourceListingId], references: [id])
+  autoCreatedContact Contact?     @relation("FormSubmissionAutoContact", fields: [autoCreatedContactId], references: [id])
+  autoCreatedDeal    Deal?        @relation("FormSubmissionAutoDeal", fields: [autoCreatedDealId], references: [id])
+
+  @@index([workspaceId])
+  @@map("form_submissions")
+}
+
+// 10.27 Blog Post Table
+model BlogPost {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String    @map("workspace_id") @db.Uuid
+  title           String
+  slug            String
+  content         String    @db.Text
+  coverImageUrl   String?   @map("cover_image_url")
+  category        String?
+  tags            String[]
+  metaTitle       String?   @map("meta_title")
+  metaDescription String?   @map("meta_description") @db.Text
+  isPublished     Boolean   @default(false) @map("is_published")
+  publishedAt     DateTime? @map("published_at")
+  authorUserId    String?   @map("author_user_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  authorUser User?     @relation(fields: [authorUserId], references: [id])
+
+  @@index([workspaceId])
+  @@map("blog_posts")
+}
+
+// 10.28 AI Report Table
+model AIReport {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId   String       @map("workspace_id") @db.Uuid
+  reportType    AIReportType @map("report_type")
+  reportName    String       @map("report_name")
+  generatedById String?      @map("generated_by_id") @db.Uuid
+  config        Json         @db.JsonB
+  outputPdfUrl  String?      @map("output_pdf_url")
+  deliveredVia  DeliveredVia @default(NONE) @map("delivered_via")
+  deliveredTo   String?      @map("delivered_to")
+  deliveredAt   DateTime?    @map("delivered_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  generatedBy User?     @relation(fields: [generatedById], references: [id])
+
+  @@index([workspaceId])
+  @@map("ai_reports")
+}
+
+// 10.29 AI Query Log Table
+model AIQueryLog {
+  id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId           String      @map("workspace_id") @db.Uuid
+  userId                String      @map("user_id") @db.Uuid
+  queryText             String      @map("query_text") @db.Text
+  responseText          String      @map("response_text") @db.Text
+  dataSourcesReferenced Json?       @map("data_sources_referenced") @db.JsonB
+  queryType             AIQueryType @map("query_type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([workspaceId, userId])
+  @@map("ai_query_logs")
+}
