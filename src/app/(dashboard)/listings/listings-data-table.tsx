@@ -60,6 +60,7 @@ import {
     Lock,
     ImageOff,
     FileWarning,
+    Clock,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -570,6 +571,48 @@ function getColumns(): ColumnDef<ListingRow>[] {
                 );
             },
             size: 100,
+        },
+        {
+            id: "days_on_market",
+            header: () => (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="w-3 h-3" strokeWidth={1.75} />
+                    <span className="text-[10px]">DOM</span>
+                </div>
+            ),
+            cell: ({ row }) => {
+                const d = row.original;
+                // Calculate days on market from listing_status_changed_at for ACTIVE listings,
+                // or show stored value for non-active
+                if (d.days_on_market != null) {
+                    // For active listings, calculate live DOM from when status changed
+                    if (d.listing_status === "ACTIVE" && d.listing_status_changed_at) {
+                        const changedAt = new Date(d.listing_status_changed_at);
+                        const now = new Date();
+                        const diffDays = Math.floor(
+                            (now.getTime() - changedAt.getTime()) / (1000 * 60 * 60 * 24)
+                        );
+                        return (
+                            <span className="text-xs tabular-nums text-muted-foreground">
+                                {diffDays}d
+                            </span>
+                        );
+                    }
+                    return (
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                            {d.days_on_market}d
+                        </span>
+                    );
+                }
+                return <span className="text-xs text-muted-foreground">—</span>;
+            },
+            size: 55,
+            enableSorting: true,
+            sortingFn: (rowA, rowB) => {
+                const a = rowA.original.days_on_market ?? -1;
+                const b = rowB.original.days_on_market ?? -1;
+                return a - b;
+            },
         },
         {
             id: "featured",

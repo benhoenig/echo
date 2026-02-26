@@ -22,7 +22,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Trash2, Loader2, Pencil, Wand2 } from "lucide-react";
+import {
+    ArrowLeft,
+    Save,
+    Trash2,
+    Loader2,
+    Pencil,
+    Wand2,
+    Clock,
+    TrendingDown,
+    TrendingUp,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateListing, archiveListing } from "../listing-actions";
@@ -32,12 +42,21 @@ import { PropertyTypeSelect, PROPERTY_TYPE_THAI } from "@/components/shared/prop
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingDetail = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ListingUpdate = any;
+
+interface PriceHistoryEntry {
+    price: number;
+    date: string;
+    changed_by: string | null;
+}
 
 interface ListingDetailContentProps {
     listing: ListingDetail;
+    updates: ListingUpdate[];
 }
 
-export function ListingDetailContent({ listing }: ListingDetailContentProps) {
+export function ListingDetailContent({ listing, updates }: ListingDetailContentProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -165,6 +184,11 @@ export function ListingDetailContent({ listing }: ListingDetailContentProps) {
 
     // Project info
     const project = listing.projects;
+
+    // Filter updates to status changes only for the timeline
+    const statusUpdates = updates.filter(
+        (u: ListingUpdate) => u.field_changed === "listing_status"
+    );
 
     return (
         <div className="max-w-4xl mx-auto space-y-6">
@@ -443,6 +467,22 @@ export function ListingDetailContent({ listing }: ListingDetailContentProps) {
                         ))}
                     </div>
                 </Section>
+
+                {/* Status Timeline */}
+                <StatusTimeline
+                    updates={statusUpdates}
+                    currentStatus={listing.listing_status}
+                    createdAt={listing.created_at}
+                    daysOnMarket={listing.days_on_market}
+                    statusChangedAt={listing.listing_status_changed_at}
+                />
+
+                {/* Price History */}
+                <PriceHistory
+                    askingPriceHistory={listing.asking_price_history as PriceHistoryEntry[] | null}
+                    currentAskingPrice={listing.asking_price}
+                    currentRentalPrice={listing.rental_price}
+                />
             </div>
         </div>
     );
@@ -486,6 +526,315 @@ function ToggleField({
                 <p className="text-xs text-muted-foreground">{description}</p>
             </div>
             <Switch checked={checked} onCheckedChange={onCheckedChange} />
+        </div>
+    );
+}
+
+// ── Status Timeline ──────────────────────────────────────────
+
+function formatDuration(ms: number): string {
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    if (days === 0) return "< 1 day";
+    if (days === 1) return "1 day";
+    return `${days} days`;
+}
+
+function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function formatTime(dateStr: string): string {
+    return new Date(dateStr).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
+
+function StatusTimeline({
+    updates,
+    currentStatus,
+    createdAt,
+    daysOnMarket,
+    statusChangedAt,
+}: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    updates: any[];
+    currentStatus: string;
+    createdAt: string;
+    daysOnMarket: number | null;
+    statusChangedAt: string | null;
+}) {
+    // Build timeline entries from status updates
+    const timelineEntries: {
+        status: string;
+        date: string;
+        userName: string | null;
+        duration: string | null;
+    }[] = [];
+
+    for (let i = 0; i < updates.length; i++) {
+        const update = updates[i];
+        const nextUpdate = updates[i + 1];
+
+        const userName = update.users
+            ? `${update.users.first_name} ${update.users.last_name}`
+            : null;
+
+        let duration: string | null = null;
+        if (nextUpdate) {
+            const diff =
+                new Date(nextUpdate.updated_at).getTime() -
+                new Date(update.updated_at).getTime();
+            duration = formatDuration(diff);
+        } else if (update.new_value === currentStatus) {
+            // Current status — show duration from last change to now
+            const diff =
+                new Date().getTime() - new Date(update.updated_at).getTime();
+            duration = formatDuration(diff);
+        }
+
+        timelineEntries.push({
+            status: update.new_value ?? currentStatus,
+            date: update.updated_at,
+            userName,
+            duration,
+        });
+    }
+
+    // Calculate live days on market
+    const liveDom = (() => {
+        if (currentStatus === "ACTIVE" && statusChangedAt) {
+            return Math.floor(
+                (new Date().getTime() - new Date(statusChangedAt).getTime()) /
+                    (1000 * 60 * 60 * 24)
+            );
+        }
+        return daysOnMarket;
+    })();
+
+    return (
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-stone-500" strokeWidth={1.75} />
+                    Status Timeline
+                </h3>
+                {liveDom != null && (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-md">
+                        <Clock className="w-3 h-3" strokeWidth={1.75} />
+                        {liveDom} days on market
+                    </span>
+                )}
+            </div>
+
+            {timelineEntries.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                    No status changes recorded yet. Created on{" "}
+                    {formatDate(createdAt)}.
+                </p>
+            ) : (
+                <div className="relative">
+                    {timelineEntries.map((entry, idx) => {
+                        const isLast = idx === timelineEntries.length - 1;
+                        const isCurrent = entry.status === currentStatus && isLast;
+
+                        return (
+                            <div key={idx} className="flex gap-3 relative">
+                                {/* Vertical line */}
+                                <div className="flex flex-col items-center">
+                                    <div
+                                        className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${
+                                            isCurrent
+                                                ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
+                                                : "bg-stone-300 dark:bg-stone-600"
+                                        }`}
+                                    />
+                                    {!isLast && (
+                                        <div className="w-px flex-1 bg-stone-200 dark:bg-stone-700 min-h-[24px]" />
+                                    )}
+                                </div>
+
+                                {/* Content */}
+                                <div className={`pb-4 ${isLast ? "pb-0" : ""}`}>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <ListingStatusBadge status={entry.status} />
+                                        {entry.duration && (
+                                            <span className="text-[11px] text-muted-foreground">
+                                                for {entry.duration}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="text-[11px] text-muted-foreground">
+                                            {formatDate(entry.date)} at{" "}
+                                            {formatTime(entry.date)}
+                                        </span>
+                                        {entry.userName && (
+                                            <span className="text-[11px] text-muted-foreground">
+                                                by {entry.userName}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── Price History ────────────────────────────────────────────
+
+function PriceHistory({
+    askingPriceHistory,
+    currentAskingPrice,
+    currentRentalPrice,
+}: {
+    askingPriceHistory: PriceHistoryEntry[] | null;
+    currentAskingPrice: number | null;
+    currentRentalPrice: number | null;
+}) {
+    const history = Array.isArray(askingPriceHistory)
+        ? askingPriceHistory
+        : [];
+
+    if (history.length === 0 && currentAskingPrice == null) {
+        return null;
+    }
+
+    // Build full price timeline: history entries + current price
+    const entries = [...history];
+
+    // Calculate price change direction for each entry
+    const priceChanges: {
+        price: number;
+        date: string;
+        change: number | null; // absolute change from previous
+        direction: "up" | "down" | "same" | null;
+    }[] = [];
+
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        if (!entry) continue;
+        const prev = entries[i - 1];
+        const change = prev ? entry.price - prev.price : null;
+        const direction =
+            change == null
+                ? null
+                : change > 0
+                  ? "up"
+                  : change < 0
+                    ? "down"
+                    : "same";
+        priceChanges.push({
+            price: entry.price,
+            date: entry.date,
+            change,
+            direction,
+        });
+    }
+
+    // Add current price as the last entry
+    if (currentAskingPrice != null) {
+        const lastHistorical = entries[entries.length - 1];
+        const change = lastHistorical
+            ? currentAskingPrice - lastHistorical.price
+            : null;
+        const direction =
+            change == null
+                ? null
+                : change > 0
+                  ? "up"
+                  : change < 0
+                    ? "down"
+                    : "same";
+        priceChanges.push({
+            price: currentAskingPrice,
+            date: new Date().toISOString(),
+            change,
+            direction,
+        });
+    }
+
+    if (priceChanges.length <= 1) {
+        return null; // No history to show (only current price)
+    }
+
+    return (
+        <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+                <TrendingDown className="w-4 h-4 text-stone-500" strokeWidth={1.75} />
+                Price History
+            </h3>
+
+            <div className="space-y-0">
+                {priceChanges.map((entry, idx) => {
+                    const isLast = idx === priceChanges.length - 1;
+                    const isCurrent = isLast;
+
+                    return (
+                        <div key={idx} className="flex gap-3 relative">
+                            {/* Vertical line */}
+                            <div className="flex flex-col items-center">
+                                <div
+                                    className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${
+                                        isCurrent
+                                            ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
+                                            : entry.direction === "down"
+                                              ? "bg-green-500"
+                                              : entry.direction === "up"
+                                                ? "bg-red-500"
+                                                : "bg-stone-300 dark:bg-stone-600"
+                                    }`}
+                                />
+                                {!isLast && (
+                                    <div className="w-px flex-1 bg-stone-200 dark:bg-stone-700 min-h-[24px]" />
+                                )}
+                            </div>
+
+                            {/* Content */}
+                            <div className={`pb-4 ${isLast ? "pb-0" : ""}`}>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium tabular-nums text-foreground">
+                                        ฿{entry.price.toLocaleString()}
+                                    </span>
+                                    {isCurrent && (
+                                        <span className="text-[10px] font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded">
+                                            Current
+                                        </span>
+                                    )}
+                                    {entry.change != null && entry.change !== 0 && (
+                                        <span
+                                            className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
+                                                entry.direction === "down"
+                                                    ? "text-green-600 dark:text-green-400"
+                                                    : "text-red-600 dark:text-red-400"
+                                            }`}
+                                        >
+                                            {entry.direction === "down" ? (
+                                                <TrendingDown className="w-3 h-3" />
+                                            ) : (
+                                                <TrendingUp className="w-3 h-3" />
+                                            )}
+                                            {entry.direction === "down" ? "-" : "+"}
+                                            ฿{Math.abs(entry.change).toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                                <span className="text-[11px] text-muted-foreground">
+                                    {isCurrent ? "Current price" : formatDate(entry.date)}
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }
