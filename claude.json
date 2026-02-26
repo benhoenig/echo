@@ -1,0 +1,18 @@
+{
+    "mcpServers": {
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@supabase/mcp"
+            ]
+        },
+        "prisma": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@prisma/mcp"
+            ]
+        }
+    }
+}
