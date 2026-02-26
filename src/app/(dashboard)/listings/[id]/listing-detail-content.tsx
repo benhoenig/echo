@@ -39,6 +39,8 @@ import { updateListing, archiveListing } from "../listing-actions";
 import { ListingStatusBadge, LISTING_STATUSES } from "@/components/shared/listing-status-badge";
 import { ListingGradeBadge, LISTING_GRADES } from "@/components/shared/listing-grade-badge";
 import { PropertyTypeSelect, PROPERTY_TYPE_THAI } from "@/components/shared/property-type-select";
+import { ListingPhotoGallery } from "./listing-photo-gallery";
+import { ListingMediaFiles } from "./listing-media-files";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingDetail = any;
@@ -175,6 +177,16 @@ export function ListingDetailContent({ listing, updates }: ListingDetailContentP
             }
         });
     }
+
+    const handlePhotosChange = async (urls: string[]) => {
+        await updateListing(listing.id, { unit_photos: urls });
+        router.refresh();
+    };
+
+    const handleMediaFilesChange = async (urls: string[]) => {
+        await updateListing(listing.id, { media_files_url: urls });
+        router.refresh();
+    };
 
     // Contact info
     const sellerContact = listing.contacts;
@@ -444,6 +456,26 @@ export function ListingDetailContent({ listing, updates }: ListingDetailContentP
                     </div>
                 </Section>
 
+                {/* Photos */}
+                <Section title="Photos">
+                    <ListingPhotoGallery
+                        workspaceId={listing.workspace_id}
+                        listingId={listing.id}
+                        initialPhotos={listing.unit_photos || []}
+                        onPhotosChange={handlePhotosChange}
+                    />
+                </Section>
+
+                {/* Media Files */}
+                <Section title="Media Files">
+                    <ListingMediaFiles
+                        workspaceId={listing.workspace_id}
+                        listingId={listing.id}
+                        initialFiles={listing.media_files_url || []}
+                        onFilesChange={handleMediaFilesChange}
+                    />
+                </Section>
+
                 {/* Marketing URLs */}
                 <Section title="Marketing Links">
                     <div className="grid grid-cols-2 gap-4">
@@ -610,7 +642,7 @@ function StatusTimeline({
         if (currentStatus === "ACTIVE" && statusChangedAt) {
             return Math.floor(
                 (new Date().getTime() - new Date(statusChangedAt).getTime()) /
-                    (1000 * 60 * 60 * 24)
+                (1000 * 60 * 60 * 24)
             );
         }
         return daysOnMarket;
@@ -647,11 +679,10 @@ function StatusTimeline({
                                 {/* Vertical line */}
                                 <div className="flex flex-col items-center">
                                     <div
-                                        className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${
-                                            isCurrent
+                                        className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${isCurrent
                                                 ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
                                                 : "bg-stone-300 dark:bg-stone-600"
-                                        }`}
+                                            }`}
                                     />
                                     {!isLast && (
                                         <div className="w-px flex-1 bg-stone-200 dark:bg-stone-700 min-h-[24px]" />
@@ -728,10 +759,10 @@ function PriceHistory({
             change == null
                 ? null
                 : change > 0
-                  ? "up"
-                  : change < 0
-                    ? "down"
-                    : "same";
+                    ? "up"
+                    : change < 0
+                        ? "down"
+                        : "same";
         priceChanges.push({
             price: entry.price,
             date: entry.date,
@@ -750,10 +781,10 @@ function PriceHistory({
             change == null
                 ? null
                 : change > 0
-                  ? "up"
-                  : change < 0
-                    ? "down"
-                    : "same";
+                    ? "up"
+                    : change < 0
+                        ? "down"
+                        : "same";
         priceChanges.push({
             price: currentAskingPrice,
             date: new Date().toISOString(),
@@ -783,15 +814,14 @@ function PriceHistory({
                             {/* Vertical line */}
                             <div className="flex flex-col items-center">
                                 <div
-                                    className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${
-                                        isCurrent
+                                    className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${isCurrent
                                             ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
                                             : entry.direction === "down"
-                                              ? "bg-green-500"
-                                              : entry.direction === "up"
-                                                ? "bg-red-500"
-                                                : "bg-stone-300 dark:bg-stone-600"
-                                    }`}
+                                                ? "bg-green-500"
+                                                : entry.direction === "up"
+                                                    ? "bg-red-500"
+                                                    : "bg-stone-300 dark:bg-stone-600"
+                                        }`}
                                 />
                                 {!isLast && (
                                     <div className="w-px flex-1 bg-stone-200 dark:bg-stone-700 min-h-[24px]" />
@@ -811,11 +841,10 @@ function PriceHistory({
                                     )}
                                     {entry.change != null && entry.change !== 0 && (
                                         <span
-                                            className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
-                                                entry.direction === "down"
+                                            className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${entry.direction === "down"
                                                     ? "text-green-600 dark:text-green-400"
                                                     : "text-red-600 dark:text-red-400"
-                                            }`}
+                                                }`}
                                         >
                                             {entry.direction === "down" ? (
                                                 <TrendingDown className="w-3 h-3" />

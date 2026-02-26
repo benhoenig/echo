@@ -268,8 +268,8 @@ Build the listing table following `DESIGN_SYSTEM.md` Section 8.6 (Table Rows & C
 - [ ] Drag-and-drop photo reordering: change photo display order by dragging. First photo = cover image.
 - [ ] Photo delete: remove individual photos with confirmation.
 - [ ] Media files section: upload non-photo files (floor plans, documents). Displayed as a file list.
-- [ ] Watermark generation: option to apply workspace watermark to listing photos. Watermarked versions stored separately.
-- [ ] Storage usage display: show total storage used per workspace in settings.
+- [ ] ~~Watermark generation: option to apply workspace watermark to listing photos. Watermarked versions stored separately.~~ *(Deferred)*
+- [ ] ~~Storage usage display: show total storage used per workspace in settings.~~ *(Deferred)*
 
 #### 3.2.7 Comments & Activity Feed
 
@@ -301,7 +301,7 @@ These features display data from the CRM (Phase 2). In Phase 1, build the UI pla
 #### 3.2.9 Exclusive Agreements
 
 - [ ] Exclusive Agreement section on the listing detail page (when Exclusive flag = true).
-- [ ] Create/edit agreement: start date, end date, commission rate/type, upload signed document, notes.
+- [ ] Create/edit agreement: start date, end date, commission rate/type, upload signed document (`agreement_file_url` — secured in private `agreements` bucket), notes.
 - [ ] Agreement status tracking: Active, Expired, Renewed, Cancelled.
 - [ ] Renewal flow: create a new agreement linked to the previous one, increment renewal count.
 - [ ] Expiry reminder: configurable "reminder X days before expiry" — creates a notification when triggered.
