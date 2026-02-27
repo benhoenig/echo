@@ -375,6 +375,58 @@ export async function updateListingField(
     revalidatePath(`/listings/${id}`);
 }
 
+export async function getArchivedListings(workspaceId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("listings")
+        .select(
+            "*, contacts!listings_seller_contact_id_fkey(first_name, last_name, nickname)"
+        )
+        .eq("workspace_id", workspaceId)
+        .eq("archived", true)
+        .order("last_updated_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data ?? [];
+}
+
+export async function restoreListing(id: string): Promise<void> {
+    const supabase = await createClient();
+    const userId = await getAuthUserId();
+
+    const { data: current, error: fetchError } = await supabase
+        .from("listings")
+        .select("workspace_id")
+        .eq("id", id)
+        .single();
+
+    if (fetchError || !current) throw new Error(fetchError?.message ?? "Listing not found");
+
+    const { error } = await supabase
+        .from("listings")
+        .update({
+            archived: false,
+            last_updated_at: new Date().toISOString(),
+            last_updated_by_id: userId,
+        })
+        .eq("id", id);
+
+    if (error) throw new Error(error.message);
+
+    await logListingUpdate(id, "RESTORED", "archived", "true", "false", userId);
+
+    await logActivity({
+        workspaceId: current.workspace_id,
+        entityType: "LISTING",
+        entityId: id,
+        actionType: "RESTORED",
+        actorUserId: userId,
+        description: "Restored listing from archive",
+    });
+
+    revalidatePath("/listings");
+}
+
 export async function archiveListing(id: string): Promise<void> {
     const supabase = await createClient();
     const userId = await getAuthUserId();

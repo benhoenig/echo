@@ -26,6 +26,7 @@ interface ListingQuickViewProps {
     listing: ListingRow | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onArchive?: (listingId: string) => void;
 }
 
 const parseCommentContent = (text: string) => {
@@ -59,6 +60,7 @@ export function ListingQuickView({
     listing,
     open,
     onOpenChange,
+    onArchive,
 }: ListingQuickViewProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [comments, setComments] = useState<any[]>([]);
@@ -149,7 +151,17 @@ export function ListingQuickView({
                             <Copy className="w-4 h-4" />
                             Copy Link
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive ml-auto">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 text-destructive hover:text-destructive ml-auto"
+                            onClick={() => {
+                                if (listing?.id && onArchive) {
+                                    onArchive(listing.id);
+                                    onOpenChange(false);
+                                }
+                            }}
+                        >
                             <Archive className="w-4 h-4" />
                             Archive
                         </Button>

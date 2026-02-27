@@ -32,10 +32,11 @@ import {
     Clock,
     TrendingDown,
     TrendingUp,
+    ArchiveRestore,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { updateListing, archiveListing } from "../listing-actions";
+import { updateListing, archiveListing, restoreListing } from "../listing-actions";
 import { ListingStatusBadge, LISTING_STATUSES } from "@/components/shared/listing-status-badge";
 import { ListingGradeBadge, LISTING_GRADES } from "@/components/shared/listing-grade-badge";
 import { PropertyTypeSelect, PROPERTY_TYPE_THAI } from "@/components/shared/property-type-select";
@@ -191,6 +192,18 @@ export function ListingDetailContent({
         });
     }
 
+    function handleRestore() {
+        startTransition(async () => {
+            try {
+                await restoreListing(listing.id);
+                toast.success("Listing restored.");
+                router.refresh();
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to restore.");
+            }
+        });
+    }
+
     const handlePhotosChange = async (urls: string[]) => {
         await updateListing(listing.id, { unit_photos: urls });
         router.refresh();
@@ -215,8 +228,30 @@ export function ListingDetailContent({
         (u: ListingUpdate) => u.field_changed === "listing_status"
     );
 
+    const isArchived = listing.archived;
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
+            {/* Archived Banner */}
+            {isArchived && (
+                <div className="flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3">
+                    <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-300">
+                        <ArchiveRestore className="w-4 h-4" />
+                        <span>This listing is archived and hidden from the main table.</span>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRestore}
+                        disabled={isPending}
+                    >
+                        {isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+                        <ArchiveRestore className="w-4 h-4 mr-1.5" />
+                        Restore Listing
+                    </Button>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -228,7 +263,7 @@ export function ListingDetailContent({
                         <ArrowLeft className="w-4 h-4" />
                     </Button>
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground">
+                        <h1 className="text-2xl font-semibold text-foreground">
                             {listing.listing_name}
                         </h1>
                         <div className="flex items-center gap-2 mt-1">
@@ -254,31 +289,39 @@ export function ListingDetailContent({
                         )}
                         Save Changes
                     </Button>
-                    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                <Trash2 className="w-4 h-4 mr-1.5" />
-                                Archive
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Archive this listing?</DialogTitle>
-                                <DialogDescription>
-                                    This will hide the listing from the main table. You can restore it later.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                                    Cancel
+                    {isArchived ? (
+                        <Button variant="outline" size="sm" onClick={handleRestore} disabled={isPending}>
+                            {isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+                            <ArchiveRestore className="w-4 h-4 mr-1.5" />
+                            Restore
+                        </Button>
+                    ) : (
+                        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                    <Trash2 className="w-4 h-4 mr-1.5" />
+                                    Archive
                                 </Button>
-                                <Button variant="destructive" onClick={handleArchive} disabled={isPending}>
-                                    {isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-                                    Archive Listing
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Archive this listing?</DialogTitle>
+                                    <DialogDescription>
+                                        This will hide the listing from the main table. You can restore it later.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                                        Cancel
+                                    </Button>
+                                    <Button variant="destructive" onClick={handleArchive} disabled={isPending}>
+                                        {isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+                                        Archive Listing
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </div>
             </div>
 

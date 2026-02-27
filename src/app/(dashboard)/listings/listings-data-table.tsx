@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     useReactTable,
     getCoreRowModel,
@@ -61,6 +61,7 @@ import {
     ImageOff,
     FileWarning,
     Clock,
+    ArchiveRestore,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -731,6 +732,9 @@ interface ListingsDataTableProps {
     columnFilters: ColumnFiltersState;
     onColumnFiltersChange: (filters: ColumnFiltersState) => void;
     grouping: GroupingState;
+    onRowClick?: (row: ListingRow) => void;
+    showArchived?: boolean;
+    onRestore?: (listingId: string) => void;
 }
 
 export function ListingsDataTable({
@@ -739,13 +743,43 @@ export function ListingsDataTable({
     onColumnFiltersChange,
     grouping,
     onRowClick,
+    showArchived,
+    onRestore,
 }: ListingsDataTableProps) {
     const router = useRouter();
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [expanded, setExpanded] = useState<ExpandedState>(true);
 
-    const columns = getColumns();
+    const columns = useMemo(() => {
+        const base = getColumns();
+        if (!showArchived) return base;
+
+        const restoreColumn: ColumnDef<ListingRow> = {
+            id: "restore",
+            header: () => <span className="text-xs">Action</span>,
+            cell: ({ row }) => (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRestore?.(row.original.id);
+                    }}
+                >
+                    <ArchiveRestore className="w-3.5 h-3.5 mr-1" />
+                    Restore
+                </Button>
+            ),
+            size: 100,
+            enableHiding: false,
+            enableSorting: false,
+        };
+
+        return [...base, restoreColumn];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showArchived]);
 
     const table = useReactTable({
         data,

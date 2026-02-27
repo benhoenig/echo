@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -10,12 +12,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Building2, Layers } from "lucide-react";
+import { Plus, Search, Building2, Layers, Archive, ArchiveRestore } from "lucide-react";
 import type { ColumnFiltersState, GroupingState } from "@tanstack/react-table";
 import { ListingsDataTable } from "./listings-data-table";
 import { ListingsFilterBar } from "./listings-filter-bar";
 import { CreateListingSheet } from "./create-listing-sheet";
 import { ListingQuickView } from "./listing-quick-view";
+import { restoreListing, archiveListing } from "./listing-actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingRow = any;
@@ -32,6 +37,7 @@ interface SavedFilter {
 
 interface ListingsContentProps {
     initialListings: ListingRow[];
+    archivedListings: ListingRow[];
     workspaceId: string;
     userId: string;
     savedFilters: SavedFilter[];
@@ -48,6 +54,7 @@ const GROUP_OPTIONS = [
 
 export function ListingsContent({
     initialListings,
+    archivedListings,
     workspaceId,
     userId,
     savedFilters,
@@ -58,11 +65,16 @@ export function ListingsContent({
     const [grouping, setGrouping] = useState<GroupingState>([]);
     const [selectedListing, setSelectedListing] = useState<ListingRow | null>(null);
     const [quickViewOpen, setQuickViewOpen] = useState(false);
+    const [showArchived, setShowArchived] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const router = useRouter();
+
+    const activeData = showArchived ? archivedListings : initialListings;
 
     const filteredListings = useMemo(() => {
-        if (!search.trim()) return initialListings;
+        if (!search.trim()) return activeData;
         const q = search.toLowerCase();
-        return initialListings.filter(
+        return activeData.filter(
             (l: ListingRow) =>
                 l.listing_name?.toLowerCase().includes(q) ||
                 l.project_name?.toLowerCase().includes(q) ||
@@ -70,7 +82,38 @@ export function ListingsContent({
                 l.contacts?.first_name?.toLowerCase().includes(q) ||
                 l.contacts?.last_name?.toLowerCase().includes(q)
         );
-    }, [initialListings, search]);
+    }, [activeData, search]);
+
+    // Auto-switch back to active view when archived list becomes empty after server refresh
+    useEffect(() => {
+        if (showArchived && archivedListings.length === 0) {
+            setShowArchived(false);
+        }
+    }, [showArchived, archivedListings.length]);
+
+    function handleRestore(listingId: string) {
+        startTransition(async () => {
+            try {
+                await restoreListing(listingId);
+                toast.success("Listing restored.");
+                router.refresh();
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to restore listing.");
+            }
+        });
+    }
+
+    function handleArchive(listingId: string) {
+        startTransition(async () => {
+            try {
+                await archiveListing(listingId);
+                toast.success("Listing archived.");
+                router.refresh();
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Failed to archive listing.");
+            }
+        });
+    }
 
     function handleGroupChange(value: string) {
         setGrouping(value === "__none__" ? [] : [value]);
@@ -81,19 +124,36 @@ export function ListingsContent({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">
-                        Listings
+                    <h1 className="text-3xl font-semibold text-foreground">
+                        {showArchived ? "Archived Listings" : "Listings"}
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {initialListings.length} listing
-                        {initialListings.length !== 1 ? "s" : ""} in your
-                        database
+                        {showArchived
+                            ? `${archivedListings.length} archived listing${archivedListings.length !== 1 ? "s" : ""}`
+                            : `${initialListings.length} listing${initialListings.length !== 1 ? "s" : ""} in your database`}
                     </p>
                 </div>
-                <Button onClick={() => setSheetOpen(true)}>
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    New Listing
-                </Button>
+                <div className="flex items-center gap-3">
+                    {archivedListings.length > 0 && (
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                id="show-archived"
+                                checked={showArchived}
+                                onCheckedChange={setShowArchived}
+                            />
+                            <Label htmlFor="show-archived" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5">
+                                <Archive className="w-3.5 h-3.5" />
+                                Archived ({archivedListings.length})
+                            </Label>
+                        </div>
+                    )}
+                    {!showArchived && (
+                        <Button onClick={() => setSheetOpen(true)}>
+                            <Plus className="w-4 h-4 mr-1.5" />
+                            New Listing
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* Search + Group By Row */}
@@ -143,23 +203,40 @@ export function ListingsContent({
             {filteredListings.length === 0 && columnFilters.length === 0 ? (
                 <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <Building2
-                            className="w-12 h-12 text-stone-300 dark:text-stone-600"
-                            strokeWidth={1.75}
-                        />
-                        <p className="text-sm font-medium text-foreground mt-4">
-                            {search ? "No listings match your search" : "No listings yet"}
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {search
-                                ? "Try a different search term."
-                                : "Add your first listing to get started."}
-                        </p>
-                        {!search && (
-                            <Button className="mt-4" size="sm" onClick={() => setSheetOpen(true)}>
-                                <Plus className="w-4 h-4 mr-1.5" />
-                                New Listing
-                            </Button>
+                        {showArchived ? (
+                            <>
+                                <Archive
+                                    className="w-12 h-12 text-stone-300 dark:text-stone-600"
+                                    strokeWidth={1.75}
+                                />
+                                <p className="text-sm font-medium text-foreground mt-4">
+                                    No archived listings
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Archived listings will appear here.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <Building2
+                                    className="w-12 h-12 text-stone-300 dark:text-stone-600"
+                                    strokeWidth={1.75}
+                                />
+                                <p className="text-sm font-medium text-foreground mt-4">
+                                    {search ? "No listings match your search" : "No listings yet"}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    {search
+                                        ? "Try a different search term."
+                                        : "Add your first listing to get started."}
+                                </p>
+                                {!search && (
+                                    <Button className="mt-4" size="sm" onClick={() => setSheetOpen(true)}>
+                                        <Plus className="w-4 h-4 mr-1.5" />
+                                        New Listing
+                                    </Button>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
@@ -169,7 +246,9 @@ export function ListingsContent({
                     columnFilters={columnFilters}
                     onColumnFiltersChange={setColumnFilters}
                     grouping={grouping}
-                    onRowClick={(row) => {
+                    showArchived={showArchived}
+                    onRestore={handleRestore}
+                    onRowClick={showArchived ? undefined : (row) => {
                         setSelectedListing(row);
                         setQuickViewOpen(true);
                     }}
@@ -195,6 +274,7 @@ export function ListingsContent({
                         setTimeout(() => setSelectedListing(null), 200);
                     }
                 }}
+                onArchive={handleArchive}
             />
         </div>
     );

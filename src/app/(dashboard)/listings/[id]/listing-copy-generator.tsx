@@ -43,7 +43,7 @@ export function ListingCopyGenerator({ listing }: Props) {
             });
 
             if (result.success) {
-                setGeneratedText(result.content);
+                setGeneratedText(result.content ?? "");
             } else {
                 toast.error(result.error || "Failed to generate copy");
                 setGeneratedText("Error generating copy. Please check your templates.");
@@ -70,11 +70,12 @@ export function ListingCopyGenerator({ listing }: Props) {
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <>
             <Button variant="secondary" size="sm" onClick={handleGenerate}>
                 <Wand2 className="w-4 h-4 mr-1.5 text-orange-600" />
                 Generate Copy
             </Button>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -124,6 +125,7 @@ export function ListingCopyGenerator({ listing }: Props) {
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </Dialog>
+            </Dialog>
+        </>
     );
 }
