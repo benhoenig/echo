@@ -71,6 +71,14 @@ import { updateListingField } from "./listing-actions";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingRow = any;
 
+interface ListingsDataTableProps {
+    data: ListingRow[];
+    columnFilters: ColumnFiltersState;
+    onColumnFiltersChange: (filters: ColumnFiltersState) => void;
+    grouping: GroupingState;
+    onRowClick?: (row: ListingRow) => void;
+}
+
 // ── Multi-value filter function ──────────────────────────────
 
 const multiValueFilter: FilterFn<ListingRow> = (row, columnId, filterValue) => {
@@ -171,12 +179,15 @@ function InlineSelectCell({
 
     if (editing) {
         return (
-            <Select defaultValue={value ?? undefined} onValueChange={handleChange}>
-                <SelectTrigger
-                    className="h-7 w-24 text-xs"
-                    autoFocus
-                    onBlur={() => setTimeout(() => setEditing(false), 200)}
-                >
+            <Select
+                defaultValue={value ?? undefined}
+                onValueChange={handleChange}
+                defaultOpen
+                onOpenChange={(open) => {
+                    if (!open) setEditing(false);
+                }}
+            >
+                <SelectTrigger className="h-7 w-24 text-xs">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -251,12 +262,15 @@ function StatusSelectCell({
     return (
         <>
             {editing ? (
-                <Select defaultValue={value} onValueChange={handleChange}>
-                    <SelectTrigger
-                        className="h-7 w-24 text-xs"
-                        autoFocus
-                        onBlur={() => setTimeout(() => setEditing(false), 200)}
-                    >
+                <Select
+                    defaultValue={value}
+                    onValueChange={handleChange}
+                    defaultOpen
+                    onOpenChange={(open) => {
+                        if (!open) setEditing(false);
+                    }}
+                >
+                    <SelectTrigger className="h-7 w-24 text-xs">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -724,6 +738,7 @@ export function ListingsDataTable({
     columnFilters,
     onColumnFiltersChange,
     grouping,
+    onRowClick,
 }: ListingsDataTableProps) {
     const router = useRouter();
     const [sorting, setSorting] = useState<SortingState>([]);
@@ -866,9 +881,13 @@ export function ListingsDataTable({
                                         <TableRow
                                             key={row.id}
                                             className="cursor-pointer group hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
-                                            onClick={() =>
-                                                router.push(`/listings/${row.original.id}`)
-                                            }
+                                            onClick={() => {
+                                                if (onRowClick) {
+                                                    onRowClick(row.original);
+                                                } else {
+                                                    router.push(`/listings/${row.original.id}`);
+                                                }
+                                            }}
                                         >
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell

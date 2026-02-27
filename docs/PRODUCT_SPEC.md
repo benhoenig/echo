@@ -258,7 +258,7 @@ Each listing has a detail/comment page (similar to a Notion page) with the follo
 
 ### 4.11 Team Access
 
-- Role-based access: Owner, Admin, Co-Worker, Listing Support. Each role has defined read/write/delete permissions.
+- Role-based access: Owner, Admin, Co-Worker, Listing Support. (Specific read/write/delete permissions and data visibility limits, such as restricting access to agreements, will be fully defined and enforced in a later phase once all modules are complete.)
 
 ---
 

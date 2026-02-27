@@ -157,7 +157,7 @@ Deploy the complete database schema in Phase 0. All 29+ tables are created now, 
 - [x] Multi-workspace support: workspace switcher in the dashboard header. *(Zustand store for instant sidebar updates)*
 - [x] Team invitation: invite users by email with role selection.
 - [x] Team management page: list members, change roles, deactivate members.
-- [ ] Role definitions enforced: Owner, Admin, Co-Worker, Listing Support. *(Roles stored as enums but granular permission checks deferred to Phase 2)*
+- [ ] Role definitions enforced: Owner, Admin, Co-Worker, Listing Support. *(Roles stored as enums but granular permission checks and data visibility limits, such as hiding agreements from standard agents, are deferred to Phase 5 or Post-Launch, once all features are fully defined).*
 
 #### 2.1.7 Dashboard Shell
 

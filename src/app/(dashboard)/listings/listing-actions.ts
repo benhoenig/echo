@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { Database } from "@/types/supabase";
+import { logActivity } from "@/lib/activity-logger";
 
 type ListingInsert = Database["public"]["Tables"]["listings"]["Insert"];
 
@@ -159,6 +160,15 @@ export async function createListing(formData: ListingInsert) {
         userId
     );
 
+    await logActivity({
+        workspaceId: data.workspace_id,
+        entityType: "LISTING",
+        entityId: data.id,
+        actionType: "CREATED",
+        actorUserId: userId,
+        description: "Created listing",
+    });
+
     revalidatePath("/listings");
     return data;
 }
@@ -240,8 +250,30 @@ export async function updateListing(
                     newVal != null ? String(newVal) : null,
                     userId
                 );
+
+                await logActivity({
+                    workspaceId: current.workspace_id,
+                    entityType: "LISTING",
+                    entityId: id,
+                    actionType: field === "listing_status" ? "STATUS_CHANGED" : "UPDATED",
+                    actorUserId: userId,
+                    description: `Updated ${field} from ${oldVal ?? 'empty'} to ${newVal ?? 'empty'}`,
+                    metadata: { field, oldVal, newVal }
+                });
             }
         }
+    }
+
+    // Special logic to log photo or media updates which aren't in TRACKED_FIELDS
+    if (formData.unit_photos !== undefined && JSON.stringify(formData.unit_photos) !== JSON.stringify(current.unit_photos)) {
+        await logActivity({
+            workspaceId: current.workspace_id,
+            entityType: "LISTING",
+            entityId: id,
+            actionType: "PHOTO_UPLOADED",
+            actorUserId: userId,
+            description: "Updated listing photos gallery"
+        });
     }
 
     revalidatePath("/listings");
@@ -318,6 +350,25 @@ export async function updateListingField(
             value != null ? String(value) : null,
             userId
         );
+
+        await logActivity({
+            workspaceId: current.workspace_id,
+            entityType: "LISTING",
+            entityId: id,
+            actionType: field === "listing_status" ? "STATUS_CHANGED" : "UPDATED",
+            actorUserId: userId,
+            description: `Updated ${field} from ${oldValue ?? 'empty'} to ${value ?? 'empty'}`,
+            metadata: { field, oldValue, newValue: value }
+        });
+    } else if (field === "unit_photos") {
+        await logActivity({
+            workspaceId: current.workspace_id,
+            entityType: "LISTING",
+            entityId: id,
+            actionType: "PHOTO_UPLOADED",
+            actorUserId: userId,
+            description: "Updated listing photos gallery"
+        });
     }
 
     revalidatePath("/listings");
@@ -327,6 +378,14 @@ export async function updateListingField(
 export async function archiveListing(id: string): Promise<void> {
     const supabase = await createClient();
     const userId = await getAuthUserId();
+
+    const { data: current, error: fetchError } = await supabase
+        .from("listings")
+        .select("workspace_id")
+        .eq("id", id)
+        .single();
+
+    if (fetchError || !current) throw new Error(fetchError?.message ?? "Listing not found");
 
     const { error } = await supabase
         .from("listings")
@@ -341,6 +400,15 @@ export async function archiveListing(id: string): Promise<void> {
 
     // Log the archive action
     await logListingUpdate(id, "ARCHIVED", "archived", "false", "true", userId);
+
+    await logActivity({
+        workspaceId: current.workspace_id,
+        entityType: "LISTING",
+        entityId: id,
+        actionType: "ARCHIVED",
+        actorUserId: userId,
+        description: "Archived listing",
+    });
 
     revalidatePath("/listings");
 }

@@ -188,6 +188,12 @@ enum PlaybookActionType {
   CUSTOM
 }
 
+enum AgreementType {
+  SPA
+  OPEN_AGENT
+  EXCLUSIVE_AGENT
+}
+
 enum CommissionType {
   PERCENTAGE
   FIXED_FEE
@@ -313,6 +319,7 @@ model Workspace {
   deals            Deal[]
   pipelineStages   PipelineStage[]
   activityLogs     ActivityLog[]
+  comments         Comment[]
   notifications    Notification[]
   potentialConfigs PotentialConfig[]
   playbooks        StageActionPlaybook[]
@@ -369,9 +376,9 @@ model User {
   createdPlaybooks         StageActionPlaybook[]   @relation("CreatedByUser_StageActionPlaybook")
   updatedPlaybooks         StageActionPlaybook[]   @relation("UpdatedByUser_StageActionPlaybook")
   savedFilters             SavedFilter[]
-  assignedAgreements       ExclusiveAgreement[]    @relation("AssignedToUser_Agreement")
-  createdAgreements        ExclusiveAgreement[]    @relation("CreatedByUser_Agreement")
-  updatedAgreements        ExclusiveAgreement[]    @relation("UpdatedByUser_Agreement")
+  assignedAgreements       Agreement[]             @relation("AssignedToUser_Agreement")
+  createdAgreements        Agreement[]             @relation("CreatedByUser_Agreement")
+  updatedAgreements        Agreement[]             @relation("UpdatedByUser_Agreement")
   uploadedMedia            Media[]
   createdCustomFieldDefs   CustomFieldDefinition[]
   updatedCustomFieldValues CustomFieldValue[]
@@ -453,7 +460,8 @@ model Contact {
   buyerDeals            Deal[]                @relation("DealBuyerContact")
   sellerDeals           Deal[]                @relation("DealSellerContact")
   taggedInComments      Comment[]             @relation("CommentTaggedContact")
-  agreements            ExclusiveAgreement[]
+  sellerAgreements      Agreement[]           @relation("AgreementSellerContact")
+  buyerAgreements       Agreement[]           @relation("AgreementBuyerContact")
   listingMatches        ListingContactMatch[]
   formSubmissionsAsLead FormSubmission[]      @relation("FormSubmissionAutoContact")
 
@@ -547,7 +555,7 @@ model Listing {
   updates             ListingUpdate[]
   relatedDeals        Deal[]
   taggedInComments    Comment[]             @relation("CommentTaggedListing")
-  exclusiveAgreements ExclusiveAgreement[]
+  agreements          Agreement[]
   contactMatches      ListingContactMatch[]
   formSubmissions     FormSubmission[]      @relation("FormSubmissionListing")
 
@@ -740,6 +748,7 @@ model PipelineStageHistory {
 // 10.11 Comment Table
 model Comment {
   id              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String     @map("workspace_id") @db.Uuid
   entityType      EntityType @map("entity_type") // LISTING or DEAL
   entityId        String     @map("entity_id") @db.Uuid
   authorUserId    String     @map("author_user_id") @db.Uuid
@@ -754,7 +763,9 @@ model Comment {
   authorUser    User     @relation(fields: [authorUserId], references: [id])
   taggedListing Listing? @relation("CommentTaggedListing", fields: [taggedListingId], references: [id])
   taggedContact Contact? @relation("CommentTaggedContact", fields: [taggedContactId], references: [id])
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
+  @@index([workspaceId])
   @@index([entityId, entityType])
   @@map("comments")
 }
@@ -874,21 +885,31 @@ model SavedFilter {
   @@map("saved_filters")
 }
 
-// 10.17 Exclusive Agreement Table
-model ExclusiveAgreement {
+// 10.17 Agreement Table (Supports SPA, Open, Exclusive)
+model Agreement {
   id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   listingId           String          @map("listing_id") @db.Uuid
+  agreementType       AgreementType   @map("agreement_type")
+  
   sellerContactId     String?         @map("seller_contact_id") @db.Uuid
+  buyerContactId      String?         @map("buyer_contact_id") @db.Uuid
   assignedAgentId     String?         @map("assigned_agent_id") @db.Uuid
-  startDate           DateTime        @map("start_date") @db.Date
-  endDate             DateTime        @map("end_date") @db.Date
+  
+  startDate           DateTime?       @map("start_date") @db.Date
+  endDate             DateTime?       @map("end_date") @db.Date
+  
   commissionRate      Float?          @map("commission_rate")
   commissionType      CommissionType  @default(PERCENTAGE) @map("commission_type")
   fixedFeeAmount      Float?          @map("fixed_fee_amount")
+  
+  salePrice           Float?          @map("sale_price")
+  depositAmount       Float?          @map("deposit_amount")
+  
   agreementStatus     AgreementStatus @default(ACTIVE) @map("agreement_status")
   renewalCount        Int             @default(0) @map("renewal_count")
   previousAgreementId String?         @map("previous_agreement_id") @db.Uuid
-  agreementFileUrl    String?         @map("agreement_file_url")
+  
+  agreementFilesUrl   String[]        @default([]) @map("agreement_files_url")
   notes               String?         @db.Text
   reminderDaysBefore  Int?            @map("reminder_days_before")
 
@@ -898,15 +919,16 @@ model ExclusiveAgreement {
   lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
 
   listing           Listing              @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  sellerContact     Contact?             @relation(fields: [sellerContactId], references: [id])
+  sellerContact     Contact?             @relation("AgreementSellerContact", fields: [sellerContactId], references: [id])
+  buyerContact      Contact?             @relation("AgreementBuyerContact", fields: [buyerContactId], references: [id])
   assignedAgent     User?                @relation("AssignedToUser_Agreement", fields: [assignedAgentId], references: [id])
-  previousAgreement ExclusiveAgreement?  @relation("AgreementRenewals", fields: [previousAgreementId], references: [id])
-  renewals          ExclusiveAgreement[] @relation("AgreementRenewals")
+  previousAgreement Agreement?           @relation("AgreementRenewals", fields: [previousAgreementId], references: [id])
+  renewals          Agreement[]          @relation("AgreementRenewals")
   createdBy         User?                @relation("CreatedByUser_Agreement", fields: [createdById], references: [id])
   lastUpdatedBy     User?                @relation("UpdatedByUser_Agreement", fields: [lastUpdatedById], references: [id])
 
   @@index([listingId])
-  @@map("exclusive_agreements")
+  @@map("agreements")
 }
 
 // 10.18 Listing-Contact Match Table

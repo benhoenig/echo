@@ -15,6 +15,7 @@ import type { ColumnFiltersState, GroupingState } from "@tanstack/react-table";
 import { ListingsDataTable } from "./listings-data-table";
 import { ListingsFilterBar } from "./listings-filter-bar";
 import { CreateListingSheet } from "./create-listing-sheet";
+import { ListingQuickView } from "./listing-quick-view";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingRow = any;
@@ -55,6 +56,8 @@ export function ListingsContent({
     const [sheetOpen, setSheetOpen] = useState(false);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [grouping, setGrouping] = useState<GroupingState>([]);
+    const [selectedListing, setSelectedListing] = useState<ListingRow | null>(null);
+    const [quickViewOpen, setQuickViewOpen] = useState(false);
 
     const filteredListings = useMemo(() => {
         if (!search.trim()) return initialListings;
@@ -166,6 +169,10 @@ export function ListingsContent({
                     columnFilters={columnFilters}
                     onColumnFiltersChange={setColumnFilters}
                     grouping={grouping}
+                    onRowClick={(row) => {
+                        setSelectedListing(row);
+                        setQuickViewOpen(true);
+                    }}
                 />
             )}
 
@@ -175,6 +182,19 @@ export function ListingsContent({
                 onOpenChange={setSheetOpen}
                 workspaceId={workspaceId}
                 userId={userId}
+            />
+
+            {/* Quick View Drawer */}
+            <ListingQuickView
+                listing={selectedListing}
+                open={quickViewOpen}
+                onOpenChange={(open) => {
+                    setQuickViewOpen(open);
+                    if (!open) {
+                        // Delay clearing listing data so the close animation can play
+                        setTimeout(() => setSelectedListing(null), 200);
+                    }
+                }}
             />
         </div>
     );

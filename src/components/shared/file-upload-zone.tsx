@@ -15,6 +15,7 @@ interface FileUploadZoneProps {
     multiple?: boolean;
     maxFiles?: number;
     onUploadComplete?: (urls: string[]) => void;
+    returnType?: 'publicUrl' | 'filePath';
     className?: string;
 }
 
@@ -27,6 +28,7 @@ export function FileUploadZone({
     multiple = true,
     maxFiles = 20,
     onUploadComplete,
+    returnType = 'publicUrl',
     className,
 }: FileUploadZoneProps) {
     const supabase = createClient();
@@ -81,13 +83,17 @@ export function FileUploadZone({
                     continue; // Skip and continue
                 }
 
-                // Get public URL
-                const { data: publicUrlData } = supabase.storage
-                    .from(bucket)
-                    .getPublicUrl(filePath);
+                if (returnType === 'filePath') {
+                    uploadedUrls.push(filePath);
+                } else {
+                    // Get public URL
+                    const { data: publicUrlData } = supabase.storage
+                        .from(bucket)
+                        .getPublicUrl(filePath);
 
-                if (publicUrlData.publicUrl) {
-                    uploadedUrls.push(publicUrlData.publicUrl);
+                    if (publicUrlData.publicUrl) {
+                        uploadedUrls.push(publicUrlData.publicUrl);
+                    }
                 }
 
                 completedFiles++;

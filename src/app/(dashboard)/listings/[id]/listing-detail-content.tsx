@@ -41,6 +41,7 @@ import { ListingGradeBadge, LISTING_GRADES } from "@/components/shared/listing-g
 import { PropertyTypeSelect, PROPERTY_TYPE_THAI } from "@/components/shared/property-type-select";
 import { ListingPhotoGallery } from "./listing-photo-gallery";
 import { ListingMediaFiles } from "./listing-media-files";
+import { AgreementsSection } from "./agreements-section";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingDetail = any;
@@ -56,9 +57,20 @@ interface PriceHistoryEntry {
 interface ListingDetailContentProps {
     listing: ListingDetail;
     updates: ListingUpdate[];
+    agents: { id: string; name: string }[];
+    contacts: { id: string; name: string }[];
+    commentsNode?: React.ReactNode;
+    activityFeedNode?: React.ReactNode;
 }
 
-export function ListingDetailContent({ listing, updates }: ListingDetailContentProps) {
+export function ListingDetailContent({
+    listing,
+    updates,
+    agents,
+    contacts,
+    commentsNode,
+    activityFeedNode
+}: ListingDetailContentProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -452,8 +464,23 @@ export function ListingDetailContent({ listing, updates }: ListingDetailContentP
                         <ToggleField label="Featured Listing" description="Highlight in search results" checked={form.featured_flag} onCheckedChange={(v) => updateField("featured_flag", v)} />
                         <ToggleField label="Focus Listing" description="Priority for team focus" checked={form.focus_flag} onCheckedChange={(v) => updateField("focus_flag", v)} />
                         <ToggleField label="Website Visible" description="Display on public website" checked={form.website_visible} onCheckedChange={(v) => updateField("website_visible", v)} />
-                        <ToggleField label="Exclusive Agreement" description="Under exclusive contract" checked={form.exclusive_agreement} onCheckedChange={(v) => updateField("exclusive_agreement", v)} />
+                        <ToggleField
+                            label="Exclusive Agreement"
+                            description="Under exclusive contract"
+                            checked={form.exclusive_agreement}
+                            onCheckedChange={(v) => updateField("exclusive_agreement", v)}
+                        />
                     </div>
+                </Section>
+
+                {/* Agreements */}
+                <Section title="Agreements">
+                    <AgreementsSection
+                        listingId={listing.id}
+                        workspaceId={listing.workspace_id}
+                        agents={agents}
+                        contacts={contacts}
+                    />
                 </Section>
 
                 {/* Photos */}
@@ -515,6 +542,16 @@ export function ListingDetailContent({ listing, updates }: ListingDetailContentP
                     currentAskingPrice={listing.asking_price}
                     currentRentalPrice={listing.rental_price}
                 />
+
+                {/* Comments */}
+                <Section title="Comments">
+                    {commentsNode}
+                </Section>
+
+                {/* Activity Feed */}
+                <Section title="Activity History">
+                    {activityFeedNode}
+                </Section>
             </div>
         </div>
     );
@@ -680,8 +717,8 @@ function StatusTimeline({
                                 <div className="flex flex-col items-center">
                                     <div
                                         className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${isCurrent
-                                                ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
-                                                : "bg-stone-300 dark:bg-stone-600"
+                                            ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
+                                            : "bg-stone-300 dark:bg-stone-600"
                                             }`}
                                     />
                                     {!isLast && (
@@ -815,12 +852,12 @@ function PriceHistory({
                             <div className="flex flex-col items-center">
                                 <div
                                     className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${isCurrent
-                                            ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
-                                            : entry.direction === "down"
-                                                ? "bg-green-500"
-                                                : entry.direction === "up"
-                                                    ? "bg-red-500"
-                                                    : "bg-stone-300 dark:bg-stone-600"
+                                        ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
+                                        : entry.direction === "down"
+                                            ? "bg-green-500"
+                                            : entry.direction === "up"
+                                                ? "bg-red-500"
+                                                : "bg-stone-300 dark:bg-stone-600"
                                         }`}
                                 />
                                 {!isLast && (
@@ -842,8 +879,8 @@ function PriceHistory({
                                     {entry.change != null && entry.change !== 0 && (
                                         <span
                                             className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${entry.direction === "down"
-                                                    ? "text-green-600 dark:text-green-400"
-                                                    : "text-red-600 dark:text-red-400"
+                                                ? "text-green-600 dark:text-green-400"
+                                                : "text-red-600 dark:text-red-400"
                                                 }`}
                                         >
                                             {entry.direction === "down" ? (
