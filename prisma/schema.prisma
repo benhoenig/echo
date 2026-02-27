@@ -307,6 +307,7 @@ model Workspace {
   logoUrl               String?            @map("logo_url")
   primaryColor          String?            @map("primary_color")
   lineNotifyToken       String?            @map("line_notify_token")
+  brandSignature        String?            @map("brand_signature") @db.Text
   subscriptionStatus    SubscriptionStatus @default(ACTIVE) @map("subscription_status")
   subscriptionRenewedAt DateTime?          @map("subscription_renewed_at")
   createdAt             DateTime           @default(now()) @map("created_at")
@@ -334,6 +335,7 @@ model Workspace {
   aiReports        AIReport[]
   aiQueryLogs      AIQueryLog[]
   invitations      WorkspaceInvitation[]
+  copyTemplates    CopyTemplate[]
 
   @@map("workspaces")
 }
@@ -1184,4 +1186,26 @@ model AIQueryLog {
 
   @@index([workspaceId, userId])
   @@map("ai_query_logs")
+}
+
+// 10.30 Copy Template Table
+model CopyTemplate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  workspaceId String    @map("workspace_id") @db.Uuid
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  name        String
+  content     String    @db.Text
+  
+  // Targeting rules
+  propertyType PropertyType? @map("property_type")
+  listingType  ListingType?  @map("listing_type")
+  listingGrade String?       @map("listing_grade")
+  
+  isDefault    Boolean  @default(false) @map("is_default")
+
+  @@map("copy_templates")
 }

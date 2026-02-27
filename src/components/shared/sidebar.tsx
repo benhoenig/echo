@@ -63,6 +63,12 @@ const toolNavItems = [
 
 const configNavItems = [
     {
+        label: "Copy Templates",
+        href: "/copy-templates",
+        icon: Bot, // Using Bot or maybe FileText, let's use a generic doc icon
+        phase: null,
+    },
+    {
         label: "Settings",
         href: "/settings",
         icon: Settings,

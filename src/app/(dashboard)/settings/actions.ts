@@ -9,10 +9,15 @@ export async function updateWorkspace(formData: FormData) {
     const workspaceId = formData.get("workspaceId") as string;
     const name = formData.get("workspace_name") as string;
     const primaryColor = formData.get("primaryColor") as string;
+    const brandSignature = formData.get("brand_signature") as string;
 
-    const updateData: Record<string, string> = {};
+    const updateData: Record<string, string | null> = {};
     if (name) updateData.workspace_name = name;
     if (primaryColor) updateData.primary_color = primaryColor;
+    // Only include brand_signature if the field was actually in the form
+    if (formData.has("brand_signature")) {
+        updateData.brand_signature = brandSignature || null;
+    }
 
     const { error, count } = await supabase
         .from("workspaces")

@@ -42,6 +42,7 @@ import { PropertyTypeSelect, PROPERTY_TYPE_THAI } from "@/components/shared/prop
 import { ListingPhotoGallery } from "./listing-photo-gallery";
 import { ListingMediaFiles } from "./listing-media-files";
 import { AgreementsSection } from "./agreements-section";
+import { ListingCopyGenerator } from "./listing-copy-generator";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingDetail = any;
@@ -240,6 +241,7 @@ export function ListingDetailContent({
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <ListingCopyGenerator listing={listing} />
                     <Button
                         size="sm"
                         onClick={handleSave}

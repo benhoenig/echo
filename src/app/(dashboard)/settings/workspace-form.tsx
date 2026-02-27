@@ -130,6 +130,34 @@ export function WorkspaceSettingsForm({
                     </div>
                 </CardContent>
             </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Brand Signature</CardTitle>
+                    <CardDescription>
+                        This signature block will be appended to the bottom of all generated listing copies.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form action={handleSubmit} className="space-y-4">
+                        <input type="hidden" name="workspaceId" value={workspace.id} />
+                        <div className="space-y-2">
+                            <Label htmlFor="brand_signature">Signature Text</Label>
+                            <textarea
+                                id="brand_signature"
+                                name="brand_signature"
+                                defaultValue={workspace.brand_signature || ""}
+                                placeholder={"---\n📲 Contact:\nTel: 065-359-9541\nLine: @klaichanproperty"}
+                                className="flex min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={isPending}
+                            />
+                        </div>
+                        <Button type="submit" disabled={isPending} size="sm">
+                            {isPending ? "Saving..." : "Save Signature"}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }
