@@ -793,7 +793,8 @@ export function ListingsDataTable({
         onColumnVisibilityChange: setColumnVisibility,
         onColumnFiltersChange: (updater) => {
             const next = typeof updater === "function" ? updater(columnFilters) : updater;
-            onColumnFiltersChange(next);
+            // Defer to avoid React state update during render (TanStack Table fires this synchronously)
+            queueMicrotask(() => onColumnFiltersChange(next));
         },
         onExpandedChange: setExpanded,
         state: {

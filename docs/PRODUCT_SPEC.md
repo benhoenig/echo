@@ -288,9 +288,9 @@ The CRM manages all people (Contacts) and their journeys (Deals). It is presente
 - Assigned agent.
 - **Contact Details Completeness Score** — Visual indicator of how complete a contact's profile is. Encourages agents to capture all relevant data.
 
-### 5.4 Buyer Requirements
+### 5.4 Buyer Requirements (on Deal, not Contact)
 
-Dedicated fields for capturing buyer requirements — not free-text guesswork:
+Buyer requirements live on the **Deal** record, not on the Contact. A single contact can have multiple simultaneous buy-side deals, each with different requirements (e.g., one deal for a condo investment, another for a family home). Dedicated fields for capturing buyer requirements — not free-text guesswork:
 
 - Budget (min/max)
 - Preferred zones (multi-select, linked to Zone table)
@@ -527,26 +527,6 @@ A future community feature enabling agents to discover and collaborate with othe
 | Contact Status | Enum | Active, On Hold, Closed Won, Closed Lost, Unqualified, Reactivate |
 | Tags | Multi-value | Linked to Tag table |
 | Notes | Text | General notes |
-| Budget Min | Number | For buyer contacts |
-| Budget Max | Number | For buyer contacts |
-| Preferred Zones | Multi-value | FK → Zone |
-| Preferred Property Type | Multi-value | |
-| Preferred Bedrooms | Number | Minimum |
-| Preferred Size Min | Number | sqm |
-| Preferred Size Max | Number | sqm |
-| Preferred Floor Min | Number | |
-| Preferred Floor Max | Number | |
-| Preferred Facilities | Multi-value | |
-| Pet | Boolean | Has pets |
-| EV Car | Boolean | Has EV |
-| Parking Slots Needed | Number | |
-| Pain Points | Text | Qualitative notes |
-| Special Requirements | Text | |
-| Timeline | Enum | Immediate, 1–3 months, 3–6 months, 6+ months |
-| Purpose of Purchase | Enum | Own use, Investment, Both |
-| Financing Method | Enum | Cash, Mortgage, Mixed |
-| Pre-approved Amount | Number | If mortgage buyer |
-| Pre-approval Expiry Date | Date | |
 | Last Contacted At | Timestamp | |
 | Last Action Date | Timestamp | |
 | Action Reminder Interval | Number | Days — per contact level |
@@ -722,6 +702,31 @@ A future community feature enabling agents to discover and collaborate with othe
 | Last Updated At | Timestamp | |
 | Last Updated By | FK → User | |
 
+#### Buyer Requirements (on buy-side Deals)
+
+| Field | Type | Notes |
+|---|---|---|
+| Budget Min | Number | |
+| Budget Max | Number | |
+| Preferred Zones | Multi-value | FK → Zone |
+| Preferred Property Type | Multi-value | |
+| Preferred Bedrooms | Number | Minimum |
+| Preferred Size Min | Number | sqm |
+| Preferred Size Max | Number | sqm |
+| Preferred Floor Min | Number | |
+| Preferred Floor Max | Number | |
+| Preferred Facilities | Multi-value | |
+| Pet | Boolean | Has pets |
+| EV Car | Boolean | Has EV |
+| Parking Slots Needed | Number | |
+| Pain Points | Text | Qualitative notes |
+| Special Requirements | Text | |
+| Timeline | Enum | Immediate, 1–3 months, 3–6 months, 6+ months |
+| Purpose of Purchase | Enum | Own use, Investment, Both |
+| Financing Method | Enum | Cash, Mortgage, Mixed |
+| Pre-approved Amount | Number | If mortgage buyer |
+| Pre-approval Expiry Date | Date | |
+
 ### 10.9 Pipeline Stage Table
 
 | Field | Type | Notes |
@@ -881,7 +886,7 @@ A future community feature enabling agents to discover and collaborate with othe
 |---|---|---|
 | Match ID | PK | |
 | Listing ID | FK → Listing | |
-| Contact ID | FK → Contact | Buyer contact |
+| Deal ID | FK → Deal | Buy-side deal (buyer requirements are on Deal) |
 | Match Score | Number | Percentage or points-based score |
 | Matched Fields | JSON | Which requirement fields matched (zone, budget, size, etc.) |
 | Match Status | Enum | New, Sent, Viewed, Interested, Not Interested |

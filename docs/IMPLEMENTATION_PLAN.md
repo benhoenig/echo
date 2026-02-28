@@ -218,56 +218,56 @@ After Phase 0 is complete, manually verify:
 
 #### 3.2.1 Project Database
 
-- [ ] Projects page in the dashboard: table view of all condominium/development projects.
-- [ ] Create new project form with all fields from the Project Table schema.
-- [ ] Edit project details (full detail page).
-- [ ] Project search and filter (by zone, property type, developer).
-- [ ] Zone management: settings page or inline creation for zones (Thai + English names).
+- [x] Projects page in the dashboard: table view of all condominium/development projects.
+- [x] Create new project form with all fields from the Project Table schema.
+- [x] Edit project details (full detail page).
+- [x] Project search and filter (by zone, property type, developer).
+- [x] Zone management: settings page or inline creation for zones (Thai + English names).
 
 #### 3.2.2 Listing Table — Core
 
 Build the listing table following `DESIGN_SYSTEM.md` Section 8.6 (Table Rows & Cells) and Section 9.1 (Table View Page Layout).
 
-- [ ] Listings page: full-width data table using `@tanstack/react-table` + shadcn DataTable. Table styling per design system: 40px rows, `stone-50` header, `stone-50` row hover, `orange-50` selected rows, `border-b border-stone-100` between rows.
-- [ ] Column configuration: show/hide columns, resize, reorder. Configuration saved per user (localStorage or database).
-- [ ] Inline editing: click a cell to edit. Changes save on blur or Enter. Supports text, number, dropdown, and date fields.
-- [ ] Create new listing: slide-out panel or modal with all listing fields. Required fields enforced.
-- [ ] Quick-create shortcuts: create a new Seller Contact inline without leaving the listing form.
-- [ ] Quick-create shortcuts: create a new Project inline without leaving the listing form.
-- [ ] Auto-fill from Project Database: when a project is selected, populate zone, BTS, MRT, Google Maps link, and property type automatically.
-- [ ] Listing detail page: full-page view of a single listing with all fields, editable.
+- [x] Listings page: full-width data table using `@tanstack/react-table` + shadcn DataTable. Table styling per design system: 40px rows, `stone-50` header, `stone-50` row hover, `orange-50` selected rows, `border-b border-stone-100` between rows.
+- [x] Column configuration: show/hide columns, resize, reorder. Configuration saved per user (localStorage or database).
+- [x] Inline editing: click a cell to edit. Changes save on blur or Enter. Supports text, number, dropdown, and date fields.
+- [x] Create new listing: slide-out panel or modal with all listing fields. Required fields enforced.
+- [x] Quick-create shortcuts: create a new Seller Contact inline without leaving the listing form.
+- [x] Quick-create shortcuts: create a new Project inline without leaving the listing form.
+- [x] Auto-fill from Project Database: when a project is selected, populate zone, BTS, MRT, Google Maps link, and property type automatically.
+- [x] Listing detail page: full-page view of a single listing with all fields, editable.
 
 #### 3.2.3 Listing Table — Organization
 
-- [ ] Group by: Potential Tier, Listing Status, or Project. Toggle between group modes.
-- [ ] Filter: filter by any column or combination of columns. Filter UI using dropdowns, range sliders (price, size), and text search.
-- [ ] Saved Filters: save current filter configuration with a name. Load saved filters from a dropdown. Option to share filters with the team.
-- [ ] Sorting: click column headers to sort ascending/descending.
-- [ ] Potential Tier selection: assign A/B/C/D tier to each listing via inline dropdown. Colors from Potential Config.
-- [ ] Listing Status: change status via inline dropdown. **Status changes trigger a confirmation dialog** before saving (because status changes are tracked).
+- [x] Group by: Potential Tier, Listing Status, or Project. Toggle between group modes.
+- [x] Filter: filter by any column or combination of columns. Filter UI using dropdowns, range sliders (price, size), and text search.
+- [x] Saved Filters: save current filter configuration with a name. Load saved filters from a dropdown. Option to share filters with the team.
+- [x] Sorting: click column headers to sort ascending/descending.
+- [x] Potential Tier selection: assign A/B/C/D tier to each listing via inline dropdown. Colors from Potential Config.
+- [x] Listing Status: change status via inline dropdown. **Status changes trigger a confirmation dialog** before saving (because status changes are tracked).
 
 #### 3.2.4 Listing Table — Flags & Visibility
 
-- [ ] Website Visible toggle: Active/Inactive switch per listing. Controls public website display.
-- [ ] Featured Listing flag: toggle to mark listings for homepage display.
-- [ ] Focus Listing flag: internal priority flag. Visible only in the dashboard.
-- [ ] Exclusive Listing flag: indicates an exclusive agreement exists. Links to agreement record.
-- [ ] Missing Details / Photo flag: automatic visual indicator (icon or badge) when a listing has empty required fields or zero photos.
+- [x] Website Visible toggle: Active/Inactive switch per listing. Controls public website display.
+- [x] Featured Listing flag: toggle to mark listings for homepage display.
+- [x] Focus Listing flag: internal priority flag. Visible only in the dashboard.
+- [x] Exclusive Listing flag: indicates an exclusive agreement exists. Links to agreement record.
+- [x] Missing Details / Photo flag: automatic visual indicator (icon or badge) when a listing has empty required fields or zero photos.
 
 #### 3.2.5 Status & Timeline Tracking
 
-- [ ] Listing Status Timeline: when status changes (after confirmation dialog), log the change in `listing_updates` table with timestamp, old status, new status, and user.
-- [ ] Status timeline visualization on the listing detail page: show all status changes as a vertical timeline with durations (e.g., "Active for 45 days → Reserved for 3 days → Sold").
-- [ ] Days on Market: auto-calculated from the date status was first set to "Active." Displayed as a column in the table.
-- [ ] Price History Tracking: every change to Asking Price or Rental Price is logged. Price history shown as a mini-table or chart on the listing detail page.
+- [x] Listing Status Timeline: when status changes (after confirmation dialog), log the change in `listing_updates` table with timestamp, old status, new status, and user.
+- [x] Status timeline visualization on the listing detail page: show all status changes as a vertical timeline with durations (e.g., "Active for 45 days → Reserved for 3 days → Sold").
+- [x] Days on Market: auto-calculated from the date status was first set to "Active." Displayed as a column in the table.
+- [x] Price History Tracking: every change to Asking Price or Rental Price is logged. Price history shown as a mini-table or chart on the listing detail page.
 
 #### 3.2.6 Photo & Media Management
 
-- [ ] Bulk photo upload: drag-and-drop zone on the listing detail page. Upload multiple photos at once.
-- [ ] Photo gallery: grid view of all listing photos on the detail page.
-- [ ] Drag-and-drop photo reordering: change photo display order by dragging. First photo = cover image.
-- [ ] Photo delete: remove individual photos with confirmation.
-- [ ] Media files section: upload non-photo files (floor plans, documents). Displayed as a file list.
+- [x] Bulk photo upload: drag-and-drop zone on the listing detail page. Upload multiple photos at once.
+- [x] Photo gallery: grid view of all listing photos on the detail page.
+- [x] Drag-and-drop photo reordering: change photo display order by dragging. First photo = cover image.
+- [x] Photo delete: remove individual photos with confirmation.
+- [x] Media files section: upload non-photo files (floor plans, documents). Displayed as a file list.
 - [ ] ~~Watermark generation: option to apply workspace watermark to listing photos. Watermarked versions stored separately.~~ *(Deferred)*
 - [ ] ~~Storage usage display: show total storage used per workspace in settings.~~ *(Deferred)*
 
@@ -275,12 +275,12 @@ Build the listing table following `DESIGN_SYSTEM.md` Section 8.6 (Table Rows & C
 
 Build the comments and activity feed system here as a **reusable, entity-agnostic system** that works for both Listings (now) and Deals (Phase 2).
 
-- [ ] Comment section on the listing detail page (below listing fields, similar to a Notion page).
-- [ ] Rich text comment input (basic formatting: bold, italic, links).
-- [ ] @Mention users: type `@` to see a list of workspace members. Mentioned users receive a notification (Notification table entry). Mentioned users see listing data filtered by their role-based access.
-- [ ] Tag a Contact: type a trigger to search and tag a buyer contact in the comment. Creates a cross-reference.
-- [ ] Tag a Pipeline Stage: option to annotate a comment with a pipeline stage reference (e.g., "Showing completed" note).
-- [ ] Activity Feed on the listing detail page: a chronological log that auto-records:
+- [x] Comment section on the listing detail page (below listing fields, similar to a Notion page).
+- [x] Rich text comment input (basic formatting: bold, italic, links).
+- [x] @Mention users: type `@` to see a list of workspace members. Mentioned users receive a notification (Notification table entry). Mentioned users see listing data filtered by their role-based access.
+- [x] Tag a Contact: type a trigger to search and tag a buyer contact in the comment. Creates a cross-reference.
+- [x] Tag a Pipeline Stage: option to annotate a comment with a pipeline stage reference (e.g., "Showing completed" note).
+- [x] Activity Feed on the listing detail page: a chronological log that auto-records:
   - Listing created
   - Field edited (which field, old value → new value)
   - Status changed
@@ -288,59 +288,59 @@ Build the comments and activity feed system here as a **reusable, entity-agnosti
   - Comment added
   - User mentioned
   - Contact tagged
-- [ ] Activity Feed entries stored in the `activity_logs` table.
-- [ ] Activity Feed UI: filterable by activity type (e.g., show only status changes, or only comments).
+- [x] Activity Feed entries stored in the `activity_logs` table.
+- [x] Activity Feed UI: filterable by activity type (e.g., show only status changes, or only comments).
 
 #### 3.2.8 Cross-Module Insights (Read-Only Previews)
 
 These features display data from the CRM (Phase 2). In Phase 1, build the UI placeholders and the database queries. They will populate with real data once Phase 2 is complete.
 
-- [ ] Linked Deal Counter: on the listing detail page, show the count of active Deals where the buyer contact's requirements match this listing. Clicking shows the matched contacts. (In Phase 1, this shows "0" or a placeholder until CRM data exists.)
-- [ ] Pipeline Stage Count: on the listing detail page, show a summary bar of buyer-side activity (Units Sent: X, Showings: X, Negotiations: X). (Placeholder until Phase 2.)
+- [x] Linked Deal Counter: on the listing detail page, show the count of active Deals where the buyer contact's requirements match this listing. Clicking shows the matched contacts. (In Phase 1, this shows "0" or a placeholder until CRM data exists.)
+- [x] Pipeline Stage Count: on the listing detail page, show a summary bar of buyer-side activity (Units Sent: X, Showings: X, Negotiations: X). (Placeholder until Phase 2.)
 
 #### 3.2.9 Exclusive Agreements
 
-- [ ] Exclusive Agreement section on the listing detail page (when Exclusive flag = true).
-- [ ] Create/edit agreement: start date, end date, commission rate/type, upload signed document (`agreement_file_url` — secured in private `agreements` bucket), notes.
-- [ ] Agreement status tracking: Active, Expired, Renewed, Cancelled.
-- [ ] Renewal flow: create a new agreement linked to the previous one, increment renewal count.
-- [ ] Expiry reminder: configurable "reminder X days before expiry" — creates a notification when triggered.
+- [x] Exclusive Agreement section on the listing detail page (when Exclusive flag = true).
+- [x] Create/edit agreement: start date, end date, commission rate/type, upload signed document (`agreement_file_url` — secured in private `agreements` bucket), notes.
+- [x] Agreement status tracking: Active, Expired, Renewed, Cancelled.
+- [x] Renewal flow: create a new agreement linked to the previous one, increment renewal count.
+- [x] Expiry reminder: configurable "reminder X days before expiry" — creates a notification when triggered.
 
 #### 3.2.10 Listing Copy Generation
 
-- [ ] Auto-generated listing copy: button on the listing detail page that generates a marketing description from a template using listing fields (property type, location, size, bedrooms, price, features, nearby transport).
-- [ ] Template is a simple string template (not AI-generated — AI copy comes in Phase 4). Agent can edit the generated copy.
+- [x] Auto-generated listing copy: button on the listing detail page that generates a marketing description from a template using listing fields (property type, location, size, bedrooms, price, features, nearby transport).
+- [x] Template is a simple string template (not AI-generated — AI copy comes in Phase 4). Agent can edit the generated copy.
 
 #### 3.2.11 Archive
 
-- [ ] Archive listing action (instead of delete). Moves listing out of active views.
-- [ ] "Show archived" toggle in the listing table to view/restore archived listings.
-- [ ] Restore from archive action.
+- [x] Archive listing action (instead of delete). Moves listing out of active views.
+- [x] "Show archived" toggle in the listing table to view/restore archived listings.
+- [x] Restore from archive action.
 
 ### 3.3 Validation Checklist
 
 After Phase 1 is complete, manually verify:
 
-- [ ] Can create a new project with all fields.
-- [ ] Can create a new listing, selecting a project and auto-filling shared fields.
-- [ ] Can create a seller contact inline from the listing form.
-- [ ] Listing table displays with all configured columns.
-- [ ] Can inline-edit any field and changes persist on blur.
-- [ ] Can group by Potential Tier, Status, and Project.
-- [ ] Can filter by price range, zone, bedrooms, status, and property type.
-- [ ] Can save a filter, reload the page, and re-apply it.
-- [ ] Changing listing status triggers the confirmation dialog and logs the change.
-- [ ] Status timeline on the detail page shows all historical status changes.
-- [ ] Days on Market calculates correctly from the first Active date.
-- [ ] Changing Asking Price logs the old price in price history.
-- [ ] Can upload 5+ photos via drag-and-drop and reorder them by dragging.
-- [ ] First photo displays as cover image in the listing table row.
-- [ ] Missing details flag appears when required fields are empty.
-- [ ] Missing photo flag appears when a listing has zero photos.
-- [ ] Can write a comment, @mention a user, and the mentioned user sees a notification.
-- [ ] Activity feed shows all listing events in chronological order.
-- [ ] Can create an exclusive agreement with file upload.
-- [ ] Can archive a listing and restore it.
+- [x] Can create a new project with all fields.
+- [x] Can create a new listing, selecting a project and auto-filling shared fields.
+- [x] Can create a seller contact inline from the listing form.
+- [x] Listing table displays with all configured columns.
+- [x] Can inline-edit any field and changes persist on blur.
+- [x] Can group by Potential Tier, Status, and Project.
+- [x] Can filter by price range, zone, bedrooms, status, and property type.
+- [x] Can save a filter, reload the page, and re-apply it.
+- [x] Changing listing status triggers the confirmation dialog and logs the change.
+- [x] Status timeline on the detail page shows all historical status changes.
+- [x] Days on Market calculates correctly from the first Active date.
+- [x] Changing Asking Price logs the old price in price history.
+- [x] Can upload 5+ photos via drag-and-drop and reorder them by dragging.
+- [x] First photo displays as cover image in the listing table row.
+- [x] Missing details flag appears when required fields are empty.
+- [x] Missing photo flag appears when a listing has zero photos.
+- [x] Can write a comment, @mention a user, and the mentioned user sees a notification.
+- [x] Activity feed shows all listing events in chronological order.
+- [x] Can create an exclusive agreement with file upload.
+- [x] Can archive a listing and restore it.
 - [ ] RLS verified: Co-Worker can only see/edit their own listings (or all, depending on role definition). Listing Support can see listings but not CRM data.
 
 ---
@@ -358,16 +358,16 @@ After Phase 1 is complete, manually verify:
 
 #### 4.2.1 Contact Management
 
-- [ ] Contacts page in the dashboard: data table with all contact fields.
-- [ ] Create new contact form: all fields from the Contact Table schema. Contact Type multi-select (Buyer, Seller, Both, Referrer).
-- [ ] Contact detail page: full view of all contact information, editable.
-- [ ] Buyer requirements section on contact detail page: dedicated fields for budget, preferred zones, property type, size range, floor range, facilities, pet/EV/parking, pain points, timeline, financing, pre-approval.
-- [ ] Contact Source tracking: dropdown selection on create/edit.
-- [ ] Referral chain: "Referred By" field links to another contact. Visual display of referral chain on detail page.
-- [ ] Contact Status management: Active, On Hold, Closed Won, Closed Lost, Unqualified, Reactivate.
-- [ ] Contact Details Completeness Score: visual progress indicator showing what percentage of profile fields are filled.
-- [ ] Duplicate Contact Detection: on creating a new contact, check for existing contacts with matching phone number, email, or name + phone combination. Display a warning with option to merge or proceed.
-- [ ] Contact archive and restore (same pattern as listings).
+- [x] Contacts page in the dashboard: data table with all contact fields.
+- [x] Create new contact form: all fields from the Contact Table schema. Contact Type multi-select (Buyer, Seller, Both, Referrer).
+- [x] Contact detail page: full view of all contact information, editable.
+- ~~Buyer requirements section on contact detail page~~ — **Moved to Deal** (see §4.2.2). A contact can have multiple simultaneous buy-side deals with different requirements.
+- [x] Contact Source tracking: dropdown selection on create/edit.
+- [x] Referral chain: "Referred By" field links to another contact. Visual display of referral chain on detail page.
+- [x] Contact Status management: Active, On Hold, Closed Won, Closed Lost, Unqualified, Reactivate.
+- [x] Contact Details Completeness Score: visual progress indicator showing what percentage of profile fields are filled.
+- [x] Duplicate Contact Detection: on creating a new contact, check for existing contacts with matching phone number, email, or name + phone combination. Display a warning with option to merge or proceed.
+- [x] Contact archive and restore (same pattern as listings).
 
 #### 4.2.2 Deal Management
 
@@ -375,6 +375,7 @@ After Phase 1 is complete, manually verify:
 - [ ] Create new deal: creates a Contact (if new) + Deal record in one action. Deal is auto-placed in the first pipeline stage.
 - [ ] Deal auto-naming: auto-generate deal name from contact name + listing/project name + deal type (e.g., "Somchai — Ideo Q Siam — Sell"). Editable.
 - [ ] Deal detail page: all deal fields, linked contact info, linked listing info, pipeline stage, status, value tracking.
+- [ ] Buyer Requirements section on deal detail page (buy-side deals only): budget, preferred zones, property type, size range, floor range, facilities, pet/EV/parking, pain points, timeline, purpose of purchase, financing, pre-approval. One contact can have multiple buy-side deals, each with different requirements.
 - [ ] Deal table: data table with inline editing, same UX patterns as the listing table.
 - [ ] Customizable columns and rows (same column config memory system as listings).
 - [ ] Group by: Potential Tier, Deal Status, Pipeline Stage.
@@ -425,7 +426,7 @@ Build a shared engine that serves both Listings and CRM.
 
 #### 4.2.7 Smart Matching (Basic)
 
-- [ ] When a listing is created or updated, check for buyer contacts whose requirements match (zone, budget range, property type, bedrooms, size range).
+- [ ] When a listing is created or updated, check for buy-side deals whose buyer requirements match (zone, budget range, property type, bedrooms, size range).
 - [ ] Store matches in `listing_contact_matches` with a match score and matched fields.
 - [ ] Linked Deal Counter on listing detail page (built as placeholder in Phase 1) now populates with real data.
 - [ ] Smart Match notification: when a new match is found, notify the assigned agent.
@@ -441,7 +442,7 @@ Build a shared engine that serves both Listings and CRM.
 
 After Phase 2 is complete, manually verify:
 
-- [ ] Can create a new contact with all fields including buyer requirements.
+- [ ] Can create a new contact with all fields (buyer requirements are on Deal, not Contact).
 - [ ] Duplicate detection triggers when creating a contact with an existing phone number.
 - [ ] Completeness score updates as fields are filled in.
 - [ ] Can create a new deal from the CRM page (auto-creates contact if needed).

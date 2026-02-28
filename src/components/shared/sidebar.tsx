@@ -30,19 +30,19 @@ const mainNavItems = [
         label: "Listings",
         href: "/listings",
         icon: Building2,
-        phase: "Phase 1",
+        phase: null,
     },
     {
         label: "CRM",
         href: "/crm",
         icon: Users,
-        phase: "Phase 2",
+        phase: null,
     },
     {
         label: "Projects",
         href: "/projects",
         icon: FolderOpen,
-        phase: "Phase 1",
+        phase: null,
     },
 ];
 
@@ -76,9 +76,16 @@ const configNavItems = [
     },
 ];
 
+interface NavItem {
+    label: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+    phase: string | null;
+}
+
 interface NavSectionProps {
     label: string;
-    items: typeof mainNavItems;
+    items: NavItem[];
     pathname: string;
     collapsed: boolean;
 }
