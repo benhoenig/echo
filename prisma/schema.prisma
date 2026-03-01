@@ -674,6 +674,29 @@ model Deal {
   notes               String?        @db.Text
   assignedToId        String?        @map("assigned_to_id") @db.Uuid
   lastActionDate      DateTime?      @map("last_action_date")
+
+  // Buyer requirements (only applicable for BUY_SIDE deals)
+  budgetMin             Float?           @map("budget_min")
+  budgetMax             Float?           @map("budget_max")
+  preferredZoneIds      String[]         @map("preferred_zone_ids")
+  preferredPropertyType PropertyType[]   @map("preferred_property_type")
+  preferredBedrooms     Int?             @map("preferred_bedrooms")
+  preferredSizeMin      Float?           @map("preferred_size_min")
+  preferredSizeMax      Float?           @map("preferred_size_max")
+  preferredFloorMin     Int?             @map("preferred_floor_min")
+  preferredFloorMax     Int?             @map("preferred_floor_max")
+  preferredFacilities   String[]         @map("preferred_facilities")
+  hasPet                Boolean?         @map("has_pet")
+  hasEvCar              Boolean?         @map("has_ev_car")
+  parkingSlotsNeeded    Int?             @map("parking_slots_needed")
+  painPoints            String?          @map("pain_points") @db.Text
+  specialRequirements   String?          @map("special_requirements") @db.Text
+  timeline              Timeline?
+  purposeOfPurchase     PurchasePurpose? @map("purpose_of_purchase")
+  financingMethod       FinancingMethod? @map("financing_method")
+  preApprovedAmount     Float?           @map("pre_approved_amount")
+  preApprovalExpiryDate DateTime?        @map("pre_approval_expiry_date") @db.Date
+
   archived            Boolean        @default(false)
 
   createdAt       DateTime @default(now()) @map("created_at")

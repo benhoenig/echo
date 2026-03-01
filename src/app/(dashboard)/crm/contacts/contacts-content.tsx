@@ -20,6 +20,7 @@ import { CreateContactSheet } from "./create-contact-sheet";
 import { restoreContact, archiveContact } from "./contact-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { CrmSubNav } from "../crm-sub-nav";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ContactRow = any;
@@ -124,6 +125,7 @@ export function ContactsContent({
 
     return (
         <div className="space-y-4">
+            <CrmSubNav />
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>

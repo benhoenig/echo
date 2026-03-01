@@ -450,7 +450,11 @@ export function ContactsDataTable({
         data,
         columns,
         state: { sorting, columnFilters, grouping, expanded: true },
-        onSortingChange: setSorting,
+        onSortingChange: (updater) => {
+            const newSorting =
+                typeof updater === "function" ? updater(sorting) : updater;
+            queueMicrotask(() => setSorting(newSorting));
+        },
         onColumnFiltersChange: (updater) => {
             const newFilters: ColumnFiltersState =
                 typeof updater === "function"
