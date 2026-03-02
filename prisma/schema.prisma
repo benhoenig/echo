@@ -667,6 +667,7 @@ model Deal {
   pipelineStageId     String         @map("pipeline_stage_id") @db.Uuid
   dealStatus          DealStatus     @default(ACTIVE) @map("deal_status")
   closedLostReason    String?        @map("closed_lost_reason")
+  potentialTier       PotentialTierValue? @map("potential_tier")
   leadSource          ContactSource? @map("lead_source")
   estimatedDealValue  Float?         @map("estimated_deal_value")
   commissionRate      Float?         @map("commission_rate")

@@ -137,6 +137,40 @@ export function DealsFilterBar({
                 </SelectContent>
             </Select>
 
+            {/* Potential Tier */}
+            <Select
+                value={
+                    getFilterValue(columnFilters, "potential_display") ??
+                    "__all__"
+                }
+                onValueChange={(v) =>
+                    onColumnFiltersChange(
+                        setFilter(columnFilters, "potential_display", v)
+                    )
+                }
+            >
+                <SelectTrigger className="w-[120px] h-8 text-xs">
+                    <SelectValue placeholder="Tier" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="__all__" className="text-xs">
+                        All Tiers
+                    </SelectItem>
+                    <SelectItem value="A" className="text-xs">
+                        Tier A
+                    </SelectItem>
+                    <SelectItem value="B" className="text-xs">
+                        Tier B
+                    </SelectItem>
+                    <SelectItem value="C" className="text-xs">
+                        Tier C
+                    </SelectItem>
+                    <SelectItem value="D" className="text-xs">
+                        Tier D
+                    </SelectItem>
+                </SelectContent>
+            </Select>
+
             {/* Clear */}
             {hasFilters && (
                 <Button

@@ -12,18 +12,35 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Layers, Archive } from "lucide-react";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+    Plus,
+    Search,
+    Layers,
+    Archive,
+    Bookmark,
+    BookmarkPlus,
+    Trash2,
+} from "lucide-react";
 import type { ColumnFiltersState, GroupingState } from "@tanstack/react-table";
 import { DealsDataTable } from "./deals-data-table";
 import { DealsFilterBar } from "./deals-filter-bar";
 import { CreateDealSheet } from "./create-deal-sheet";
 import { restoreDeal } from "./deal-actions";
+import { createSavedFilter, deleteSavedFilter } from "./saved-filter-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CrmSubNav } from "../crm-sub-nav";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealRow = any;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SavedFilter = any;
 
 interface PipelineStage {
     id: string;
@@ -38,9 +55,14 @@ interface DealsContentProps {
     initialDeals: DealRow[];
     archivedDeals: DealRow[];
     pipelineStages: PipelineStage[];
-    contacts: Array<{ id: string; name: string; contactType: string[] | null }>;
+    contacts: Array<{
+        id: string;
+        name: string;
+        contactType: string[] | null;
+    }>;
     agents: Array<{ id: string; name: string }>;
     listings: Array<{ id: string; name: string }>;
+    savedFilters: SavedFilter[];
     workspaceId: string;
     userId: string;
 }
@@ -59,6 +81,7 @@ export function DealsContent({
     contacts,
     agents,
     listings,
+    savedFilters,
     workspaceId,
     userId,
 }: DealsContentProps) {
@@ -67,15 +90,24 @@ export function DealsContent({
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [grouping, setGrouping] = useState<GroupingState>([]);
     const [showArchived, setShowArchived] = useState(false);
-    const [dealTypeFilter, setDealTypeFilter] = useState<"ALL" | "BUY_SIDE" | "SELL_SIDE">("ALL");
+    const [dealTypeFilter, setDealTypeFilter] = useState<
+        "ALL" | "BUY_SIDE" | "SELL_SIDE"
+    >("ALL");
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
+
+    // Saved filters state
+    const [saveFilterOpen, setSaveFilterOpen] = useState(false);
+    const [newFilterName, setNewFilterName] = useState("");
+    const [newFilterShared, setNewFilterShared] = useState(false);
 
     const activeData = showArchived ? archivedDeals : initialDeals;
 
     const filteredByType = useMemo(() => {
         if (dealTypeFilter === "ALL") return activeData;
-        return activeData.filter((d: DealRow) => d.deal_type === dealTypeFilter);
+        return activeData.filter(
+            (d: DealRow) => d.deal_type === dealTypeFilter
+        );
     }, [activeData, dealTypeFilter]);
 
     const filteredDeals = useMemo(() => {
@@ -84,18 +116,10 @@ export function DealsContent({
         return filteredByType.filter(
             (d: DealRow) =>
                 d.deal_name?.toLowerCase().includes(q) ||
-                d.buyer_contact?.first_name
-                    ?.toLowerCase()
-                    .includes(q) ||
-                d.buyer_contact?.last_name
-                    ?.toLowerCase()
-                    .includes(q) ||
-                d.seller_contact?.first_name
-                    ?.toLowerCase()
-                    .includes(q) ||
-                d.seller_contact?.last_name
-                    ?.toLowerCase()
-                    .includes(q)
+                d.buyer_contact?.first_name?.toLowerCase().includes(q) ||
+                d.buyer_contact?.last_name?.toLowerCase().includes(q) ||
+                d.seller_contact?.first_name?.toLowerCase().includes(q) ||
+                d.seller_contact?.last_name?.toLowerCase().includes(q)
         );
     }, [filteredByType, search]);
 
@@ -120,6 +144,68 @@ export function DealsContent({
             }
         });
     }
+
+    function loadSavedFilter(filter: SavedFilter) {
+        const config = filter.filter_config;
+        if (config.columnFilters) setColumnFilters(config.columnFilters);
+        if (config.dealTypeFilter) setDealTypeFilter(config.dealTypeFilter);
+        if (config.grouping) setGrouping(config.grouping);
+        toast.success(`Loaded filter "${filter.filter_name}"`);
+    }
+
+    function handleSaveFilter() {
+        if (!newFilterName.trim()) {
+            toast.error("Filter name is required.");
+            return;
+        }
+
+        startTransition(async () => {
+            try {
+                await createSavedFilter(
+                    workspaceId,
+                    newFilterName.trim(),
+                    {
+                        columnFilters,
+                        dealTypeFilter,
+                        grouping,
+                    },
+                    newFilterShared
+                );
+                toast.success("Filter saved.");
+                setNewFilterName("");
+                setNewFilterShared(false);
+                setSaveFilterOpen(false);
+                router.refresh();
+            } catch (error) {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to save filter."
+                );
+            }
+        });
+    }
+
+    function handleDeleteFilter(filterId: string, filterName: string) {
+        startTransition(async () => {
+            try {
+                await deleteSavedFilter(filterId);
+                toast.success(`Deleted filter "${filterName}"`);
+                router.refresh();
+            } catch (error) {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to delete filter."
+                );
+            }
+        });
+    }
+
+    const hasActiveFilters =
+        columnFilters.length > 0 ||
+        dealTypeFilter !== "ALL" ||
+        grouping.length > 0;
 
     return (
         <div className="space-y-4">
@@ -218,14 +304,141 @@ export function DealsContent({
                 </Select>
             </div>
 
-            {/* Filter Bar */}
-            <DealsFilterBar
-                data={filteredDeals}
-                columnFilters={columnFilters}
-                onColumnFiltersChange={setColumnFilters}
-                pipelineStages={pipelineStages}
-                dealTypeFilter={dealTypeFilter}
-            />
+            {/* Filter Bar + Saved Filters */}
+            <div className="flex items-center gap-3">
+                <DealsFilterBar
+                    data={filteredDeals}
+                    columnFilters={columnFilters}
+                    onColumnFiltersChange={setColumnFilters}
+                    pipelineStages={pipelineStages}
+                    dealTypeFilter={dealTypeFilter}
+                />
+
+                <div className="flex items-center gap-1 ml-auto">
+                    {/* Load saved filter */}
+                    {savedFilters.length > 0 && (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs"
+                                >
+                                    <Bookmark className="w-3.5 h-3.5 mr-1" />
+                                    Saved
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                className="w-64 p-2"
+                            >
+                                <div className="space-y-1">
+                                    <p className="text-xs font-medium text-muted-foreground px-2 py-1">
+                                        Saved Filters
+                                    </p>
+                                    {savedFilters.map(
+                                        (sf: SavedFilter) => (
+                                            <div
+                                                key={sf.id}
+                                                className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 group"
+                                            >
+                                                <button
+                                                    className="text-xs text-left flex-1 truncate"
+                                                    onClick={() =>
+                                                        loadSavedFilter(sf)
+                                                    }
+                                                >
+                                                    {sf.filter_name}
+                                                    {sf.is_shared && (
+                                                        <span className="text-muted-foreground ml-1">
+                                                            (shared)
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() =>
+                                                        handleDeleteFilter(
+                                                            sf.id,
+                                                            sf.filter_name
+                                                        )
+                                                    }
+                                                >
+                                                    <Trash2 className="w-3 h-3 text-muted-foreground" />
+                                                </Button>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    )}
+
+                    {/* Save current filter */}
+                    {hasActiveFilters && (
+                        <Popover
+                            open={saveFilterOpen}
+                            onOpenChange={setSaveFilterOpen}
+                        >
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 text-xs"
+                                >
+                                    <BookmarkPlus className="w-3.5 h-3.5 mr-1" />
+                                    Save Filter
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                className="w-64 p-3"
+                            >
+                                <div className="space-y-3">
+                                    <p className="text-xs font-medium">
+                                        Save Current Filter
+                                    </p>
+                                    <Input
+                                        placeholder="Filter name..."
+                                        value={newFilterName}
+                                        onChange={(e) =>
+                                            setNewFilterName(e.target.value)
+                                        }
+                                        className="h-8 text-xs"
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter")
+                                                handleSaveFilter();
+                                        }}
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <Switch
+                                            checked={newFilterShared}
+                                            onCheckedChange={setNewFilterShared}
+                                            id="filter-shared"
+                                        />
+                                        <Label
+                                            htmlFor="filter-shared"
+                                            className="text-xs text-muted-foreground"
+                                        >
+                                            Share with team
+                                        </Label>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        className="w-full h-8 text-xs"
+                                        onClick={handleSaveFilter}
+                                        disabled={isPending}
+                                    >
+                                        Save
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                </div>
+            </div>
 
             {/* Data Table */}
             {filteredDeals.length === 0 && columnFilters.length === 0 ? (

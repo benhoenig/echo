@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { PrismaClient, PlanTier, UserRole, PipelineType, ReminderType, PlaybookActionType, PropertyType, ListingType, ListingGrade, ListingStatus, ContactSource, ContactStatus, DealType, DealStatus, Timeline, PurchasePurpose, FinancingMethod } from '@prisma/client'
+import { PrismaClient, PlanTier, UserRole, PipelineType, ReminderType, PlaybookActionType, PropertyType, ListingType, ListingGrade, ListingStatus, ContactSource, ContactStatus, DealType, DealStatus, Timeline, PurchasePurpose, FinancingMethod, PotentialTierValue } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -498,6 +498,7 @@ async function main() {
             listingId: null,
             pipelineStageId: buyerStages[3].id, // Showing
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.A,
             leadSource: ContactSource.LINE,
             estimatedDealValue: 6000000,
             commissionRate: 3,
@@ -536,6 +537,7 @@ async function main() {
             listingId: listings[3].id, // Ashton Asoke 2BR Park View
             pipelineStageId: buyerStages[4].id, // Negotiation
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.A,
             leadSource: ContactSource.WEBSITE,
             estimatedDealValue: 15500000,
             commissionRate: 3,
@@ -573,6 +575,7 @@ async function main() {
             listingId: listings[9].id, // Townhouse Sukhumvit 71
             pipelineStageId: buyerStages[2].id, // Unit Sent
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.B,
             leadSource: ContactSource.REFERRAL,
             estimatedDealValue: 12000000,
             commissionRate: 3,
@@ -610,6 +613,7 @@ async function main() {
             listingId: null,
             pipelineStageId: buyerStages[1].id, // Requirement
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.C,
             leadSource: ContactSource.FACEBOOK,
             estimatedDealValue: 5500000,
             commissionRate: 3,
@@ -647,6 +651,7 @@ async function main() {
             listingId: null,
             pipelineStageId: buyerStages[0].id, // Inquiry
             dealStatus: DealStatus.ON_HOLD,
+            potentialTier: PotentialTierValue.D,
             leadSource: ContactSource.COLD_CALL,
             estimatedDealValue: 3500000,
             commissionRate: 3,
@@ -686,6 +691,7 @@ async function main() {
             listingId: listings[0].id, // Ideo Q Siam 1BR High Floor
             pipelineStageId: sellerStages[2].id, // Active
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.B,
             leadSource: ContactSource.WALK_IN,
             estimatedDealValue: 5200000,
             commissionRate: 3,
@@ -703,6 +709,7 @@ async function main() {
             listingId: listings[5].id, // Noble Revo Studio
             pipelineStageId: sellerStages[1].id, // Pricing
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.C,
             leadSource: ContactSource.REFERRAL,
             estimatedDealValue: 3500000,
             commissionRate: 3,
@@ -720,6 +727,7 @@ async function main() {
             listingId: listings[3].id, // Ashton Asoke 2BR Park View
             pipelineStageId: sellerStages[3].id, // Offer Received
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.A,
             leadSource: ContactSource.WEBSITE,
             estimatedDealValue: 15500000,
             commissionRate: 3,
@@ -737,6 +745,7 @@ async function main() {
             listingId: listings[6].id, // Noble Revo 1BR (SOLD)
             pipelineStageId: sellerStages[4].id, // Closed
             dealStatus: DealStatus.CLOSED_WON,
+            potentialTier: PotentialTierValue.A,
             leadSource: ContactSource.LINE,
             estimatedDealValue: 4800000,
             commissionRate: 3,
@@ -754,6 +763,7 @@ async function main() {
             listingId: listings[7].id, // The Line PP 1BR
             pipelineStageId: sellerStages[0].id, // Listing Received
             dealStatus: DealStatus.ACTIVE,
+            potentialTier: PotentialTierValue.B,
             leadSource: ContactSource.FACEBOOK,
             estimatedDealValue: 5500000,
             commissionRate: 3,
@@ -778,6 +788,7 @@ async function main() {
                 listingId: deal.listingId ?? null,
                 pipelineStageId: deal.pipelineStageId,
                 dealStatus: deal.dealStatus,
+                potentialTier: (deal as any).potentialTier ?? null,
                 leadSource: deal.leadSource ?? null,
                 estimatedDealValue: deal.estimatedDealValue ?? null,
                 commissionRate: deal.commissionRate ?? null,

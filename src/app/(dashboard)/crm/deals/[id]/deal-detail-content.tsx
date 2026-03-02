@@ -128,6 +128,7 @@ export function DealDetailContent({
     const [closedLostReason, setClosedLostReason] = useState(
         deal.closed_lost_reason ?? ""
     );
+    const [potentialTier, setPotentialTier] = useState(deal.potential_tier ?? "");
     const [leadSource, setLeadSource] = useState(deal.lead_source ?? "");
     const [estimatedValue, setEstimatedValue] = useState(
         deal.estimated_deal_value?.toString() ?? ""
@@ -270,6 +271,11 @@ export function DealDetailContent({
             return;
         }
 
+        if (dealStatus === "CLOSED_LOST" && !closedLostReason.trim()) {
+            toast.error("Closed lost reason is required when status is Closed Lost.");
+            return;
+        }
+
         const estValue = estimatedValue ? parseFloat(estimatedValue) : null;
         const commRate = commissionRate ? parseFloat(commissionRate) : null;
         const estCommission =
@@ -289,6 +295,7 @@ export function DealDetailContent({
                         dealStatus === "CLOSED_LOST"
                             ? closedLostReason.trim() || null
                             : null,
+                    potential_tier: potentialTier || null,
                     lead_source: leadSource || null,
                     estimated_deal_value: estValue,
                     commission_rate: commRate,
@@ -710,6 +717,36 @@ export function DealDetailContent({
                                     placeholder="e.g. 3"
                                     className="font-mono tabular-nums"
                                 />
+                            </div>
+
+                            {/* Potential Tier */}
+                            <div className="space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">
+                                    Potential Tier
+                                </Label>
+                                <Select
+                                    value={potentialTier}
+                                    onValueChange={setPotentialTier}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select tier..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[
+                                            { value: "A", label: "A — Hot" },
+                                            { value: "B", label: "B — Warm" },
+                                            { value: "C", label: "C — Cool" },
+                                            { value: "D", label: "D — Cold" },
+                                        ].map((opt) => (
+                                            <SelectItem
+                                                key={opt.value}
+                                                value={opt.value}
+                                            >
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             {/* Lead Source */}

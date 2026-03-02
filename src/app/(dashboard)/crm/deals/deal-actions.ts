@@ -234,6 +234,105 @@ export async function updateDealStage(
     revalidatePath(`/crm/deals/${dealId}`);
 }
 
+// Whitelist of fields that can be updated inline from the data table
+const INLINE_EDITABLE_FIELDS = new Set([
+    "deal_status",
+    "potential_tier",
+    "estimated_deal_value",
+    "commission_rate",
+    "pipeline_stage_id",
+    "closed_lost_reason",
+]);
+
+export async function updateDealField(
+    dealId: string,
+    field: string,
+    value: unknown
+): Promise<void> {
+    if (!INLINE_EDITABLE_FIELDS.has(field)) {
+        throw new Error(`Field "${field}" is not inline-editable.`);
+    }
+
+    const supabase = await createClient();
+    const authUserId = await getAuthUserId();
+
+    let internalUserId: string | null = null;
+    if (authUserId) {
+        const { data: userRec } = await supabase
+            .from("users")
+            .select("id")
+            .eq("auth_uid", authUserId)
+            .single();
+        internalUserId = userRec?.id ?? null;
+    }
+
+    // Fetch current value for change logging
+    const { data: current, error: fetchError } = await supabase
+        .from("deals")
+        .select("*")
+        .eq("id", dealId)
+        .single();
+
+    if (fetchError || !current) throw new Error(fetchError?.message ?? "Deal not found");
+
+    const oldValue = current[field as keyof typeof current];
+    if (String(oldValue ?? "") === String(value ?? "")) return;
+
+    const updatePayload: Record<string, unknown> = {
+        [field]: value,
+        last_updated_by_id: internalUserId,
+    };
+
+    // Auto-calculate commission when value or rate changes
+    if (field === "estimated_deal_value") {
+        const rate = current.commission_rate;
+        if (rate != null && value != null) {
+            updatePayload.estimated_commission = (value as number) * (rate / 100);
+        }
+    } else if (field === "commission_rate") {
+        const dealValue = current.estimated_deal_value;
+        if (dealValue != null && value != null) {
+            updatePayload.estimated_commission = dealValue * ((value as number) / 100);
+        }
+    }
+
+    // Handle pipeline stage change — record history
+    if (field === "pipeline_stage_id" && oldValue !== value) {
+        const { error: historyError } = await supabase
+            .from("pipeline_stage_history")
+            .insert({
+                deal_id: dealId,
+                from_stage_id: oldValue as string,
+                to_stage_id: value as string,
+                changed_by_id: internalUserId,
+            });
+        if (historyError) {
+            console.error("Failed to log stage history:", historyError.message);
+        }
+    }
+
+    const { error } = await supabase
+        .from("deals")
+        .update(updatePayload)
+        .eq("id", dealId);
+
+    if (error) throw new Error(error.message);
+
+    const actionType = field === "pipeline_stage_id" ? "STAGE_CHANGED" : "UPDATED";
+    await logActivity({
+        workspaceId: current.workspace_id,
+        entityType: "DEAL",
+        entityId: dealId,
+        actionType,
+        actorUserId: internalUserId,
+        description: `Changed ${field.replace(/_/g, " ")} from "${oldValue ?? "—"}" to "${value ?? "—"}"`,
+        metadata: { field, oldValue, newValue: value },
+    });
+
+    revalidatePath("/crm/deals");
+    revalidatePath(`/crm/deals/${dealId}`);
+}
+
 export async function archiveDeal(id: string) {
     const supabase = await createClient();
     const authUserId = await getAuthUserId();

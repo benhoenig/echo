@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/queries";
 import { getDeals, getArchivedDeals } from "./deal-actions";
+import { getSavedFilters } from "./saved-filter-actions";
 import { DealsContent } from "./deals-content";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -8,9 +9,10 @@ export default async function DealsPage() {
     const user = await getCurrentUser();
     if (!user) redirect("/login");
 
-    const [deals, archivedDeals, rawStages, rawContacts] = await Promise.all([
+    const [deals, archivedDeals, savedFilters, rawStages, rawContacts] = await Promise.all([
         getDeals(user.workspace_id),
         getArchivedDeals(user.workspace_id),
+        getSavedFilters(user.workspace_id),
         prisma.pipelineStage.findMany({
             where: { workspaceId: user.workspace_id, isActive: true },
             orderBy: { stageOrder: "asc" },
@@ -87,6 +89,7 @@ export default async function DealsPage() {
             contacts={contacts}
             agents={agents}
             listings={listings}
+            savedFilters={savedFilters}
             workspaceId={user.workspace_id}
             userId={user.id}
         />
