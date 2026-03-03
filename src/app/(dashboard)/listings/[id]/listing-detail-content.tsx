@@ -61,6 +61,7 @@ interface ListingDetailContentProps {
     updates: ListingUpdate[];
     agents: { id: string; name: string }[];
     contacts: { id: string; name: string }[];
+    followUpNode?: React.ReactNode;
     commentsNode?: React.ReactNode;
     activityFeedNode?: React.ReactNode;
 }
@@ -70,6 +71,7 @@ export function ListingDetailContent({
     updates,
     agents,
     contacts,
+    followUpNode,
     commentsNode,
     activityFeedNode
 }: ListingDetailContentProps) {
@@ -587,6 +589,13 @@ export function ListingDetailContent({
                     currentAskingPrice={listing.asking_price}
                     currentRentalPrice={listing.rental_price}
                 />
+
+                {/* Follow-Up Status */}
+                {followUpNode && (
+                    <Section title="Follow-Up Status">
+                        {followUpNode}
+                    </Section>
+                )}
 
                 {/* Comments */}
                 <Section title="Comments">

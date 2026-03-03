@@ -193,6 +193,7 @@ export async function updateListing(
         ...formData,
         last_updated_at: new Date().toISOString(),
         last_updated_by_id: userId,
+        last_action_date: new Date().toISOString(),
     };
 
     // Track status changes
@@ -306,6 +307,7 @@ export async function updateListingField(
         [field]: value,
         last_updated_at: new Date().toISOString(),
         last_updated_by_id: userId,
+        last_action_date: new Date().toISOString(),
     };
 
     // Handle status change specifics

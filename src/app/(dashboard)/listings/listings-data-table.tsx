@@ -25,6 +25,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -630,6 +631,45 @@ function getColumns(): ColumnDef<ListingRow>[] {
             },
         },
         {
+            id: "last_action",
+            header: "Last Action",
+            cell: ({ row }) => {
+                const lastAction = row.original.last_action_date;
+                const createdAt = row.original.created_at;
+                const grade = row.original.listing_grade;
+
+                if (!grade) {
+                    return <span className="text-xs text-muted-foreground">—</span>;
+                }
+
+                const gradeIntervals: Record<string, number> = { A: 3, B: 7, C: 14, D: 30 };
+                const interval = gradeIntervals[grade] ?? 14;
+
+                const baseline = lastAction ? new Date(lastAction) : new Date(createdAt);
+                const daysSince = Math.floor((Date.now() - baseline.getTime()) / (1000 * 60 * 60 * 24));
+                const daysUntilDue = interval - daysSince;
+
+                let badgeClass: string;
+                if (daysUntilDue < 0) {
+                    badgeClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                } else if (daysUntilDue <= 1) {
+                    badgeClass = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+                } else {
+                    badgeClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+                }
+
+                return (
+                    <div className="flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 text-muted-foreground" strokeWidth={1.75} />
+                        <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 font-medium tabular-nums ${badgeClass}`}>
+                            {daysSince}d ago
+                        </Badge>
+                    </div>
+                );
+            },
+            size: 100,
+        },
+        {
             id: "featured",
             header: () => <Star className="w-3.5 h-3.5 text-muted-foreground mx-auto" />,
             cell: ({ row }) => (
@@ -794,6 +834,7 @@ export function ListingsDataTable({
         getFilteredRowModel: getFilteredRowModel(),
         getGroupedRowModel: getGroupedRowModel(),
         getExpandedRowModel: getExpandedRowModel(),
+        autoResetPageIndex: false,
         onSortingChange: setSorting,
         onColumnVisibilityChange: setColumnVisibility,
         onColumnFiltersChange: (updater) => {

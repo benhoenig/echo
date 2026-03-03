@@ -2,9 +2,12 @@ import { getDeal, getPipelineStageHistory } from "../deal-actions";
 import { DealDetailContent } from "./deal-detail-content";
 import { CommentSection } from "@/components/shared/comment-section";
 import { ActivityFeed } from "@/components/shared/activity-feed";
+import { SuggestedActionsPanel } from "@/components/shared/suggested-actions-panel";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/queries";
+import { getSuggestedActions, getPotentialConfigs } from "@/app/(dashboard)/reminder-actions";
+import { getEffectiveInterval } from "@/lib/reminder-engine";
 
 export default async function DealDetailPage({
     params,
@@ -103,6 +106,24 @@ export default async function DealDetailPage({
             isDefault: s.isDefault,
         }));
 
+        // Fetch reminder/actions data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const dealAny = deal as any;
+        const dealModule = dealAny.deal_type === "SELL_SIDE" ? "SELLER_CRM" : "BUYER_CRM";
+        const [potentialConfigs, playbooks] = await Promise.all([
+            getPotentialConfigs(dealAny.workspace_id, dealModule),
+            dealAny.pipeline_stage_id
+                ? getSuggestedActions(dealAny.workspace_id, dealAny.pipeline_stage_id)
+                : Promise.resolve([]),
+        ]);
+
+        const effectiveInterval = getEffectiveInterval(
+            potentialConfigs,
+            dealAny.potential_tier,
+            undefined,
+            undefined
+        );
+
         return (
             <DealDetailContent
                 deal={deal}
@@ -112,6 +133,18 @@ export default async function DealDetailPage({
                 pipelineStages={pipelineStages}
                 zones={zones}
                 stageHistory={stageHistory}
+                actionsNode={
+                    <SuggestedActionsPanel
+                        entityType="DEAL"
+                        entityId={deal.id}
+                        entityName={deal.deal_name || "Untitled Deal"}
+                        workspaceId={deal.workspace_id}
+                        lastActionDate={deal.last_action_date}
+                        createdAt={deal.created_at}
+                        intervalDays={effectiveInterval}
+                        playbooks={playbooks}
+                    />
+                }
                 commentsNode={
                     <CommentSection
                         workspaceId={deal.workspace_id}

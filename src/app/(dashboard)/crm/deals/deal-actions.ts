@@ -143,6 +143,7 @@ export async function updateDeal(
         .update({
             ...updates,
             last_updated_by_id: internalUserId,
+            last_action_date: new Date().toISOString(),
         })
         .eq("id", id)
         .select()
@@ -201,6 +202,7 @@ export async function updateDealStage(
         .update({
             pipeline_stage_id: newStageId,
             last_updated_by_id: internalUserId,
+            last_action_date: new Date().toISOString(),
         })
         .eq("id", dealId);
 
@@ -298,6 +300,7 @@ export async function updateDealField(
     const updatePayload: Record<string, unknown> = {
         [field]: value,
         last_updated_by_id: internalUserId,
+        last_action_date: new Date().toISOString(),
     };
 
     // Auto-calculate commission when value or rate changes

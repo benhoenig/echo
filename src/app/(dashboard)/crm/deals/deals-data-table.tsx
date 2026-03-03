@@ -54,6 +54,7 @@ import {
     ChevronRight,
     ArrowUpDown,
     Columns3,
+    Clock,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -716,6 +717,45 @@ export function DealsDataTable({
                         {getValue() as string}
                     </span>
                 ),
+            },
+            {
+                accessorKey: "last_action_date",
+                header: "Last Action",
+                cell: ({ row }) => {
+                    const lastAction = row.original.last_action_date;
+                    const createdAt = row.original.created_at;
+                    const tier = row.original.potential_tier;
+
+                    if (!tier) {
+                        return <span className="text-xs text-muted-foreground">—</span>;
+                    }
+
+                    // Approximate intervals per tier (actual config may differ)
+                    const tierIntervals: Record<string, number> = { A: 3, B: 7, C: 14, D: 30 };
+                    const interval = tierIntervals[tier] ?? 14;
+
+                    const baseline = lastAction ? new Date(lastAction) : new Date(createdAt);
+                    const daysSince = Math.floor((Date.now() - baseline.getTime()) / (1000 * 60 * 60 * 24));
+                    const daysUntilDue = interval - daysSince;
+
+                    let badgeClass: string;
+                    if (daysUntilDue < 0) {
+                        badgeClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                    } else if (daysUntilDue <= 1) {
+                        badgeClass = "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+                    } else {
+                        badgeClass = "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+                    }
+
+                    return (
+                        <div className="flex items-center gap-1.5">
+                            <Clock className="w-3 h-3 text-muted-foreground" strokeWidth={1.75} />
+                            <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 font-medium tabular-nums ${badgeClass}`}>
+                                {daysSince}d ago
+                            </Badge>
+                        </div>
+                    );
+                },
             },
             {
                 accessorKey: "created_at",

@@ -68,6 +68,16 @@ export async function addComment(
         throw new Error(error.message);
     }
 
+    // Update parent entity's last_action_date (comments count as meaningful activity)
+    const now = new Date().toISOString();
+    if (entityType === "DEAL") {
+        await supabase.from("deals").update({ last_action_date: now }).eq("id", entityId);
+    } else if (entityType === "LISTING") {
+        await supabase.from("listings").update({ last_action_date: now }).eq("id", entityId);
+    } else if (entityType === "CONTACT") {
+        await supabase.from("contacts").update({ last_action_date: now }).eq("id", entityId);
+    }
+
     // Automatically log this as an activity
     await logActivity({
         workspaceId,

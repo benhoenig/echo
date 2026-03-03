@@ -28,6 +28,7 @@ import {
     ShoppingCart,
     GitBranch,
     Clock,
+    ClipboardCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -101,6 +102,7 @@ interface DealDetailContentProps {
     pipelineStages: PipelineStage[];
     zones: Array<{ id: string; nameEnglish: string; nameThai: string }>;
     stageHistory: StageHistoryEntry[];
+    actionsNode: ReactNode;
     commentsNode: ReactNode;
     activityFeedNode: ReactNode;
 }
@@ -113,6 +115,7 @@ export function DealDetailContent({
     pipelineStages,
     zones,
     stageHistory,
+    actionsNode,
     commentsNode,
     activityFeedNode,
 }: DealDetailContentProps) {
@@ -507,6 +510,10 @@ export function DealDetailContent({
                     <TabsTrigger value="pipeline" className="gap-1.5">
                         <GitBranch className="w-3.5 h-3.5" />
                         Pipeline
+                    </TabsTrigger>
+                    <TabsTrigger value="actions" className="gap-1.5">
+                        <ClipboardCheck className="w-3.5 h-3.5" />
+                        Actions
                     </TabsTrigger>
                     <TabsTrigger value="comments" className="gap-1.5">
                         <MessageSquare className="w-3.5 h-3.5" />
@@ -1308,6 +1315,9 @@ export function DealDetailContent({
                         onStageChange={handleStageChange}
                     />
                 </TabsContent>
+
+                {/* Actions Tab */}
+                <TabsContent value="actions">{actionsNode}</TabsContent>
 
                 {/* Comments Tab */}
                 <TabsContent value="comments">{commentsNode}</TabsContent>

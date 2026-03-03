@@ -150,6 +150,7 @@ enum ActionType {
   PHOTO_UPLOADED
   LOGIN
   EXPORT
+  MARKED_AS_ACTIONED
 }
 
 enum NotificationType {
@@ -824,7 +825,9 @@ model Notification {
   type        NotificationType
   entityType  EntityType       @map("entity_type")
   entityId    String           @map("entity_id") @db.Uuid
+  title       String?          @db.Text
   message     String           @db.Text
+  actionUrl   String?          @map("action_url")
   isRead      Boolean          @default(false) @map("is_read")
   createdAt   DateTime         @default(now()) @map("created_at")
   readAt      DateTime?        @map("read_at")
