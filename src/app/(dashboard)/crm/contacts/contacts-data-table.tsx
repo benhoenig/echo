@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, useRef, useEffect } from "react";
 import {
     useReactTable,
     getCoreRowModel,
@@ -148,6 +148,11 @@ export function ContactsDataTable({
     onRestore,
     onArchive,
 }: ContactsDataTableProps) {
+    const mountedRef = useRef(false);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -453,15 +458,17 @@ export function ContactsDataTable({
         onSortingChange: (updater) => {
             const newSorting =
                 typeof updater === "function" ? updater(sorting) : updater;
-            queueMicrotask(() => setSorting(newSorting));
+            queueMicrotask(() => { if (mountedRef.current) setSorting(newSorting); });
         },
         onColumnFiltersChange: (updater) => {
             const newFilters: ColumnFiltersState =
                 typeof updater === "function"
                     ? updater(columnFilters)
                     : updater;
-            queueMicrotask(() => onColumnFiltersChange(newFilters));
+            queueMicrotask(() => { if (mountedRef.current) onColumnFiltersChange(newFilters); });
         },
+        onGroupingChange: () => {},
+        onExpandedChange: () => {},
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),

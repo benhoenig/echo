@@ -31,13 +31,24 @@ import {
     DialogTitle,
     DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, GripVertical, Trash2, Pencil } from "lucide-react";
+import {
+    Plus,
+    GripVertical,
+    Trash2,
+    Pencil,
+    EyeOff,
+    Eye,
+    AlertTriangle,
+} from "lucide-react";
 import {
     createPipelineStage,
     updatePipelineStage,
     deletePipelineStage,
+    deactivatePipelineStage,
+    reactivatePipelineStage,
     reorderPipelineStages,
 } from "../pipeline-actions";
+import { toast } from "sonner";
 import type { Tables } from "@/types/supabase";
 
 const STAGE_COLORS = [
@@ -52,14 +63,18 @@ function SortableStageRow({
     stage,
     index,
     isPending,
+    dealCount,
     onEdit,
     onDelete,
+    onToggleActive,
 }: {
     stage: Tables<"pipeline_stages">;
     index: number;
     isPending: boolean;
+    dealCount: number;
     onEdit: (stage: Tables<"pipeline_stages">) => void;
-    onDelete: (stageId: string) => void;
+    onDelete: (stageId: string, dealCount: number) => void;
+    onToggleActive: (stageId: string, isActive: boolean) => void;
 }) {
     const {
         attributes,
@@ -70,10 +85,12 @@ function SortableStageRow({
         isDragging,
     } = useSortable({ id: stage.id });
 
+    const isActive = stage.is_active;
+
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1,
+        opacity: isDragging ? 0.5 : isActive ? 1 : 0.5,
         zIndex: isDragging ? 10 : undefined,
     };
 
@@ -96,13 +113,33 @@ function SortableStageRow({
                 style={{ backgroundColor: stage.stage_color || "#78716C" }}
             />
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{stage.pipeline_stage_name}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate">
+                        {stage.pipeline_stage_name}
+                    </p>
+                    {!isActive && (
+                        <Badge
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0 text-muted-foreground"
+                        >
+                            Inactive
+                        </Badge>
+                    )}
+                </div>
                 {stage.stage_description && (
                     <p className="text-xs text-muted-foreground truncate">
                         {stage.stage_description}
                     </p>
                 )}
             </div>
+            {dealCount > 0 && (
+                <Badge
+                    variant="secondary"
+                    className="text-[10px] px-1.5 py-0 shrink-0"
+                >
+                    {dealCount} deal{dealCount !== 1 ? "s" : ""}
+                </Badge>
+            )}
             <Badge variant="outline" className="text-xs shrink-0">
                 {index + 1}
             </Badge>
@@ -117,8 +154,22 @@ function SortableStageRow({
             <Button
                 variant="ghost"
                 size="sm"
+                className="p-1"
+                onClick={() => onToggleActive(stage.id, isActive)}
+                disabled={isPending}
+                title={isActive ? "Deactivate stage" : "Reactivate stage"}
+            >
+                {isActive ? (
+                    <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+                ) : (
+                    <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+            </Button>
+            <Button
+                variant="ghost"
+                size="sm"
                 className="p-1 text-destructive"
-                onClick={() => onDelete(stage.id)}
+                onClick={() => onDelete(stage.id, dealCount)}
                 disabled={isPending}
             >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -132,15 +183,22 @@ function SortableStageRow({
 export function PipelineContent({
     stages: initialStages,
     workspaceId,
+    dealCounts,
 }: {
     stages: Tables<"pipeline_stages">[];
     workspaceId: string;
+    dealCounts: Record<string, number>;
 }) {
     const [isPending, startTransition] = useTransition();
     const [editingStage, setEditingStage] = useState<Tables<"pipeline_stages"> | null>(null);
     const [selectedColor, setSelectedColor] = useState("#78716C");
     const [addOpen, setAddOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{
+        stageId: string;
+        dealCount: number;
+    } | null>(null);
     const [addType, setAddType] = useState<"buyer" | "seller">("buyer");
     const [error, setError] = useState<string | null>(null);
 
@@ -213,12 +271,49 @@ export function PipelineContent({
         });
     };
 
-    const handleDelete = (stageId: string) => {
-        if (!confirm("Delete this pipeline stage?")) return;
+    const handleDelete = (stageId: string, dealCount: number) => {
+        if (dealCount > 0) {
+            setDeleteTarget({ stageId, dealCount });
+            setDeleteConfirmOpen(true);
+            return;
+        }
+        setDeleteTarget({ stageId, dealCount: 0 });
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (!deleteTarget) return;
         const fd = new FormData();
-        fd.set("stageId", stageId);
+        fd.set("stageId", deleteTarget.stageId);
         startTransition(async () => {
-            await deletePipelineStage(fd);
+            const result = await deletePipelineStage(fd);
+            if (result?.error) {
+                toast.error(result.error);
+            } else {
+                toast.success("Stage deleted.");
+            }
+            setDeleteConfirmOpen(false);
+            setDeleteTarget(null);
+        });
+    };
+
+    const handleToggleActive = (stageId: string, currentlyActive: boolean) => {
+        startTransition(async () => {
+            if (currentlyActive) {
+                const result = await deactivatePipelineStage(stageId);
+                if (result?.error) {
+                    toast.error(result.error);
+                } else {
+                    toast.success("Stage deactivated.");
+                }
+            } else {
+                const result = await reactivatePipelineStage(stageId);
+                if (result?.error) {
+                    toast.error(result.error);
+                } else {
+                    toast.success("Stage reactivated.");
+                }
+            }
         });
     };
 
@@ -242,12 +337,14 @@ export function PipelineContent({
                             stage={stage}
                             index={index}
                             isPending={isPending}
+                            dealCount={dealCounts[stage.id] ?? 0}
                             onEdit={(s) => {
                                 setEditingStage(s);
                                 setSelectedColor(s.stage_color || "#78716C");
                                 setEditOpen(true);
                             }}
                             onDelete={handleDelete}
+                            onToggleActive={handleToggleActive}
                         />
                     ))}
                     {stagesList.length === 0 && (
@@ -407,6 +504,70 @@ export function PipelineContent({
                             </Button>
                         </div>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={deleteConfirmOpen}
+                onOpenChange={(open) => {
+                    setDeleteConfirmOpen(open);
+                    if (!open) setDeleteTarget(null);
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {deleteTarget && deleteTarget.dealCount > 0
+                                ? "Cannot Delete Stage"
+                                : "Delete Stage"}
+                        </DialogTitle>
+                    </DialogHeader>
+                    {deleteTarget && deleteTarget.dealCount > 0 ? (
+                        <div className="space-y-4">
+                            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                <div className="text-sm">
+                                    <p className="font-medium text-amber-800 dark:text-amber-200">
+                                        {deleteTarget.dealCount} active deal
+                                        {deleteTarget.dealCount !== 1
+                                            ? "s are"
+                                            : " is"}{" "}
+                                        using this stage.
+                                    </p>
+                                    <p className="text-amber-700 dark:text-amber-300 mt-1">
+                                        Move or archive all deals in this stage
+                                        before deleting it, or deactivate the
+                                        stage instead.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex justify-end">
+                                <DialogClose asChild>
+                                    <Button variant="secondary">Close</Button>
+                                </DialogClose>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                                Are you sure you want to delete this pipeline
+                                stage? This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end gap-2">
+                                <DialogClose asChild>
+                                    <Button variant="secondary">Cancel</Button>
+                                </DialogClose>
+                                <Button
+                                    variant="destructive"
+                                    onClick={confirmDelete}
+                                    disabled={isPending}
+                                >
+                                    {isPending ? "Deleting..." : "Delete"}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

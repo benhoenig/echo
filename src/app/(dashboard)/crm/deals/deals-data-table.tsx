@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
     useReactTable,
     getCoreRowModel,
@@ -497,6 +497,11 @@ export function DealsDataTable({
     pipelineStages,
 }: DealsDataTableProps) {
     const router = useRouter();
+    const mountedRef = useRef(false);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
         {}
@@ -772,19 +777,19 @@ export function DealsDataTable({
         onSortingChange: (updater) => {
             const newSorting =
                 typeof updater === "function" ? updater(sorting) : updater;
-            queueMicrotask(() => setSorting(newSorting));
+            queueMicrotask(() => { if (mountedRef.current) setSorting(newSorting); });
         },
         onColumnFiltersChange: (updater) => {
             const newFilters: ColumnFiltersState =
                 typeof updater === "function"
                     ? updater(columnFilters)
                     : updater;
-            queueMicrotask(() => onColumnFiltersChange(newFilters));
+            queueMicrotask(() => { if (mountedRef.current) onColumnFiltersChange(newFilters); });
         },
         onExpandedChange: (updater) => {
             const newExpanded =
                 typeof updater === "function" ? updater(expanded) : updater;
-            queueMicrotask(() => setExpanded(newExpanded));
+            queueMicrotask(() => { if (mountedRef.current) setExpanded(newExpanded); });
         },
         onGroupingChange: (updater) => {
             void updater;
@@ -794,7 +799,7 @@ export function DealsDataTable({
                 typeof updater === "function"
                     ? updater(columnVisibility)
                     : updater;
-            queueMicrotask(() => setColumnVisibility(newVis));
+            queueMicrotask(() => { if (mountedRef.current) setColumnVisibility(newVis); });
         },
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),

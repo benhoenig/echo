@@ -26,6 +26,8 @@ import {
     MessageSquare,
     Activity,
     ShoppingCart,
+    GitBranch,
+    Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -88,6 +90,9 @@ const PROPERTY_TYPE_OPTIONS = [
     "OTHER",
 ] as const;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StageHistoryEntry = any;
+
 interface DealDetailContentProps {
     deal: DealData;
     agents: Array<{ id: string; name: string }>;
@@ -95,6 +100,7 @@ interface DealDetailContentProps {
     listings: Array<{ id: string; name: string }>;
     pipelineStages: PipelineStage[];
     zones: Array<{ id: string; nameEnglish: string; nameThai: string }>;
+    stageHistory: StageHistoryEntry[];
     commentsNode: ReactNode;
     activityFeedNode: ReactNode;
 }
@@ -106,6 +112,7 @@ export function DealDetailContent({
     listings,
     pipelineStages,
     zones,
+    stageHistory,
     commentsNode,
     activityFeedNode,
 }: DealDetailContentProps) {
@@ -497,6 +504,10 @@ export function DealDetailContent({
                             Buyer Requirements
                         </TabsTrigger>
                     )}
+                    <TabsTrigger value="pipeline" className="gap-1.5">
+                        <GitBranch className="w-3.5 h-3.5" />
+                        Pipeline
+                    </TabsTrigger>
                     <TabsTrigger value="comments" className="gap-1.5">
                         <MessageSquare className="w-3.5 h-3.5" />
                         Comments
@@ -1286,6 +1297,18 @@ export function DealDetailContent({
                     </TabsContent>
                 )}
 
+                {/* Pipeline Tab */}
+                <TabsContent value="pipeline" className="space-y-6">
+                    <PipelineStageTimeline
+                        history={stageHistory}
+                        currentStage={currentStage}
+                        dealCreatedAt={deal.created_at}
+                        relevantStages={relevantStages}
+                        pipelineStageId={pipelineStageId}
+                        onStageChange={handleStageChange}
+                    />
+                </TabsContent>
+
                 {/* Comments Tab */}
                 <TabsContent value="comments">{commentsNode}</TabsContent>
 
@@ -1294,6 +1317,291 @@ export function DealDetailContent({
                     {activityFeedNode}
                 </TabsContent>
             </Tabs>
+        </div>
+    );
+}
+
+// ── Pipeline Stage Timeline ──────────────────────────────────
+
+function formatDuration(ms: number): string {
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    if (days === 0) return "< 1 day";
+    if (days === 1) return "1 day";
+    return `${days} days`;
+}
+
+function formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
+function formatTime(dateStr: string): string {
+    return new Date(dateStr).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
+
+function StageBadge({
+    name,
+    color,
+}: {
+    name: string;
+    color: string | null;
+}) {
+    const badgeColor = color || "#78716c";
+    return (
+        <Badge
+            className="text-[10px] px-2 py-0.5 border-0"
+            style={{
+                backgroundColor: `${badgeColor}20`,
+                color: badgeColor,
+            }}
+        >
+            {name}
+        </Badge>
+    );
+}
+
+function PipelineStageTimeline({
+    history,
+    currentStage,
+    dealCreatedAt,
+    relevantStages,
+    pipelineStageId,
+    onStageChange,
+}: {
+    history: StageHistoryEntry[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    currentStage: any;
+    dealCreatedAt: string;
+    relevantStages: PipelineStage[];
+    pipelineStageId: string;
+    onStageChange: (stageId: string) => void;
+}) {
+    // Build timeline entries from stage history
+    const timelineEntries = history.map(
+        (entry: StageHistoryEntry, idx: number) => {
+            const nextEntry = history[idx + 1];
+
+            let duration: string | null = null;
+            if (nextEntry) {
+                const diff =
+                    new Date(nextEntry.changed_at).getTime() -
+                    new Date(entry.changed_at).getTime();
+                duration = formatDuration(diff);
+            } else {
+                // Current/latest — duration from this change to now
+                const diff =
+                    new Date().getTime() -
+                    new Date(entry.changed_at).getTime();
+                duration = formatDuration(diff);
+            }
+
+            const userName = entry.changed_by_user
+                ? [
+                      entry.changed_by_user.first_name,
+                      entry.changed_by_user.last_name,
+                  ]
+                      .filter(Boolean)
+                      .join(" ")
+                : null;
+
+            return {
+                fromStage: entry.from_stage,
+                toStage: entry.to_stage,
+                changedAt: entry.changed_at,
+                userName,
+                duration,
+                timeInPreviousStage: entry.time_in_previous_stage,
+            };
+        }
+    );
+
+    // Days in current stage
+    const daysInCurrentStage = (() => {
+        if (history.length === 0) {
+            // No stage changes — calculate from deal creation
+            const diff =
+                new Date().getTime() - new Date(dealCreatedAt).getTime();
+            return Math.floor(diff / (1000 * 60 * 60 * 24));
+        }
+        const lastEntry = history[history.length - 1];
+        if (lastEntry) {
+            const diff =
+                new Date().getTime() -
+                new Date(lastEntry.changed_at).getTime();
+            return Math.floor(diff / (1000 * 60 * 60 * 24));
+        }
+        return null;
+    })();
+
+    return (
+        <div className="space-y-6">
+            {/* Current Stage Card */}
+            <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <GitBranch
+                            className="w-4 h-4 text-stone-500"
+                            strokeWidth={1.75}
+                        />
+                        Current Stage
+                    </h3>
+                    {daysInCurrentStage != null && (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2.5 py-1 rounded-md">
+                            <Clock
+                                className="w-3 h-3"
+                                strokeWidth={1.75}
+                            />
+                            {daysInCurrentStage} days in current stage
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-3">
+                    <Select
+                        value={pipelineStageId}
+                        onValueChange={onStageChange}
+                    >
+                        <SelectTrigger className="w-[240px]">
+                            <SelectValue placeholder="Select stage..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {relevantStages.map((s: PipelineStage) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                    {s.name}
+                                    {s.isDefault ? " (Default)" : ""}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    {currentStage && (
+                        <StageBadge
+                            name={currentStage.pipeline_stage_name}
+                            color={currentStage.stage_color}
+                        />
+                    )}
+                </div>
+            </div>
+
+            {/* Stage History Timeline */}
+            <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+                    <Clock
+                        className="w-4 h-4 text-stone-500"
+                        strokeWidth={1.75}
+                    />
+                    Stage History
+                </h3>
+
+                {timelineEntries.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                        No stage transitions recorded yet. Deal created on{" "}
+                        {formatDate(dealCreatedAt)}.
+                    </p>
+                ) : (
+                    <div className="relative">
+                        {timelineEntries.map(
+                            (
+                                entry: {
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    fromStage: any;
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    toStage: any;
+                                    changedAt: string;
+                                    userName: string | null;
+                                    duration: string | null;
+                                    timeInPreviousStage: number | null;
+                                },
+                                idx: number
+                            ) => {
+                                const isLast =
+                                    idx === timelineEntries.length - 1;
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="flex gap-3 relative"
+                                    >
+                                        {/* Vertical line + dot */}
+                                        <div className="flex flex-col items-center">
+                                            <div
+                                                className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${
+                                                    isLast
+                                                        ? "bg-orange-500 ring-2 ring-orange-200 dark:ring-orange-800"
+                                                        : "bg-stone-300 dark:bg-stone-600"
+                                                }`}
+                                            />
+                                            {!isLast && (
+                                                <div className="w-px flex-1 bg-stone-200 dark:bg-stone-700 min-h-[24px]" />
+                                            )}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div
+                                            className={`pb-4 ${isLast ? "pb-0" : ""}`}
+                                        >
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {entry.fromStage && (
+                                                    <>
+                                                        <StageBadge
+                                                            name={
+                                                                entry.fromStage
+                                                                    .pipeline_stage_name
+                                                            }
+                                                            color={
+                                                                entry.fromStage
+                                                                    .stage_color
+                                                            }
+                                                        />
+                                                        <span className="text-[11px] text-muted-foreground">
+                                                            →
+                                                        </span>
+                                                    </>
+                                                )}
+                                                <StageBadge
+                                                    name={
+                                                        entry.toStage
+                                                            .pipeline_stage_name
+                                                    }
+                                                    color={
+                                                        entry.toStage
+                                                            .stage_color
+                                                    }
+                                                />
+                                                {entry.duration && (
+                                                    <span className="text-[11px] text-muted-foreground">
+                                                        for {entry.duration}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-[11px] text-muted-foreground">
+                                                    {formatDate(
+                                                        entry.changedAt
+                                                    )}{" "}
+                                                    at{" "}
+                                                    {formatTime(
+                                                        entry.changedAt
+                                                    )}
+                                                </span>
+                                                {entry.userName && (
+                                                    <span className="text-[11px] text-muted-foreground">
+                                                        by {entry.userName}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

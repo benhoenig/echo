@@ -25,9 +25,12 @@ import {
     Bookmark,
     BookmarkPlus,
     Trash2,
+    LayoutGrid,
+    Table2,
 } from "lucide-react";
 import type { ColumnFiltersState, GroupingState } from "@tanstack/react-table";
 import { DealsDataTable } from "./deals-data-table";
+import { DealsKanbanBoard } from "./deals-kanban-board";
 import { DealsFilterBar } from "./deals-filter-bar";
 import { CreateDealSheet } from "./create-deal-sheet";
 import { restoreDeal } from "./deal-actions";
@@ -94,6 +97,7 @@ export function DealsContent({
         "ALL" | "BUY_SIDE" | "SELL_SIDE"
     >("ALL");
     const [isPending, startTransition] = useTransition();
+    const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
     const router = useRouter();
 
     // Saved filters state
@@ -122,6 +126,29 @@ export function DealsContent({
                 d.seller_contact?.last_name?.toLowerCase().includes(q)
         );
     }, [filteredByType, search]);
+
+    // Apply column filters manually for kanban (TanStack Table handles them internally for table view)
+    const kanbanDeals = useMemo(() => {
+        let result = filteredDeals;
+        for (const filter of columnFilters) {
+            if (filter.id === "deal_status") {
+                result = result.filter(
+                    (d: DealRow) => d.deal_status === filter.value
+                );
+            } else if (filter.id === "stage_name") {
+                result = result.filter(
+                    (d: DealRow) =>
+                        d.pipeline_stages?.pipeline_stage_name === filter.value
+                );
+            } else if (filter.id === "potential_display") {
+                result = result.filter(
+                    (d: DealRow) =>
+                        (d.potential_tier ?? "—") === filter.value
+                );
+            }
+        }
+        return result;
+    }, [filteredDeals, columnFilters]);
 
     useEffect(() => {
         if (showArchived && archivedDeals.length === 0) {
@@ -269,7 +296,7 @@ export function DealsContent({
                 ))}
             </div>
 
-            {/* Search & Group */}
+            {/* Search, View Toggle & Group */}
             <div className="flex items-center gap-3">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -280,28 +307,58 @@ export function DealsContent({
                         className="pl-9 h-9 text-sm"
                     />
                 </div>
-                <Select
-                    value={grouping[0] ?? "__none__"}
-                    onValueChange={(v) =>
-                        setGrouping(v === "__none__" ? [] : [v])
-                    }
-                >
-                    <SelectTrigger className="w-[160px] h-9 text-xs">
-                        <Layers className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-                        <SelectValue placeholder="Group by..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {GROUP_OPTIONS.map((opt) => (
-                            <SelectItem
-                                key={opt.value}
-                                value={opt.value}
-                                className="text-xs"
-                            >
-                                {opt.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                {/* View Toggle */}
+                {!showArchived && (
+                    <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1">
+                        <button
+                            onClick={() => setViewMode("table")}
+                            className={`p-1.5 rounded-md transition-colors ${
+                                viewMode === "table"
+                                    ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Table view"
+                        >
+                            <Table2 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode("kanban")}
+                            className={`p-1.5 rounded-md transition-colors ${
+                                viewMode === "kanban"
+                                    ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Kanban view"
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
+                {/* Group-by (table view only) */}
+                {viewMode === "table" && (
+                    <Select
+                        value={grouping[0] ?? "__none__"}
+                        onValueChange={(v) =>
+                            setGrouping(v === "__none__" ? [] : [v])
+                        }
+                    >
+                        <SelectTrigger className="w-[160px] h-9 text-xs">
+                            <Layers className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                            <SelectValue placeholder="Group by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {GROUP_OPTIONS.map((opt) => (
+                                <SelectItem
+                                    key={opt.value}
+                                    value={opt.value}
+                                    className="text-xs"
+                                >
+                                    {opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                )}
             </div>
 
             {/* Filter Bar + Saved Filters */}
@@ -440,7 +497,7 @@ export function DealsContent({
                 </div>
             </div>
 
-            {/* Data Table */}
+            {/* Data Table / Kanban Board */}
             {filteredDeals.length === 0 && columnFilters.length === 0 ? (
                 <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
                     <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -469,6 +526,12 @@ export function DealsContent({
                         )}
                     </div>
                 </div>
+            ) : viewMode === "kanban" && !showArchived ? (
+                <DealsKanbanBoard
+                    deals={kanbanDeals}
+                    pipelineStages={pipelineStages}
+                    dealTypeFilter={dealTypeFilter}
+                />
             ) : (
                 <DealsDataTable
                     data={filteredDeals}

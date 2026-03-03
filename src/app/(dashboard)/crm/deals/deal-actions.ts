@@ -206,6 +206,22 @@ export async function updateDealStage(
 
     if (updateError) throw new Error(updateError.message);
 
+    // Compute time_in_previous_stage from last history entry
+    let timeInPreviousStage: number | null = null;
+    const { data: lastHistory } = await supabase
+        .from("pipeline_stage_history")
+        .select("changed_at")
+        .eq("deal_id", dealId)
+        .order("changed_at", { ascending: false })
+        .limit(1)
+        .single();
+
+    if (lastHistory) {
+        const diffMs =
+            new Date().getTime() - new Date(lastHistory.changed_at).getTime();
+        timeInPreviousStage = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    }
+
     // Record stage history
     const { error: historyError } = await supabase
         .from("pipeline_stage_history")
@@ -214,6 +230,7 @@ export async function updateDealStage(
             from_stage_id: oldStageId,
             to_stage_id: newStageId,
             changed_by_id: internalUserId,
+            time_in_previous_stage: timeInPreviousStage,
         });
 
     if (historyError) {
@@ -298,6 +315,22 @@ export async function updateDealField(
 
     // Handle pipeline stage change — record history
     if (field === "pipeline_stage_id" && oldValue !== value) {
+        // Compute time_in_previous_stage from last history entry
+        let timeInPrev: number | null = null;
+        const { data: lastHist } = await supabase
+            .from("pipeline_stage_history")
+            .select("changed_at")
+            .eq("deal_id", dealId)
+            .order("changed_at", { ascending: false })
+            .limit(1)
+            .single();
+
+        if (lastHist) {
+            const diffMs =
+                new Date().getTime() - new Date(lastHist.changed_at).getTime();
+            timeInPrev = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        }
+
         const { error: historyError } = await supabase
             .from("pipeline_stage_history")
             .insert({
@@ -305,6 +338,7 @@ export async function updateDealField(
                 from_stage_id: oldValue as string,
                 to_stage_id: value as string,
                 changed_by_id: internalUserId,
+                time_in_previous_stage: timeInPrev,
             });
         if (historyError) {
             console.error("Failed to log stage history:", historyError.message);
@@ -331,6 +365,26 @@ export async function updateDealField(
 
     revalidatePath("/crm/deals");
     revalidatePath(`/crm/deals/${dealId}`);
+}
+
+export async function getPipelineStageHistory(dealId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("pipeline_stage_history")
+        .select(
+            `*,
+            from_stage:pipeline_stages!pipeline_stage_history_from_stage_id_fkey(id, pipeline_stage_name, stage_color),
+            to_stage:pipeline_stages!pipeline_stage_history_to_stage_id_fkey(id, pipeline_stage_name, stage_color),
+            changed_by_user:users!pipeline_stage_history_changed_by_id_fkey(id, first_name, last_name)`
+        )
+        .eq("deal_id", dealId)
+        .order("changed_at", { ascending: true });
+
+    if (error) {
+        console.error("Failed to fetch stage history:", error.message);
+        return [];
+    }
+    return data ?? [];
 }
 
 export async function archiveDeal(id: string) {

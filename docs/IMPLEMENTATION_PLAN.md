@@ -389,11 +389,11 @@ After Phase 1 is complete, manually verify:
 
 #### 4.2.3 Pipeline Management
 
-- [ ] Pipeline Stage display: visual indicator (colored badge) of current stage on each deal row.
-- [ ] Pipeline Stage change: dropdown to move deal to a different stage. Each change is logged.
-- [ ] Pipeline Stage History & Timeline: on the deal detail page, show every stage transition with timestamps and duration in each stage. Same vertical timeline pattern as listing status timeline.
-- [ ] Pipeline Stage History stored in `pipeline_stage_history` table.
-- [ ] Pipeline board view (optional, stretch goal): Kanban-style board where deals are cards in stage columns. Drag to move between stages. This is a nice-to-have visual alternative to the table view.
+- [x] Pipeline Stage display: visual indicator (colored badge) of current stage on each deal row.
+- [x] Pipeline Stage change: dropdown to move deal to a different stage. Each change is logged.
+- [x] Pipeline Stage History & Timeline: on the deal detail page, show every stage transition with timestamps and duration in each stage. Same vertical timeline pattern as listing status timeline.
+- [x] Pipeline Stage History stored in `pipeline_stage_history` table.
+- [x] Pipeline board view (optional, stretch goal): Kanban-style board where deals are cards in stage columns. Drag to move between stages. This is a nice-to-have visual alternative to the table view.
 
 #### 4.2.4 Comments & Activity Feed (Reuse from Phase 1)
 

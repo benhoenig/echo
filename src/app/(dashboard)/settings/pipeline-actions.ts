@@ -61,6 +61,32 @@ export async function deletePipelineStage(formData: FormData) {
     const supabase = await createClient();
     const stageId = formData.get("stageId") as string;
 
+    // Check for active deals using this stage
+    const { count } = await supabase
+        .from("deals")
+        .select("id", { count: "exact", head: true })
+        .eq("pipeline_stage_id", stageId)
+        .eq("archived", false);
+
+    if (count && count > 0) {
+        return {
+            error: `Cannot delete stage: ${count} active deal(s) are using it. Move or archive the deals first, or deactivate the stage instead.`,
+        };
+    }
+
+    // Also check archived deals
+    const { count: archivedCount } = await supabase
+        .from("deals")
+        .select("id", { count: "exact", head: true })
+        .eq("pipeline_stage_id", stageId)
+        .eq("archived", true);
+
+    if (archivedCount && archivedCount > 0) {
+        return {
+            error: `Cannot delete stage: ${archivedCount} archived deal(s) still reference it. Deactivate the stage instead.`,
+        };
+    }
+
     const { error } = await supabase
         .from("pipeline_stages")
         .delete()
@@ -69,6 +95,68 @@ export async function deletePipelineStage(formData: FormData) {
     if (error) return { error: error.message };
     revalidatePath("/settings/pipeline");
     return { success: true };
+}
+
+export async function deactivatePipelineStage(stageId: string) {
+    const supabase = await createClient();
+
+    // Check for active deals
+    const { count } = await supabase
+        .from("deals")
+        .select("id", { count: "exact", head: true })
+        .eq("pipeline_stage_id", stageId)
+        .eq("archived", false);
+
+    if (count && count > 0) {
+        return {
+            error: `Cannot deactivate stage: ${count} active deal(s) are using it. Move or archive the deals first.`,
+        };
+    }
+
+    const { error } = await supabase
+        .from("pipeline_stages")
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq("id", stageId);
+
+    if (error) return { error: error.message };
+    revalidatePath("/settings/pipeline");
+    revalidatePath("/crm/deals");
+    return { success: true };
+}
+
+export async function reactivatePipelineStage(stageId: string) {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from("pipeline_stages")
+        .update({ is_active: true, updated_at: new Date().toISOString() })
+        .eq("id", stageId);
+
+    if (error) return { error: error.message };
+    revalidatePath("/settings/pipeline");
+    revalidatePath("/crm/deals");
+    return { success: true };
+}
+
+export async function getDealCountForStages(workspaceId: string) {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from("deals")
+        .select("pipeline_stage_id")
+        .eq("workspace_id", workspaceId)
+        .eq("archived", false);
+
+    if (error || !data) return {};
+
+    const counts: Record<string, number> = {};
+    for (const deal of data) {
+        const stageId = deal.pipeline_stage_id;
+        if (stageId) {
+            counts[stageId] = (counts[stageId] ?? 0) + 1;
+        }
+    }
+    return counts;
 }
 
 export async function reorderPipelineStages(stageIds: string[]) {

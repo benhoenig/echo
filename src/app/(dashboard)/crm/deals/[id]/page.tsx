@@ -1,4 +1,4 @@
-import { getDeal } from "../deal-actions";
+import { getDeal, getPipelineStageHistory } from "../deal-actions";
 import { DealDetailContent } from "./deal-detail-content";
 import { CommentSection } from "@/components/shared/comment-section";
 import { ActivityFeed } from "@/components/shared/activity-feed";
@@ -18,7 +18,7 @@ export default async function DealDetailPage({
         if (!deal) notFound();
 
         // Fetch data in parallel
-        const [rawUsers, rawContacts, rawListings, rawStages, zones] =
+        const [rawUsers, rawContacts, rawListings, rawStages, zones, stageHistory] =
             await Promise.all([
                 prisma.user.findMany({
                     where: { workspaceId: deal.workspace_id },
@@ -66,6 +66,7 @@ export default async function DealDetailPage({
                     select: { id: true, nameEnglish: true, nameThai: true },
                     orderBy: { nameEnglish: "asc" },
                 }),
+                getPipelineStageHistory(id),
             ]);
 
         const agents = rawUsers.map((u: any) => ({
@@ -106,6 +107,7 @@ export default async function DealDetailPage({
                 listings={listings}
                 pipelineStages={pipelineStages}
                 zones={zones}
+                stageHistory={stageHistory}
                 commentsNode={
                     <CommentSection
                         workspaceId={deal.workspace_id}

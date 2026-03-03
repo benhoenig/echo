@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
     useReactTable,
     getCoreRowModel,
@@ -747,6 +747,11 @@ export function ListingsDataTable({
     onRestore,
 }: ListingsDataTableProps) {
     const router = useRouter();
+    const mountedRef = useRef(false);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => { mountedRef.current = false; };
+    }, []);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [expanded, setExpanded] = useState<ExpandedState>(true);
@@ -794,7 +799,7 @@ export function ListingsDataTable({
         onColumnFiltersChange: (updater) => {
             const next = typeof updater === "function" ? updater(columnFilters) : updater;
             // Defer to avoid React state update during render (TanStack Table fires this synchronously)
-            queueMicrotask(() => onColumnFiltersChange(next));
+            queueMicrotask(() => { if (mountedRef.current) onColumnFiltersChange(next); });
         },
         onExpandedChange: setExpanded,
         state: {
