@@ -4,6 +4,7 @@ import { CommentSection } from "@/components/shared/comment-section";
 import { ActivityFeed } from "@/components/shared/activity-feed";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/queries";
 
 export default async function ListingDetailPage({
     params,
@@ -13,9 +14,10 @@ export default async function ListingDetailPage({
     const { id } = await params;
 
     try {
-        const [listing, updates] = await Promise.all([
+        const [listing, updates, currentUser] = await Promise.all([
             getListing(id),
             getListingUpdates(id),
+            getCurrentUser(),
         ]);
 
         if (!listing) notFound();
@@ -56,7 +58,7 @@ export default async function ListingDetailPage({
                         workspaceId={listing.workspace_id}
                         entityType="LISTING"
                         entityId={listing.id}
-                        currentUserAuthId={null as any}
+                        currentUserAuthId={currentUser?.id ?? null}
                     />
                 }
                 activityFeedNode={

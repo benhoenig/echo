@@ -25,10 +25,12 @@ export async function addComment(
         throw new Error("Must be logged in to comment.");
     }
 
-    // 1. Parse Mentions and Contacts out of the react-mentions markup syntax
-    // Pattern: @[Display Name](user:UUID) or #[Display Name](contact:UUID)
+    // 1. Parse Mentions, Contacts, and Listings out of the react-mentions markup syntax
+    // Pattern: @[Display Name](user:UUID), #[Display Name](contact:UUID), #[Display Name](listing:UUID)
+    // Both contacts and listings use # trigger — differentiated by type prefix inside parens
     const userRegex = /@\[([^\]]+)\]\(user:([^\)]+)\)/g;
     const contactRegex = /#\[([^\]]+)\]\(contact:([^\)]+)\)/g;
+    const listingRegex = /#\[([^\]]+)\]\(listing:([^\)]+)\)/g;
 
     let resolvedMentionIds: string[] = [...mentions];
     let resolvedContactId: string | null = null;
@@ -41,6 +43,10 @@ export async function addComment(
 
     while ((match = contactRegex.exec(content)) !== null) {
         if (!resolvedContactId) resolvedContactId = match[2]; // MVP: just capture the first contact
+    }
+
+    while ((match = listingRegex.exec(content)) !== null) {
+        if (!resolvedListingId) resolvedListingId = match[2]; // MVP: just capture the first listing
     }
 
     // Deduplicate IDs
@@ -94,7 +100,9 @@ export async function addComment(
         }
     }
 
-    // Notify success
+    // Revalidate the page so the server-rendered comment list refreshes
+    revalidatePath(pathname);
+
     return { success: true };
 }
 

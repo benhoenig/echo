@@ -69,7 +69,7 @@ export async function fetchWorkspaceMentions(workspaceId: string) {
     // Get current user so we don't let them @mention themselves
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const [usersResponse, contactsResponse] = await Promise.all([
+    const [usersResponse, contactsResponse, listingsResponse] = await Promise.all([
         supabase
             .from("users")
             .select("id, first_name, last_name")
@@ -79,6 +79,13 @@ export async function fetchWorkspaceMentions(workspaceId: string) {
             .from("contacts")
             .select("id, first_name, last_name")
             .eq("workspace_id", workspaceId)
+            .eq("archived", false),
+        supabase
+            .from("listings")
+            .select("id, listing_name")
+            .eq("workspace_id", workspaceId)
+            .eq("archived", false)
+            .order("listing_name", { ascending: true }),
     ]);
 
     const users = (usersResponse.data || [])
@@ -93,5 +100,10 @@ export async function fetchWorkspaceMentions(workspaceId: string) {
         display: `${c.first_name || ""} ${c.last_name || ""}`.trim() || "Unknown"
     }));
 
-    return { users, contacts };
+    const listings = (listingsResponse.data || []).map(l => ({
+        id: l.id,
+        display: l.listing_name || "Untitled Listing"
+    }));
+
+    return { users, contacts, listings };
 }

@@ -32,26 +32,34 @@ interface ListingQuickViewProps {
 const parseCommentContent = (text: string) => {
     if (!text) return null;
 
-    // Split text by matching react-mentions format: @[Display Name](type:id)
+    // Match @[Name](user:UUID), #[Name](contact:UUID), #[Name](listing:UUID)
     const regex = /([@#]\[[^\]]+\]\([^:]+:[^\)]+\))/g;
     const parts = text.split(regex);
 
-    return parts.map((part, i) => {
-        // Extract the prefix and the display name
-        const match = part.match(/^([@#])\[([^\]]+)\]\([^:]+:[^\)]+\)$/);
+    return parts.map((part: string, i: number) => {
+        const match = part.match(/^([@#])\[([^\]]+)\]\(([^:]+):[^\)]+\)$/);
 
         if (match) {
-            const prefix = match[1]; // @ or #
-            const display = match[2]; // John Doe
+            const type = match[3]; // "user", "contact", or "listing"
+            const isUser = type === "user";
+            const isListing = type === "listing";
 
             return (
-                <span key={i} className="font-semibold text-primary/90 bg-primary/10 px-1 py-0.5 rounded-sm">
-                    {prefix}{display}
+                <span
+                    key={i}
+                    className={`font-semibold px-1 py-0.5 rounded-sm ${
+                        isUser
+                            ? "text-orange-600 bg-orange-500/10"
+                            : isListing
+                              ? "text-emerald-600 bg-emerald-500/10"
+                              : "text-blue-600 bg-blue-500/10"
+                    }`}
+                >
+                    {match[1]}{match[2]}
                 </span>
             );
         }
 
-        // For line breaks or generic spaces, return plain text segment
         return <span key={i}>{part}</span>;
     });
 };

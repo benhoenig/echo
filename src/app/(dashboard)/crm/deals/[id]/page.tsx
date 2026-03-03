@@ -4,6 +4,7 @@ import { CommentSection } from "@/components/shared/comment-section";
 import { ActivityFeed } from "@/components/shared/activity-feed";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/queries";
 
 export default async function DealDetailPage({
     params,
@@ -13,7 +14,10 @@ export default async function DealDetailPage({
     const { id } = await params;
 
     try {
-        const deal = await getDeal(id);
+        const [deal, currentUser] = await Promise.all([
+            getDeal(id),
+            getCurrentUser(),
+        ]);
 
         if (!deal) notFound();
 
@@ -113,7 +117,7 @@ export default async function DealDetailPage({
                         workspaceId={deal.workspace_id}
                         entityType="DEAL"
                         entityId={deal.id}
-                        currentUserAuthId={null as any}
+                        currentUserAuthId={currentUser?.id ?? null}
                     />
                 }
                 activityFeedNode={

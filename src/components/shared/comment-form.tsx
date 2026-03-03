@@ -26,6 +26,7 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
 
     const [users, setUsers] = useState<SuggestionDataItem[]>([]);
     const [contacts, setContacts] = useState<SuggestionDataItem[]>([]);
+    const [listings, setListings] = useState<SuggestionDataItem[]>([]);
 
     useEffect(() => {
         let mounted = true;
@@ -33,10 +34,27 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
             if (mounted) {
                 setUsers(data.users);
                 setContacts(data.contacts);
+                setListings(data.listings || []);
             }
         });
         return () => { mounted = false; };
     }, [workspaceId]);
+
+    // For deals: # tags listings (contacts already linked via buyer/seller fields)
+    // For listings/other: # tags contacts
+    const isDeal = entityType === "DEAL";
+    const hashData = isDeal ? listings : contacts;
+    const hashMarkup = isDeal
+        ? "#[__display__](listing:__id__)"
+        : "#[__display__](contact:__id__)";
+    const hashLabel = isDeal ? "Listing" : "Contact";
+    const hashColor = isDeal
+        ? "rgba(16, 185, 129, 0.15)"
+        : "rgba(59, 130, 246, 0.15)";
+
+    const placeholderText = isDeal
+        ? "Type your comment... Use @ to tag users, # to tag listings"
+        : "Type your comment... Use @ to tag users, # to tag contacts";
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,8 +68,8 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
                     entityType,
                     entityId,
                     content.trim(),
-                    pathname, // Pass current URL so Server Action knows what to revalidate
-                    [] // Mentions array (stretch goal)
+                    pathname,
+                    []
                 );
                 setContent("");
                 toast.success("Comment added");
@@ -77,7 +95,7 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
                 <MentionsInput
                     value={content}
                     onChange={(e, newValue, newPlainTextValue) => setContent(newValue)}
-                    placeholder="Type your comment... Use @ to tag users, # to tag contacts"
+                    placeholder={placeholderText}
                     disabled={isPending}
                     className="min-h-[100px] text-sm [&_textarea]:!ring-0 [&_textarea]:focus:!ring-0 [&_textarea]:focus-visible:!ring-0 [&_textarea]:!outline-none [&_textarea]:focus:!outline-none [&_textarea]:focus-visible:!outline-none [&_textarea]:!shadow-none [&_textarea]:focus:!shadow-none [&_textarea]:focus-visible:!shadow-none [&_textarea]:!border-none [&_textarea]:!rounded-md"
                     style={{
@@ -111,12 +129,12 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
                             list: {
                                 backgroundColor: "var(--background)",
                                 border: "1px solid var(--border)",
-                                boxShadow: "0 8px 24px rgba(0,0,0,0.12)", // shadow-lg
+                                boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
                                 fontSize: "0.875rem",
-                                borderRadius: "12px", // rounded-xl
+                                borderRadius: "12px",
                                 overflow: "hidden",
                                 marginTop: "8px",
-                                padding: "4px" // p-1
+                                padding: "4px"
                             },
                             item: {
                                 padding: "0",
@@ -141,15 +159,15 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
                     />
                     <Mention
                         trigger="#"
-                        data={contacts}
-                        markup="#[__display__](contact:__id__)"
+                        data={hashData}
+                        markup={hashMarkup}
                         displayTransform={(id, display) => `#${display}`}
-                        style={{ backgroundColor: "rgba(59, 130, 246, 0.15)", borderRadius: "4px" }}
+                        style={{ backgroundColor: hashColor, borderRadius: "4px" }}
                         renderSuggestion={(suggestion, search, highlightedDisplay, index, focused) => (
                             <div className={`flex flex-col px-3 py-2 rounded-lg transition-colors ${focused ? "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400" : "text-foreground"}`}>
                                 <span className="font-medium">{highlightedDisplay}</span>
                                 <span className={`text-[10px] uppercase tracking-wider mt-0.5 ${focused ? "text-orange-600/70 dark:text-orange-400/70" : "text-muted-foreground"}`}>
-                                    Contact
+                                    {hashLabel}
                                 </span>
                             </div>
                         )}
@@ -168,7 +186,7 @@ export function CommentForm({ workspaceId, entityType, entityId, onSuccess }: Co
                 </div>
             </div>
             <p className="text-xs text-muted-foreground">
-                Visible to everyone in this workspace. Type <strong>@</strong> to mention users, <strong>#</strong> to tag contacts.
+                Visible to everyone in this workspace. Type <strong>@</strong> to mention users, <strong>#</strong> to tag {isDeal ? "listings" : "contacts"}.
             </p>
         </form>
     );

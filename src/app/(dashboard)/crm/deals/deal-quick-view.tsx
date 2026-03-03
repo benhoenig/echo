@@ -94,15 +94,25 @@ const FINANCING_LABELS: Record<string, string> = {
 
 const parseCommentContent = (text: string) => {
     if (!text) return null;
+    // Match @[Name](user:UUID), #[Name](contact:UUID), #[Name](listing:UUID)
     const regex = /([@#]\[[^\]]+\]\([^:]+:[^\)]+\))/g;
     const parts = text.split(regex);
     return parts.map((part: string, i: number) => {
-        const match = part.match(/^([@#])\[([^\]]+)\]\([^:]+:[^\)]+\)$/);
+        const match = part.match(/^([@#])\[([^\]]+)\]\(([^:]+):[^\)]+\)$/);
         if (match) {
+            const type = match[3]; // "user", "contact", or "listing"
+            const isUser = type === "user";
+            const isListing = type === "listing";
             return (
                 <span
                     key={i}
-                    className="font-semibold text-primary/90 bg-primary/10 px-1 py-0.5 rounded-sm"
+                    className={`font-semibold px-1 py-0.5 rounded-sm ${
+                        isUser
+                            ? "text-orange-600 bg-orange-500/10"
+                            : isListing
+                              ? "text-emerald-600 bg-emerald-500/10"
+                              : "text-blue-600 bg-blue-500/10"
+                    }`}
                 >
                     {match[1]}
                     {match[2]}
