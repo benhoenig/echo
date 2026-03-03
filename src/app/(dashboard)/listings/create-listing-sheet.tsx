@@ -210,7 +210,7 @@ export function CreateListingSheet({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-[500px] sm:max-w-[500px] overflow-y-auto">
+            <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                     <SheetTitle>New Listing</SheetTitle>
                     <SheetDescription>
@@ -218,22 +218,22 @@ export function CreateListingSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-6 py-6">
+                <div className="flex-1 overflow-y-auto px-6 py-4">
                     {/* Required */}
-                    <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-3 pb-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             Required
                         </h4>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                                <Label>Listing Name <span className="text-red-500">*</span></Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Listing Name <span className="text-red-500">*</span></Label>
                                 <button
                                     type="button"
                                     onClick={() => {
                                         if (!isManualName) setListingName(autoName);
                                         setIsManualName(!isManualName);
                                     }}
-                                    className="inline-flex items-center gap-1 text-[11px] text-orange-600 hover:text-orange-700 font-medium transition-colors duration-150 active:scale-[0.98]"
+                                    className="inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-700 font-medium transition-all duration-150 ease-in-out active:scale-[0.98]"
                                 >
                                     {isManualName ? (
                                         <><Wand2 className="w-3 h-3" strokeWidth={1.75} />Use auto</>
@@ -249,11 +249,11 @@ export function CreateListingSheet({
                                     onChange={(e) => setListingName(e.target.value)}
                                 />
                             ) : (
-                                <div className="flex items-center justify-between h-9 px-3 rounded-lg border border-stone-200 bg-stone-50 text-sm">
-                                    <span className={autoName ? "text-stone-800" : "text-stone-400 italic"}>
+                                <div className="flex items-center justify-between h-9 px-3 rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-sm">
+                                    <span className={autoName ? "text-stone-800 dark:text-stone-200" : "text-stone-400 italic"}>
                                         {autoName || "Fill property type & street / soi below"}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 text-[11px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md font-medium shrink-0 ml-2">
+                                    <span className="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded-md font-medium shrink-0 ml-2">
                                         <Wand2 className="w-2.5 h-2.5" strokeWidth={1.75} />
                                         Auto
                                     </span>
@@ -261,12 +261,12 @@ export function CreateListingSheet({
                             )}
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                                <Label>Property Type <span className="text-red-500">*</span></Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Property Type <span className="text-red-500">*</span></Label>
                                 <PropertyTypeSelect value={propertyType} onValueChange={setPropertyType} />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Listing Type <span className="text-red-500">*</span></Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Listing Type <span className="text-red-500">*</span></Label>
                                 <Select value={listingType} onValueChange={setListingType}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select..." />
@@ -282,12 +282,12 @@ export function CreateListingSheet({
                     </div>
 
                     {/* Project */}
-                    <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             Project
                         </h4>
-                        <div className="space-y-2">
-                            <Label>Select Project</Label>
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Select Project</Label>
                             <Select value={projectId} onValueChange={handleProjectChange}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="No project (standalone)" />
@@ -304,16 +304,16 @@ export function CreateListingSheet({
                                 </SelectContent>
                             </Select>
                             {projectId && (
-                                <p className="text-[11px] text-muted-foreground">
-                                    ✓ Zone, BTS, MRT auto-filled from project
+                                <p className="text-xs text-stone-500">
+                                    Zone, BTS, MRT auto-filled from project
                                 </p>
                             )}
                         </div>
                     </div>
 
                     {/* Seller */}
-                    <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             Seller Contact <span className="text-red-500">*</span>
                         </h4>
                         <Select value={sellerContactId} onValueChange={setSellerContactId}>
@@ -333,100 +333,100 @@ export function CreateListingSheet({
                     </div>
 
                     {/* Location */}
-                    <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             Location
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="space-y-2">
-                                <Label>Zone</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Zone</Label>
                                 <Input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Sukhumvit" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>BTS</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">BTS</Label>
                                 <Input value={bts} onChange={(e) => setBts(e.target.value)} placeholder="Siam" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>MRT</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">MRT</Label>
                                 <Input value={mrt} onChange={(e) => setMrt(e.target.value)} />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Street / Soi</Label>
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Street / Soi</Label>
                             <Input value={streetSoi} onChange={(e) => setStreetSoi(e.target.value)} placeholder="ทองหล่อ ซ.22" />
                         </div>
                     </div>
 
                     {/* Unit Details */}
-                    <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             Unit Details
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="space-y-2">
-                                <Label>Unit No</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Unit No</Label>
                                 <Input value={unitNo} onChange={(e) => setUnitNo(e.target.value)} placeholder="2808" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Beds</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Beds</Label>
                                 <Input type="number" value={bedrooms} onChange={(e) => setBedrooms(e.target.value)} placeholder="1" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Baths</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Baths</Label>
                                 <Input type="number" value={bathrooms} onChange={(e) => setBathrooms(e.target.value)} placeholder="1" />
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="space-y-2">
-                                <Label>Size (sqm)</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Size (sqm)</Label>
                                 <Input type="number" value={sizeSqm} onChange={(e) => setSizeSqm(e.target.value)} placeholder="34" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Floor</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Floor</Label>
                                 <Input type="number" value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="28" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Building</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Building</Label>
                                 <Input value={building} onChange={(e) => setBuilding(e.target.value)} placeholder="A" />
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="space-y-2">
-                                <Label>View</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">View</Label>
                                 <Input value={viewField} onChange={(e) => setViewField(e.target.value)} placeholder="City View" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Direction</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Direction</Label>
                                 <Input value={direction} onChange={(e) => setDirection(e.target.value)} placeholder="North" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Condition</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Condition</Label>
                                 <Input value={unitCondition} onChange={(e) => setUnitCondition(e.target.value)} placeholder="Furnished" />
                             </div>
                         </div>
                     </div>
 
                     {/* Pricing */}
-                    <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-3 py-4">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             Pricing
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="space-y-2">
-                                <Label>Asking Price (฿)</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Asking Price (฿)</Label>
                                 <Input type="number" value={askingPrice} onChange={(e) => setAskingPrice(e.target.value)} placeholder="5,200,000" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Rental (฿/mo)</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Rental (฿/mo)</Label>
                                 <Input type="number" value={rentalPrice} onChange={(e) => setRentalPrice(e.target.value)} placeholder="25,000" />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Commission %</Label>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Commission %</Label>
                                 <Input type="number" step="0.5" value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} placeholder="3" />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Price Remark (เงื่อนไขค่าโอนฯ)</Label>
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Price Remark (เงื่อนไขค่าโอนฯ)</Label>
                             <Textarea
                                 value={priceRemark}
                                 onChange={(e) => setPriceRemark(e.target.value)}

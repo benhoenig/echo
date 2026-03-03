@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 import { Users, Handshake } from "lucide-react";
 
 const tabs = [
-    { label: "Contacts", href: "/crm/contacts", icon: Users },
     { label: "Deals", href: "/crm/deals", icon: Handshake },
+    { label: "Contacts", href: "/crm/contacts", icon: Users },
 ];
 
 export function CrmSubNav() {

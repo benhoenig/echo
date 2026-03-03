@@ -7,6 +7,7 @@ import {
     SheetHeader,
     SheetTitle,
     SheetDescription,
+    SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,7 +162,7 @@ export function CreateDealSheet({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                     <SheetTitle>Create New Deal</SheetTitle>
                     <SheetDescription>
@@ -169,18 +170,18 @@ export function CreateDealSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-4 mt-6">
+                <div className="flex-1 overflow-y-auto px-6 py-4">
                     {/* Deal Type */}
-                    <div className="space-y-1.5">
-                        <Label className="text-sm font-medium">Deal Type *</Label>
+                    <div className="space-y-1.5 pb-4 border-b border-stone-100 dark:border-stone-800">
+                        <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Deal Type *</Label>
                         <div className="flex gap-2">
                             <button
                                 type="button"
                                 onClick={() => setDealType("BUY_SIDE")}
-                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-all duration-150 ease-in-out active:scale-[0.98] ${
                                     dealType === "BUY_SIDE"
                                         ? "border-orange-500 bg-orange-500/10 text-orange-600"
-                                        : "border-stone-200 dark:border-stone-700 text-muted-foreground hover:bg-stone-50 dark:hover:bg-stone-800"
+                                        : "border-stone-200 dark:border-stone-700 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
                             >
                                 Buy-side
@@ -188,10 +189,10 @@ export function CreateDealSheet({
                             <button
                                 type="button"
                                 onClick={() => setDealType("SELL_SIDE")}
-                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-all duration-150 ease-in-out active:scale-[0.98] ${
                                     dealType === "SELL_SIDE"
                                         ? "border-orange-500 bg-orange-500/10 text-orange-600"
-                                        : "border-stone-200 dark:border-stone-700 text-muted-foreground hover:bg-stone-50 dark:hover:bg-stone-800"
+                                        : "border-stone-200 dark:border-stone-700 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
                             >
                                 Sell-side
@@ -199,187 +200,206 @@ export function CreateDealSheet({
                         </div>
                     </div>
 
-                    {/* Contact */}
-                    {dealType === "BUY_SIDE" ? (
-                        <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">
-                                Buyer Contact
-                            </Label>
-                            <Select
-                                value={buyerContactId}
-                                onValueChange={setBuyerContactId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select buyer..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {contacts.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    ) : (
-                        <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">
-                                Seller Contact
-                            </Label>
-                            <Select
-                                value={sellerContactId}
-                                onValueChange={setSellerContactId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select seller..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {contacts.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>
-                                            {c.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* Listing */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                            Linked Listing
-                        </Label>
-                        <Select value={listingId} onValueChange={setListingId}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="None" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {listings.map((l) => (
-                                    <SelectItem key={l.id} value={l.id}>
-                                        {l.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Deal Name */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                            Deal Name
-                        </Label>
-                        <Input
-                            value={dealName}
-                            onChange={(e) => setDealName(e.target.value)}
-                            placeholder={autoName || "Auto-generated from contact + listing"}
-                        />
-                        {!dealName && autoName && (
-                            <p className="text-[10px] text-muted-foreground">
-                                Will use: {autoName}
-                            </p>
+                    {/* Contact & Listing */}
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                            Contact & Listing
+                        </h4>
+                        {dealType === "BUY_SIDE" ? (
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Buyer Contact
+                                </Label>
+                                <Select
+                                    value={buyerContactId}
+                                    onValueChange={setBuyerContactId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select buyer..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {contacts.map((c) => (
+                                            <SelectItem key={c.id} value={c.id}>
+                                                {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Seller Contact
+                                </Label>
+                                <Select
+                                    value={sellerContactId}
+                                    onValueChange={setSellerContactId}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select seller..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {contacts.map((c) => (
+                                            <SelectItem key={c.id} value={c.id}>
+                                                {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         )}
-                    </div>
 
-                    {/* Pipeline Stage */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                            Pipeline Stage
-                        </Label>
-                        <Select
-                            value={pipelineStageId || defaultStage?.id || ""}
-                            onValueChange={setPipelineStageId}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select stage..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {relevantStages.map((s) => (
-                                    <SelectItem key={s.id} value={s.id}>
-                                        {s.name}
-                                        {s.isDefault ? " (Default)" : ""}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Value & Commission */}
-                    <div className="grid grid-cols-2 gap-3">
+                        {/* Listing */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">
-                                Estimated Value (THB)
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Linked Listing
                             </Label>
-                            <Input
-                                type="number"
-                                value={estimatedValue}
-                                onChange={(e) =>
-                                    setEstimatedValue(e.target.value)
-                                }
-                                placeholder="e.g. 5000000"
-                                className="font-mono tabular-nums"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label className="text-xs text-muted-foreground">
-                                Commission Rate (%)
-                            </Label>
-                            <Input
-                                type="number"
-                                value={commissionRate}
-                                onChange={(e) =>
-                                    setCommissionRate(e.target.value)
-                                }
-                                placeholder="e.g. 3"
-                                className="font-mono tabular-nums"
-                            />
+                            <Select value={listingId} onValueChange={setListingId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="None" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {listings.map((l) => (
+                                        <SelectItem key={l.id} value={l.id}>
+                                            {l.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
-                    {/* Lead Source */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                            Lead Source
-                        </Label>
-                        <Select value={leadSource} onValueChange={setLeadSource}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select source..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="LINE">LINE</SelectItem>
-                                <SelectItem value="WEBSITE">Website</SelectItem>
-                                <SelectItem value="REFERRAL">Referral</SelectItem>
-                                <SelectItem value="FACEBOOK">Facebook</SelectItem>
-                                <SelectItem value="WALK_IN">Walk-in</SelectItem>
-                                <SelectItem value="COLD_CALL">Cold Call</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    {/* Deal Details */}
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                            Deal Details
+                        </h4>
+
+                        {/* Deal Name */}
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Deal Name
+                            </Label>
+                            <Input
+                                value={dealName}
+                                onChange={(e) => setDealName(e.target.value)}
+                                placeholder={autoName || "Auto-generated from contact + listing"}
+                            />
+                            {!dealName && autoName && (
+                                <p className="text-xs text-stone-500">
+                                    Will use: {autoName}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Pipeline Stage */}
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Pipeline Stage
+                            </Label>
+                            <Select
+                                value={pipelineStageId || defaultStage?.id || ""}
+                                onValueChange={setPipelineStageId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select stage..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {relevantStages.map((s) => (
+                                        <SelectItem key={s.id} value={s.id}>
+                                            {s.name}
+                                            {s.isDefault ? " (Default)" : ""}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Value & Commission */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Estimated Value (THB)
+                                </Label>
+                                <Input
+                                    type="number"
+                                    value={estimatedValue}
+                                    onChange={(e) =>
+                                        setEstimatedValue(e.target.value)
+                                    }
+                                    placeholder="e.g. 5000000"
+                                    className="font-mono tabular-nums"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Commission Rate (%)
+                                </Label>
+                                <Input
+                                    type="number"
+                                    value={commissionRate}
+                                    onChange={(e) =>
+                                        setCommissionRate(e.target.value)
+                                    }
+                                    placeholder="e.g. 3"
+                                    className="font-mono tabular-nums"
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Assigned To */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
-                            Assigned To
-                        </Label>
-                        <Select
-                            value={assignedToId}
-                            onValueChange={setAssignedToId}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Unassigned" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {agents.map((a) => (
-                                    <SelectItem key={a.id} value={a.id}>
-                                        {a.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    {/* Assignment & Source */}
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                            Assignment
+                        </h4>
+
+                        {/* Lead Source */}
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Lead Source
+                            </Label>
+                            <Select value={leadSource} onValueChange={setLeadSource}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select source..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="LINE">LINE</SelectItem>
+                                    <SelectItem value="WEBSITE">Website</SelectItem>
+                                    <SelectItem value="REFERRAL">Referral</SelectItem>
+                                    <SelectItem value="FACEBOOK">Facebook</SelectItem>
+                                    <SelectItem value="WALK_IN">Walk-in</SelectItem>
+                                    <SelectItem value="COLD_CALL">Cold Call</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Assigned To */}
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Assigned To
+                            </Label>
+                            <Select
+                                value={assignedToId}
+                                onValueChange={setAssignedToId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Unassigned" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {agents.map((a) => (
+                                        <SelectItem key={a.id} value={a.id}>
+                                            {a.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     {/* Notes */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">
+                    <div className="space-y-1.5 py-4">
+                        <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                             Notes
                         </Label>
                         <Textarea
@@ -389,9 +409,13 @@ export function CreateDealSheet({
                             placeholder="Any additional notes..."
                         />
                     </div>
+                </div>
 
+                <SheetFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
                     <Button
-                        className="w-full"
                         onClick={handleSubmit}
                         disabled={isPending}
                     >
@@ -400,7 +424,7 @@ export function CreateDealSheet({
                         )}
                         Create Deal
                     </Button>
-                </div>
+                </SheetFooter>
             </SheetContent>
         </Sheet>
     );

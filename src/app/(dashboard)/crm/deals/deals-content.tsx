@@ -97,7 +97,7 @@ export function DealsContent({
         "ALL" | "BUY_SIDE" | "SELL_SIDE"
     >("ALL");
     const [isPending, startTransition] = useTransition();
-    const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
+    const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
     const router = useRouter();
 
     // Saved filters state
@@ -296,7 +296,7 @@ export function DealsContent({
                 ))}
             </div>
 
-            {/* Search, View Toggle & Group */}
+            {/* Search, Group & View Toggle */}
             <div className="flex items-center gap-3">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -307,33 +307,6 @@ export function DealsContent({
                         className="pl-9 h-9 text-sm"
                     />
                 </div>
-                {/* View Toggle */}
-                {!showArchived && (
-                    <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1">
-                        <button
-                            onClick={() => setViewMode("table")}
-                            className={`p-1.5 rounded-md transition-colors ${
-                                viewMode === "table"
-                                    ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            title="Table view"
-                        >
-                            <Table2 className="w-4 h-4" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode("kanban")}
-                            className={`p-1.5 rounded-md transition-colors ${
-                                viewMode === "kanban"
-                                    ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            title="Kanban view"
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
                 {/* Group-by (table view only) */}
                 {viewMode === "table" && (
                     <Select
@@ -358,6 +331,33 @@ export function DealsContent({
                             ))}
                         </SelectContent>
                     </Select>
+                )}
+                {/* View Toggle — right aligned */}
+                {!showArchived && (
+                    <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1 ml-auto">
+                        <button
+                            onClick={() => setViewMode("kanban")}
+                            className={`p-1.5 rounded-md transition-colors ${
+                                viewMode === "kanban"
+                                    ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Kanban view"
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode("table")}
+                            className={`p-1.5 rounded-md transition-colors ${
+                                viewMode === "table"
+                                    ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            title="Table view"
+                        >
+                            <Table2 className="w-4 h-4" />
+                        </button>
+                    </div>
                 )}
             </div>
 

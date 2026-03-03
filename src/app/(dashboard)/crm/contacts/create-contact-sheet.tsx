@@ -174,7 +174,7 @@ export function CreateContactSheet({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-lg overflow-y-auto">
+            <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                     <SheetTitle>New Contact</SheetTitle>
                     <SheetDescription>
@@ -182,10 +182,10 @@ export function CreateContactSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-5 py-6">
+                <div className="flex-1 overflow-y-auto px-6 py-4">
                     {/* Duplicate Warning */}
                     {duplicates.length > 0 && (
-                        <Alert variant="destructive">
+                        <Alert variant="destructive" className="mb-4">
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
                                 <p className="font-medium mb-1">
@@ -204,16 +204,16 @@ export function CreateContactSheet({
                                     ))}
                                 </ul>
                                 <p className="text-xs mt-2">
-                                    Click &ldquo;Create Contact&rdquo; again to
-                                    proceed anyway.
+                                    Click &ldquo;Create Anyway&rdquo; to
+                                    proceed.
                                 </p>
                             </AlertDescription>
                         </Alert>
                     )}
 
                     {/* Contact Type */}
-                    <div className="space-y-2">
-                        <Label className="text-sm font-medium">
+                    <div className="space-y-2 pb-4 border-b border-stone-100 dark:border-stone-800">
+                        <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                             Contact Type *
                         </Label>
                         <div className="flex gap-3">
@@ -235,170 +235,182 @@ export function CreateContactSheet({
                     </div>
 
                     {/* Name */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="firstName" className="text-sm">
-                                First Name *
-                            </Label>
-                            <Input
-                                id="firstName"
-                                value={firstName}
-                                onChange={(e) => {
-                                    setFirstName(e.target.value);
-                                    setDuplicateChecked(false);
-                                }}
-                                placeholder="Somchai"
-                            />
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                            Name
+                        </h4>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="firstName" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    First Name *
+                                </Label>
+                                <Input
+                                    id="firstName"
+                                    value={firstName}
+                                    onChange={(e) => {
+                                        setFirstName(e.target.value);
+                                        setDuplicateChecked(false);
+                                    }}
+                                    placeholder="Somchai"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="lastName" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Last Name *
+                                </Label>
+                                <Input
+                                    id="lastName"
+                                    value={lastName}
+                                    onChange={(e) => {
+                                        setLastName(e.target.value);
+                                        setDuplicateChecked(false);
+                                    }}
+                                    placeholder="Srichai"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="lastName" className="text-sm">
-                                Last Name *
+                            <Label htmlFor="nickname" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Nickname
                             </Label>
                             <Input
-                                id="lastName"
-                                value={lastName}
-                                onChange={(e) => {
-                                    setLastName(e.target.value);
-                                    setDuplicateChecked(false);
-                                }}
-                                placeholder="Srichai"
+                                id="nickname"
+                                value={nickname}
+                                onChange={(e) => setNickname(e.target.value)}
+                                placeholder="Chai"
                             />
                         </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="nickname" className="text-sm">
-                            Nickname
-                        </Label>
-                        <Input
-                            id="nickname"
-                            value={nickname}
-                            onChange={(e) => setNickname(e.target.value)}
-                            placeholder="Chai"
-                        />
                     </div>
 
                     {/* Contact Info */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="phonePrimary" className="text-sm">
-                                Phone (Primary)
-                            </Label>
-                            <Input
-                                id="phonePrimary"
-                                value={phonePrimary}
-                                onChange={(e) => {
-                                    setPhonePrimary(e.target.value);
-                                    setDuplicateChecked(false);
-                                }}
-                                placeholder="08X-XXX-XXXX"
-                            />
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                            Contact Info
+                        </h4>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="phonePrimary" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Phone (Primary)
+                                </Label>
+                                <Input
+                                    id="phonePrimary"
+                                    value={phonePrimary}
+                                    onChange={(e) => {
+                                        setPhonePrimary(e.target.value);
+                                        setDuplicateChecked(false);
+                                    }}
+                                    placeholder="08X-XXX-XXXX"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="phoneSecondary" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Phone (Secondary)
+                                </Label>
+                                <Input
+                                    id="phoneSecondary"
+                                    value={phoneSecondary}
+                                    onChange={(e) =>
+                                        setPhoneSecondary(e.target.value)
+                                    }
+                                    placeholder="Optional"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="email" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    Email
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value);
+                                        setDuplicateChecked(false);
+                                    }}
+                                    placeholder="email@example.com"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="lineId" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                    LINE ID
+                                </Label>
+                                <Input
+                                    id="lineId"
+                                    value={lineId}
+                                    onChange={(e) => setLineId(e.target.value)}
+                                    placeholder="@lineid"
+                                />
+                            </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="phoneSecondary" className="text-sm">
-                                Phone (Secondary)
+                            <Label htmlFor="nationality" className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                Nationality
                             </Label>
                             <Input
-                                id="phoneSecondary"
-                                value={phoneSecondary}
-                                onChange={(e) =>
-                                    setPhoneSecondary(e.target.value)
-                                }
-                                placeholder="Optional"
+                                id="nationality"
+                                value={nationality}
+                                onChange={(e) => setNationality(e.target.value)}
+                                placeholder="Thai"
                             />
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="email" className="text-sm">
-                                Email
-                            </Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value);
-                                    setDuplicateChecked(false);
-                                }}
-                                placeholder="email@example.com"
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="lineId" className="text-sm">
-                                LINE ID
-                            </Label>
-                            <Input
-                                id="lineId"
-                                value={lineId}
-                                onChange={(e) => setLineId(e.target.value)}
-                                placeholder="@lineid"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                        <Label htmlFor="nationality" className="text-sm">
-                            Nationality
-                        </Label>
-                        <Input
-                            id="nationality"
-                            value={nationality}
-                            onChange={(e) => setNationality(e.target.value)}
-                            placeholder="Thai"
-                        />
                     </div>
 
                     {/* Source & Status */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                            <Label className="text-sm">Source</Label>
-                            <Select
-                                value={contactSource}
-                                onValueChange={setContactSource}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select source" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {CONTACT_SOURCE_OPTIONS.map((opt) => (
-                                        <SelectItem
-                                            key={opt.value}
-                                            value={opt.value}
-                                        >
-                                            {opt.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label className="text-sm">Status</Label>
-                            <Select
-                                value={contactStatus}
-                                onValueChange={setContactStatus}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {CONTACT_STATUS_OPTIONS.map((opt) => (
-                                        <SelectItem
-                                            key={opt.value}
-                                            value={opt.value}
-                                        >
-                                            {opt.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                    <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
+                        <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                            Classification
+                        </h4>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Source</Label>
+                                <Select
+                                    value={contactSource}
+                                    onValueChange={setContactSource}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select source" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CONTACT_SOURCE_OPTIONS.map((opt) => (
+                                            <SelectItem
+                                                key={opt.value}
+                                                value={opt.value}
+                                            >
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Status</Label>
+                                <Select
+                                    value={contactStatus}
+                                    onValueChange={setContactStatus}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CONTACT_STATUS_OPTIONS.map((opt) => (
+                                            <SelectItem
+                                                key={opt.value}
+                                                value={opt.value}
+                                            >
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
 
                     {/* Notes */}
-                    <div className="space-y-1.5">
-                        <Label htmlFor="notes" className="text-sm">
+                    <div className="space-y-1.5 py-4">
+                        <Label htmlFor="notes" className="text-sm font-medium text-stone-700 dark:text-stone-300">
                             Notes
                         </Label>
                         <Textarea

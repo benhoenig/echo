@@ -801,7 +801,8 @@ export function ListingsDataTable({
             // Defer to avoid React state update during render (TanStack Table fires this synchronously)
             queueMicrotask(() => { if (mountedRef.current) onColumnFiltersChange(next); });
         },
-        onExpandedChange: setExpanded,
+        onGroupingChange: () => {},
+        onExpandedChange: () => {},
         state: {
             sorting,
             columnVisibility,
