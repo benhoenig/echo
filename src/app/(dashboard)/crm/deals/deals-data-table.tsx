@@ -79,6 +79,7 @@ interface DealsDataTableProps {
     showArchived: boolean;
     onRestore: (id: string) => void;
     pipelineStages: PipelineStage[];
+    onRowClick?: (deal: DealRow) => void;
 }
 
 function getContactName(contactData: DealRow | null): string {
@@ -495,6 +496,7 @@ export function DealsDataTable({
     showArchived,
     onRestore,
     pipelineStages,
+    onRowClick,
 }: DealsDataTableProps) {
     const router = useRouter();
     const mountedRef = useRef(false);
@@ -934,9 +936,11 @@ export function DealsDataTable({
                                             key={row.id}
                                             className="h-10 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
                                             onClick={() =>
-                                                router.push(
-                                                    `/crm/deals/${row.original.id}`
-                                                )
+                                                onRowClick
+                                                    ? onRowClick(row.original)
+                                                    : router.push(
+                                                          `/crm/deals/${row.original.id}`
+                                                      )
                                             }
                                         >
                                             {row

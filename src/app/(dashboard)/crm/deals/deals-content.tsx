@@ -33,6 +33,7 @@ import { DealsDataTable } from "./deals-data-table";
 import { DealsKanbanBoard } from "./deals-kanban-board";
 import { DealsFilterBar } from "./deals-filter-bar";
 import { CreateDealSheet } from "./create-deal-sheet";
+import { DealQuickView } from "./deal-quick-view";
 import { restoreDeal } from "./deal-actions";
 import { createSavedFilter, deleteSavedFilter } from "./saved-filter-actions";
 import { toast } from "sonner";
@@ -98,6 +99,7 @@ export function DealsContent({
     >("ALL");
     const [isPending, startTransition] = useTransition();
     const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
+    const [quickViewDeal, setQuickViewDeal] = useState<DealRow | null>(null);
     const router = useRouter();
 
     // Saved filters state
@@ -531,6 +533,7 @@ export function DealsContent({
                     deals={kanbanDeals}
                     pipelineStages={pipelineStages}
                     dealTypeFilter={dealTypeFilter}
+                    onCardClick={setQuickViewDeal}
                 />
             ) : (
                 <DealsDataTable
@@ -541,6 +544,7 @@ export function DealsContent({
                     showArchived={showArchived}
                     onRestore={handleRestore}
                     pipelineStages={pipelineStages}
+                    onRowClick={setQuickViewDeal}
                 />
             )}
 
@@ -552,6 +556,14 @@ export function DealsContent({
                 contacts={contacts}
                 agents={agents}
                 listings={listings}
+            />
+
+            <DealQuickView
+                deal={quickViewDeal}
+                open={!!quickViewDeal}
+                onOpenChange={(open) => {
+                    if (!open) setQuickViewDeal(null);
+                }}
             />
         </div>
     );

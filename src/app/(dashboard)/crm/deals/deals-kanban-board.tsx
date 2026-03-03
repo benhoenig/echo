@@ -37,6 +37,7 @@ interface DealsKanbanBoardProps {
     deals: DealRow[];
     pipelineStages: PipelineStage[];
     dealTypeFilter: "ALL" | "BUY_SIDE" | "SELL_SIDE";
+    onCardClick?: (deal: DealRow) => void;
 }
 
 // ── Helpers (duplicated from deals-data-table.tsx) ──────────
@@ -76,7 +77,7 @@ const TIER_COLORS: Record<string, string> = {
 
 // ── Sub-components ──────────────────────────────────────────
 
-function KanbanDealCard({ deal }: { deal: DealRow }) {
+function KanbanDealCard({ deal, onCardClick }: { deal: DealRow; onCardClick?: (deal: DealRow) => void }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } =
         useDraggable({ id: deal.id });
     const router = useRouter();
@@ -110,7 +111,7 @@ function KanbanDealCard({ deal }: { deal: DealRow }) {
                 "hover:shadow-md transition-all duration-150 ease-in-out",
                 isDragging && "opacity-30"
             )}
-            onClick={() => router.push(`/crm/deals/${deal.id}`)}
+            onClick={() => onCardClick ? onCardClick(deal) : router.push(`/crm/deals/${deal.id}`)}
         >
             {/* Deal Name */}
             <p className="text-sm font-medium text-stone-800 dark:text-stone-200 truncate">
@@ -207,10 +208,12 @@ function KanbanColumn({
     stage,
     deals,
     isOver,
+    onCardClick,
 }: {
     stage: PipelineStage;
     deals: DealRow[];
     isOver: boolean;
+    onCardClick?: (deal: DealRow) => void;
 }) {
     const { setNodeRef } = useDroppable({ id: stage.id });
     const stageColor = stage.color || "#78716c";
@@ -260,7 +263,7 @@ function KanbanColumn({
             {/* Cards Area */}
             <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-[100px] max-h-[calc(100vh-280px)]">
                 {deals.map((deal: DealRow) => (
-                    <KanbanDealCard key={deal.id} deal={deal} />
+                    <KanbanDealCard key={deal.id} deal={deal} onCardClick={onCardClick} />
                 ))}
                 {deals.length === 0 && (
                     <div className="flex items-center justify-center h-20 text-xs text-muted-foreground">
@@ -278,6 +281,7 @@ export function DealsKanbanBoard({
     deals,
     pipelineStages,
     dealTypeFilter,
+    onCardClick,
 }: DealsKanbanBoardProps) {
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
     const [overColumnId, setOverColumnId] = useState<string | null>(null);
@@ -405,6 +409,7 @@ export function DealsKanbanBoard({
                             stage={stage}
                             deals={dealsByStage.get(stage.id) ?? []}
                             isOver={overColumnId === stage.id}
+                            onCardClick={onCardClick}
                         />
                     ))}
                 </div>
