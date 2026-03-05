@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function login(formData: FormData) {
     const supabase = await createClient();
@@ -30,7 +31,7 @@ export async function signup(formData: FormData) {
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
 
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -44,6 +45,52 @@ export async function signup(formData: FormData) {
 
     if (error) {
         return { error: error.message };
+    }
+
+    // If the user is immediately confirmed (email confirmation disabled),
+    // create their user record and workspace directly since /auth/callback won't be triggered
+    const confirmedUser = signUpData?.user;
+    if (confirmedUser && confirmedUser.email_confirmed_at) {
+        const adminClient = createAdminClient();
+
+        // Check if user record already exists (safety check)
+        const { data: existingUser } = await adminClient
+            .from("users")
+            .select("id")
+            .eq("id", confirmedUser.id)
+            .single();
+
+        if (!existingUser) {
+            // Create workspace
+            const { data: workspace, error: wsError } = await adminClient
+                .from("workspaces")
+                .insert({
+                    workspace_name: `${firstName}'s Workspace`,
+                })
+                .select("id")
+                .single();
+
+            if (workspace && !wsError) {
+                const { error: insertError } = await adminClient.from("users").insert({
+                    id: confirmedUser.id,
+                    workspace_id: workspace.id,
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: confirmedUser.email || "",
+                    role: "OWNER" as any,
+                    is_active: true,
+                });
+
+                if (insertError) {
+                    console.error("[Signup] Failed to insert user record:", insertError);
+                }
+            } else {
+                console.error("[Signup] Failed to create workspace:", wsError);
+            }
+        }
+
+        revalidatePath("/", "layout");
+        redirect("/dashboard");
     }
 
     revalidatePath("/", "layout");
