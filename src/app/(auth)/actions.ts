@@ -47,10 +47,11 @@ export async function signup(formData: FormData) {
         return { error: error.message };
     }
 
-    // If the user is immediately confirmed (email confirmation disabled),
-    // create their user record and workspace directly since /auth/callback won't be triggered
+    // If user is immediately confirmed (email confirmation disabled),
+    // a session is returned. Create their user record and workspace directly
+    // since /auth/callback won't be triggered.
     const confirmedUser = signUpData?.user;
-    if (confirmedUser && confirmedUser.email_confirmed_at) {
+    if (confirmedUser && signUpData?.session) {
         const adminClient = createAdminClient();
 
         // Check if user record already exists (safety check)
