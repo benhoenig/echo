@@ -154,8 +154,9 @@ async function main() {
             create: {
                 id: pb.id,
                 workspaceId: pb.workspaceId,
-                pipelineType: isBuyerStage ? 'BUYER' : 'SELLER',
+                module: 'DEALS',
                 pipelineStageId: pb.pipelineStageId,
+                dealType: isBuyerStage ? 'BUY_SIDE' : 'SELL_SIDE',
                 actionType: pb.actionType,
                 actionLabel: pb.label,
                 actionDescription: pb.description,

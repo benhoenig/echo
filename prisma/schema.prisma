@@ -322,7 +322,8 @@ model Workspace {
   pipelineStages   PipelineStage[]
   activityLogs     ActivityLog[]
   comments         Comment[]
-  notifications    Notification[]
+  notifications             Notification[]
+  notificationPreferences   NotificationPreference[]
   potentialConfigs PotentialConfig[]
   playbooks        StageActionPlaybook[]
   savedFilters     SavedFilter[]
@@ -374,6 +375,7 @@ model User {
   authoredComments         Comment[]
   activityLogs             ActivityLog[]
   notifications            Notification[]
+  notificationPreferences  NotificationPreference[]
   createdPotentialConfigs  PotentialConfig[]       @relation("CreatedByUser_PotentialConfig")
   updatedPotentialConfigs  PotentialConfig[]       @relation("UpdatedByUser_PotentialConfig")
   createdPlaybooks         StageActionPlaybook[]   @relation("CreatedByUser_StageActionPlaybook")
@@ -839,6 +841,25 @@ model Notification {
   @@map("notifications")
 }
 
+// 10.13b Notification Preference Table
+model NotificationPreference {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId      String           @map("workspace_id") @db.Uuid
+  userId           String           @map("user_id") @db.Uuid
+  notificationType NotificationType @map("notification_type")
+  inApp            Boolean          @default(true) @map("in_app")
+  email            Boolean          @default(false)
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationType])
+  @@index([workspaceId, userId])
+  @@map("notification_preferences")
+}
+
 // 10.14 Potential Config Table
 model PotentialConfig {
   id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -870,14 +891,27 @@ model PotentialConfig {
 model StageActionPlaybook {
   id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   workspaceId          String             @map("workspace_id") @db.Uuid
-  pipelineType         PipelineType       @map("pipeline_type")
-  pipelineStageId      String             @map("pipeline_stage_id") @db.Uuid
+  module               ModuleType         @default(DEALS)
+  
+  // Dynamic Trigger Logic (All Optional)
+  pipelineStageId      String?            @map("pipeline_stage_id") @db.Uuid // For Deals
+  listingStatus        ListingStatus?     @map("listing_status")             // For Listings
+  potentialTier        String?            @map("potential_tier")             // E.g., A, B, C
+  propertyType         PropertyType?      @map("property_type")              // E.g., CONDO, HOUSE
+  listingType          ListingType?       @map("listing_type")               // For Listings (SELL/RENT)
+  dealType             DealType?          @map("deal_type")                  // For Deals (BUY_SIDE/SELL_SIDE)
+
+  // Output Action
   actionType           PlaybookActionType @map("action_type")
   actionLabel          String             @map("action_label")
   actionDescription    String?            @map("action_description") @db.Text
   actionTemplate       String?            @map("action_template") @db.Text
+  
+  // Timing & Automation
   reminderOverride     Boolean            @default(false) @map("reminder_override")
   overrideIntervalDays Int?               @map("override_interval_days")
+  isRecurring          Boolean            @default(false) @map("is_recurring")
+
   order                Int
   isRequired           Boolean            @default(false) @map("is_required")
   isActive             Boolean            @default(true) @map("is_active")
@@ -887,11 +921,12 @@ model StageActionPlaybook {
   lastUpdatedAt   DateTime @updatedAt @map("last_updated_at")
   lastUpdatedById String?  @map("last_updated_by_id") @db.Uuid
 
-  workspace     Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  pipelineStage PipelineStage @relation(fields: [pipelineStageId], references: [id], onDelete: Cascade)
-  createdBy     User?         @relation("CreatedByUser_StageActionPlaybook", fields: [createdById], references: [id])
-  lastUpdatedBy User?         @relation("UpdatedByUser_StageActionPlaybook", fields: [lastUpdatedById], references: [id])
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  pipelineStage PipelineStage? @relation(fields: [pipelineStageId], references: [id], onDelete: Cascade)
+  createdBy     User?          @relation("CreatedByUser_StageActionPlaybook", fields: [createdById], references: [id])
+  lastUpdatedBy User?          @relation("UpdatedByUser_StageActionPlaybook", fields: [lastUpdatedById], references: [id])
 
+  @@index([workspaceId, module])
   @@index([workspaceId, pipelineStageId])
   @@map("stage_action_playbooks")
 }

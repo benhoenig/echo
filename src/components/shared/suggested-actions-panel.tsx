@@ -64,7 +64,7 @@ interface SuggestedActionsPanelProps {
     workspaceId: string;
     lastActionDate: string | null;
     createdAt: string;
-    intervalDays: number;
+    intervalDays: number | null;
     playbooks?: PlaybookAction[];
 }
 
@@ -122,8 +122,12 @@ export function SuggestedActionsPanel({
                             {lastActionDate
                                 ? `Last actioned ${status.daysSinceLastAction}d ago`
                                 : "No action recorded yet"}
-                            {" · "}
-                            Tier interval: every {intervalDays}d
+                            {intervalDays != null && (
+                                <>
+                                    {" · "}
+                                    Playbook interval: every {intervalDays}d
+                                </>
+                            )}
                         </p>
                     </div>
                 </div>

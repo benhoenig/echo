@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/activity-logger";
+import { sendNotification } from "@/lib/notifications";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealInsert = any;
@@ -249,6 +250,31 @@ export async function updateDealStage(
         metadata: { from_stage_id: oldStageId, to_stage_id: newStageId },
     });
 
+    // Send STAGE_CHANGE notification to the deal's assigned user (if different from actor)
+    const { data: dealForNotify } = await supabase
+        .from("deals")
+        .select("assigned_to_id, deal_name")
+        .eq("id", dealId)
+        .single();
+
+    if (
+        dealForNotify?.assigned_to_id &&
+        dealForNotify.assigned_to_id !== internalUserId
+    ) {
+        sendNotification({
+            workspaceId: currentDeal.workspace_id,
+            userId: dealForNotify.assigned_to_id,
+            type: "STAGE_CHANGE",
+            entityType: "DEAL",
+            entityId: dealId,
+            title: `Stage changed: ${dealForNotify.deal_name || "Untitled Deal"}`,
+            message: "Deal pipeline stage was updated.",
+            actionUrl: `/crm/deals/${dealId}`,
+        }).catch((err: unknown) =>
+            console.error("Failed to send stage change notification:", err)
+        );
+    }
+
     revalidatePath("/crm/deals");
     revalidatePath(`/crm/deals/${dealId}`);
 }
@@ -365,6 +391,22 @@ export async function updateDealField(
         description: `Changed ${field.replace(/_/g, " ")} from "${oldValue ?? "—"}" to "${value ?? "—"}"`,
         metadata: { field, oldValue, newValue: value },
     });
+
+    // Send STAGE_CHANGE notification when stage is changed inline
+    if (field === "pipeline_stage_id" && current.assigned_to_id && current.assigned_to_id !== internalUserId) {
+        sendNotification({
+            workspaceId: current.workspace_id,
+            userId: current.assigned_to_id,
+            type: "STAGE_CHANGE",
+            entityType: "DEAL",
+            entityId: dealId,
+            title: `Stage changed: ${current.deal_name || "Untitled Deal"}`,
+            message: "Deal pipeline stage was updated.",
+            actionUrl: `/crm/deals/${dealId}`,
+        }).catch((err: unknown) =>
+            console.error("Failed to send stage change notification:", err)
+        );
+    }
 
     revalidatePath("/crm/deals");
     revalidatePath(`/crm/deals/${dealId}`);

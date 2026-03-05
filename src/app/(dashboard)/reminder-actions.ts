@@ -97,7 +97,7 @@ export async function getSuggestedActions(
 
     const { data, error } = await supabase
         .from("stage_action_playbooks")
-        .select("id, action_type, action_label, action_description, action_template, reminder_override, override_interval_days, is_required, is_active, pipeline_stage_id")
+        .select("id, action_type, action_label, action_description, action_template, reminder_override, override_interval_days, is_required, is_active, pipeline_stage_id, is_recurring")
         .eq("workspace_id", workspaceId)
         .eq("pipeline_stage_id", pipelineStageId)
         .eq("is_active", true)
@@ -120,35 +120,6 @@ export async function getSuggestedActions(
         isRequired: row.is_required,
         isActive: row.is_active,
         pipelineStageId: row.pipeline_stage_id,
-    }));
-}
-
-/**
- * Fetch potential configs for a workspace and module.
- */
-export async function getPotentialConfigs(
-    workspaceId: string,
-    module: string
-) {
-    const supabase = await createClient();
-
-    const { data, error } = await supabase
-        .from("potential_configs")
-        .select("id, module, potential_label, reminder_interval, is_active")
-        .eq("workspace_id", workspaceId)
-        .eq("module", module as any)
-        .eq("is_active", true);
-
-    if (error) {
-        console.error("Failed to fetch potential configs:", error);
-        return [];
-    }
-
-    return (data || []).map((row) => ({
-        id: row.id,
-        module: row.module,
-        potentialLabel: row.potential_label,
-        reminderInterval: row.reminder_interval,
-        isActive: row.is_active,
+        isRecurring: row.is_recurring,
     }));
 }

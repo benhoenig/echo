@@ -456,6 +456,16 @@ The analytics and reporting hub. Dashboard design will be finalized in a future 
 - Filterable by date range, agent, zone, and other relevant dimensions.
 - Detailed dashboard specifications will be added prior to the implementation phase for this module.
 
+### 8.3 Action Reminders Page
+
+A productivity hub consolidating all items that require agent attention based on configured Potential Tier intervals.
+
+- **Unified View:** Displays both overdue/upcoming `Deals` and `Listings` in one sortable list.
+- **Urgency Indicators:** Color-coded badges and icons to highlight items that are `Overdue`, `Due`, or `Approaching`.
+- **Filtering:** Filter by Module (Deals vs. Listings), Urgency level, or Tier (A, B, C, D).
+- **In-line Action Resolution:** The "Mark as Actioned" button rapidly resets the `last_action_date` without leaving the page, dismissing related notifications.
+- **Suggested Playbook Actions:** Displays stage-specific recommended actions (from Stage Action Playbooks) directly on the reminder cards for Deals.
+
 ---
 
 ## 9. Module: Co-Agent Matching Community (Coming Soon)

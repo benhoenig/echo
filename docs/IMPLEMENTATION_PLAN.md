@@ -371,21 +371,21 @@ After Phase 1 is complete, manually verify:
 
 #### 4.2.2 Deal Management
 
-- [ ] CRM page with **Buyer** and **Seller** tabs. Each tab shows deals filtered by deal type.
-- [ ] Create new deal: creates a Contact (if new) + Deal record in one action. Deal is auto-placed in the first pipeline stage.
-- [ ] Deal auto-naming: auto-generate deal name from contact name + listing/project name + deal type (e.g., "Somchai — Ideo Q Siam — Sell"). Editable.
-- [ ] Deal detail page: all deal fields, linked contact info, linked listing info, pipeline stage, status, value tracking.
-- [ ] Buyer Requirements section on deal detail page (buy-side deals only): budget, preferred zones, property type, size range, floor range, facilities, pet/EV/parking, pain points, timeline, purpose of purchase, financing, pre-approval. One contact can have multiple buy-side deals, each with different requirements.
-- [ ] Deal table: data table with inline editing, same UX patterns as the listing table.
-- [ ] Customizable columns and rows (same column config memory system as listings).
-- [ ] Group by: Potential Tier, Deal Status, Pipeline Stage.
-- [ ] Filter / Saved Filter (same system as listings, module = CRM).
-- [ ] Potential Tier selection (A/B/C/D) on deals — inherited from the linked contact or set independently.
-- [ ] Deal Status management: Active, On Hold, Closed Won, Closed Lost.
-- [ ] Closed Lost Reason: required field when marking a deal as Closed Lost. Dropdown with common reasons + free text option.
-- [ ] Lead Source tracking on the deal: where this specific deal originated (may differ from the contact's source if a returning client).
-- [ ] Deal Value Tracking: estimated deal value, commission rate, estimated commission (auto-calculated).
-- [ ] Deal archive and restore.
+- [x] CRM page with **Buyer** and **Seller** tabs. Each tab shows deals filtered by deal type.
+- [x] Create new deal: creates a Contact (if new) + Deal record in one action. Deal is auto-placed in the first pipeline stage.
+- [x] Deal auto-naming: auto-generate deal name from contact name + listing/project name + deal type (e.g., "Somchai — Ideo Q Siam — Sell"). Editable.
+- [x] Deal detail page: all deal fields, linked contact info, linked listing info, pipeline stage, status, value tracking.
+- [x] Buyer Requirements section on deal detail page (buy-side deals only): budget, preferred zones, property type, size range, floor range, facilities, pet/EV/parking, pain points, timeline, purpose of purchase, financing, pre-approval. One contact can have multiple buy-side deals, each with different requirements.
+- [x] Deal table: data table with inline editing, same UX patterns as the listing table.
+- [x] Customizable columns and rows (same column config memory system as listings).
+- [x] Group by: Potential Tier, Deal Status, Pipeline Stage.
+- [x] Filter / Saved Filter (same system as listings, module = CRM).
+- [x] Potential Tier selection (A/B/C/D) on deals — inherited from the linked contact or set independently.
+- [x] Deal Status management: Active, On Hold, Closed Won, Closed Lost.
+- [x] Closed Lost Reason: required field when marking a deal as Closed Lost. Dropdown with common reasons + free text option.
+- [x] Lead Source tracking on the deal: where this specific deal originated (may differ from the contact's source if a returning client).
+- [x] Deal Value Tracking: estimated deal value, commission rate, estimated commission (auto-calculated).
+- [x] Deal archive and restore.
 
 #### 4.2.3 Pipeline Management
 
@@ -397,70 +397,65 @@ After Phase 1 is complete, manually verify:
 
 #### 4.2.4 Comments & Activity Feed (Reuse from Phase 1)
 
-- [ ] Hook the comments system (built in Phase 1) into the Deal entity. Deal detail page gets the same comment section.
-- [ ] @Mention users in deal comments.
-- [ ] Tag a Listing in deal comments: search and link a listing for context.
-- [ ] Activity Feed on the deal detail page: auto-records deal creation, stage changes, field edits, comments, contact updates.
+- [x] Hook the comments system (built in Phase 1) into the Deal entity. Deal detail page gets the same comment section.
+- [x] @Mention users in deal comments.
+- [x] Tag a Listing in deal comments: search and link a listing for context.
+- [x] Activity Feed on the deal detail page: auto-records deal creation, stage changes, field edits, comments, contact updates.
 
-#### 4.2.5 Reminders & Suggested Actions Engine
+#### 4.2.5 Reminders & Suggested Actions (Playbook First)
 
-Build a shared engine that serves both Listings and CRM.
+Build a shared engine that serves both Listings and CRM, driven entirely by Stage Action Playbooks.
 
-- [ ] Action Reminder system: based on Potential Tier config, calculate when each listing/deal is due for follow-up. When the interval is reached, create a Notification record.
-- [ ] Reminder check: a scheduled task (Vercel Cron or Supabase `pg_cron`) that runs daily, checks all active listings and deals against their potential tier's reminder interval and `last_action_date`, and generates notifications for overdue items.
-- [ ] Suggested Action display: when a reminder triggers, show the suggested action from the Stage Action Playbook (if configured for the current pipeline stage). Display on the deal/listing detail page and in the notification.
-- [ ] "Mark as actioned" button: when the agent takes the suggested action, update `last_action_date` and dismiss the reminder.
-- [ ] Reminder Override per stage: if a Stage Action Playbook entry has `reminder_override = true`, use the stage-specific interval instead of the potential tier interval.
+- [x] Action Reminder system: Reminders are triggered **only** if the entity's current Pipeline Stage has an active Playbook Action configured. The interval is defined by the Playbook.
+- [x] Reminder check: a scheduled task (Vercel Cron or Supabase `pg_cron`) that runs daily, checks all active deals against their current Playbook interval and `last_action_date`, and generates notifications for overdue items.
+- [x] Suggested Action display: when a reminder triggers, show the required action from the Stage Action Playbook. Display on the deal/listing detail page and in the notification.
+- [x] "Mark as actioned" button: when the agent takes the suggested action, update `last_action_date` and dismiss the reminder.
+
+#### 4.2.5b Playbooks UI Implementation (Next Step)
+
+- [ ] Data table or interactive list in Settings > Playbooks to view all active playbooks.
+- [ ] "Add New Playbook Action" Sheet/Modal: Select the pipeline stage, action type, description, and the follow-up interval for this action.
+- [ ] Connect the UI to the `stage_action_playbooks` table via Server Actions.
 
 #### 4.2.6 Notification System
 
-- [ ] In-app notification center: notification bell in the dashboard header with unread count badge.
-- [ ] Notification dropdown: list of recent notifications, click to navigate to the relevant entity.
-- [ ] Mark as read (individual and mark all as read).
-- [ ] Notification types supported: Action Reminder, Stage Change, Mention, Listing Status Change, Exclusive Agreement Expiry.
-- [ ] Real-time delivery: new notifications appear instantly via Supabase Realtime subscription.
-- [ ] Email notification dispatch: for notification types where the user has enabled email delivery (based on Potential Config `reminder_type`). Sent via Resend.
-- [ ] LINE Notify dispatch: for notification types where the user has enabled LINE delivery.
-- [ ] LINE Notify setup wizard: in Settings > Integrations, guide the user through connecting their LINE Notify token.
-- [ ] Notification Preferences page: per-user settings for which notification types are enabled, and which channels (in-app, email, LINE) for each.
+- [x] In-app notification center: notification bell in the dashboard header with unread count badge.
+- [x] Notification dropdown: list of recent notifications, click to navigate to the relevant entity.
+- [x] Mark as read (individual and mark all as read).
+- [x] Notification types supported: Action Reminder, Stage Change, Mention, Listing Status Change, Exclusive Agreement Expiry.
+- [x] Real-time delivery: new notifications appear instantly via Supabase Realtime subscription.
+- [x] Email notification dispatch: for notification types where the user has enabled email delivery (based on Potential Config `reminder_type`). Sent via Resend.
+- LINE Notify dispatch, Setup Wizard, and Notification Preferences page have been **Deferred to Phase 5**.
 
 #### 4.2.7 Smart Matching (Basic)
 
-- [ ] When a listing is created or updated, check for buy-side deals whose buyer requirements match (zone, budget range, property type, bedrooms, size range).
-- [ ] Store matches in `listing_contact_matches` with a match score and matched fields.
-- [ ] Linked Deal Counter on listing detail page (built as placeholder in Phase 1) now populates with real data.
-- [ ] Smart Match notification: when a new match is found, notify the assigned agent.
+- Smart Matching between Buyer Requirements and Listings has been **Deferred to Phase 5**.
 
 #### 4.2.8 Cross-Module Links
 
-- [ ] From a listing detail page: see all deals associated with this listing.
-- [ ] From a contact detail page: see all deals for this contact (both buy-side and sell-side).
-- [ ] From a deal detail page: click through to the linked listing and linked contact.
-- [ ] Pipeline Stage Count on listing detail page (built as placeholder in Phase 1) now populates with real deal stage data.
+- Cross-module visual links (Deal counters on listings, etc.) have been **Deferred to Phase 5**.
 
 ### 4.3 Validation Checklist
 
 After Phase 2 is complete, manually verify:
 
-- [ ] Can create a new contact with all fields (buyer requirements are on Deal, not Contact).
-- [ ] Duplicate detection triggers when creating a contact with an existing phone number.
-- [ ] Completeness score updates as fields are filled in.
-- [ ] Can create a new deal from the CRM page (auto-creates contact if needed).
-- [ ] Deal auto-name generates correctly.
-- [ ] CRM table shows Buyer and Seller tabs with correct deal filtering.
-- [ ] Can group deals by Pipeline Stage and see correct grouping.
-- [ ] Can change a deal's pipeline stage and see the change logged in the timeline.
-- [ ] Closing a deal as "Lost" requires a Closed Lost Reason.
-- [ ] Comments work on deals: can write, @mention, and tag a listing.
-- [ ] Activity feed on deals shows all events.
-- [ ] Action Reminders trigger: set a contact to Potential A (7-day interval), set `last_action_date` to 8 days ago, run the reminder check, and verify a notification appears.
-- [ ] Suggested Action shows on the notification when a playbook entry exists for the current stage.
-- [ ] Notification bell shows unread count and notifications appear in real-time.
-- [ ] Email notification sends for a reminder (when email delivery is enabled).
-- [ ] LINE Notify sends for a reminder (when LINE delivery is enabled and token is configured).
-- [ ] Smart matching: create a buyer with requirements that match an existing listing. Verify the match appears on the listing detail page.
-- [ ] From a listing, can navigate to related deals. From a deal, can navigate to the listing and contact.
-- [ ] RLS verified: Co-Worker sees only deals assigned to them. Listing Support role has no CRM access.
+- [x] Can create a new contact with all fields (buyer requirements are on Deal, not Contact).
+- [x] Duplicate detection triggers when creating a contact with an existing phone number.
+- [x] Completeness score updates as fields are filled in.
+- [x] Can create a new deal from the CRM page (auto-creates contact if needed).
+- [x] Deal auto-name generates correctly.
+- [x] CRM table shows Buyer and Seller tabs with correct deal filtering.
+- [x] Can group deals by Pipeline Stage and see correct grouping.
+- [x] Can change a deal's pipeline stage and see the change logged in the timeline.
+- [x] Closing a deal as "Lost" requires a Closed Lost Reason.
+- [x] Comments work on deals: can write, @mention, and tag a listing.
+- [x] Activity feed on deals shows all events.
+- [x] Action Reminders trigger: set a contact to Potential A (7-day interval), set `last_action_date` to 8 days ago, run the reminder check, and verify a notification appears.
+- [x] Suggested Action shows on the notification when a playbook entry exists for the current stage.
+- [x] Notification bell shows unread count and notifications appear in real-time.
+- [x] Email notification sends for a reminder (when email delivery is enabled).
+- [x] From a listing, can navigate to related deals. From a deal, can navigate to the listing and contact (basic links/routing).
+- [x] RLS verified: Co-Worker sees only deals assigned to them. Listing Support role has no CRM access.
 
 ---
 
@@ -736,6 +731,14 @@ Dashboard design to be finalized based on available data and user feedback. The 
 - [ ] All reports filterable by date range, agent, zone, and deal type.
 - [ ] Charts: use `recharts` or `chart.js` for visualizations.
 
+#### 7.2.10 Action Reminders Page
+
+- [x] Dedicated UI at `/reminders` to view items needing attention.
+- [x] Consolidates `Deals` and `Listings` based on Potential Tier reminder intervals.
+- [x] Sort by most overdue first, with status indicators (Overdue, Due, Approaching).
+- [x] Interactive "Mark as Actioned" feature with optional notes to quickly reset the interval.
+- [x] Displays suggested actions from Stage Action Playbooks on Deals.
+
 #### 7.2.2 Data Import / Export
 
 - [ ] **Import from Excel/CSV:**
@@ -759,6 +762,10 @@ Dashboard design to be finalized based on available data and user feedback. The 
 
 #### 7.2.4 LINE Official Account Integration
 
+- [ ] **LINE Notify Setup (Deferred from Phase 2):**
+  - LINE Notify setup wizard in Settings > Integrations.
+  - LINE Notify dispatch for notifications where the user enabled LINE delivery.
+  - Notification Preferences page per-user.
 - [ ] Beyond LINE Notify (one-way), integrate with LINE Messaging API for two-way communication.
 - [ ] Webhook endpoint to receive incoming LINE messages.
 - [ ] Message history linked to contact records (store in comments or a separate messages table).
@@ -773,6 +780,18 @@ Dashboard design to be finalized based on available data and user feedback. The 
 - [ ] Tag management page in Settings: create, rename, color-code, delete tags.
 - [ ] Tags usable across listings, contacts, and deals.
 - [ ] Tag filter support in all table views.
+
+#### 7.2.11 Smart Matching & Cross-Module Links (Deferred from Phase 2)
+
+- [ ] **Smart Matching (Basic):**
+  - When a listing is created or updated, check for buy-side deals whose buyer requirements match.
+  - Store matches in `listing_contact_matches` with a match score.
+  - Smart Match notification: notify assigned agent when new match found.
+- [ ] **Cross-Module Linked Data:**
+  - Linked Deal Counter on listing detail page now populates with real deal data.
+  - Pipeline Stage Count on listing detail page now populates with real deal stage data.
+  - See all deals associated with a listing directly from the listing detail page.
+  - See all deals for a contact from the contact detail page.
 
 #### 7.2.6 Onboarding & Help
 

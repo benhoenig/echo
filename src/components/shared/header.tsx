@@ -1,6 +1,15 @@
 "use client";
 
-import { Bell, Search, LogOut, User, Settings, Moon, Sun } from "lucide-react";
+import { Search, LogOut, User, Settings, Moon, Sun } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const NotificationPanel = dynamic(
+    () =>
+        import("@/components/shared/notification-panel").then(
+            (m) => m.NotificationPanel
+        ),
+    { ssr: false }
+);
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -86,18 +95,7 @@ export function Header() {
                     </Tooltip>
 
                     {/* Notifications */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-muted-foreground hover:text-foreground p-2 relative"
-                            >
-                                <Bell className="w-[18px] h-[18px]" strokeWidth={1.75} />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Notifications</TooltipContent>
-                    </Tooltip>
+                    <NotificationPanel />
 
                     {/* User menu */}
                     <DropdownMenu>

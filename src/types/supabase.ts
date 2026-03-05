@@ -407,8 +407,8 @@ export type Database = {
           created_by_id: string | null
           email: string | null
           financing_method:
-            | Database["public"]["Enums"]["FinancingMethod"]
-            | null
+          | Database["public"]["Enums"]["FinancingMethod"]
+          | null
           first_name: string
           has_ev_car: boolean | null
           has_pet: boolean | null
@@ -428,8 +428,8 @@ export type Database = {
           phone_primary: string | null
           phone_secondary: string | null
           potential_tier:
-            | Database["public"]["Enums"]["PotentialTierValue"]
-            | null
+          | Database["public"]["Enums"]["PotentialTierValue"]
+          | null
           pre_approval_expiry_date: string | null
           pre_approved_amount: number | null
           preferred_bedrooms: number | null
@@ -437,14 +437,14 @@ export type Database = {
           preferred_floor_max: number | null
           preferred_floor_min: number | null
           preferred_property_type:
-            | Database["public"]["Enums"]["PropertyType"][]
-            | null
+          | Database["public"]["Enums"]["PropertyType"][]
+          | null
           preferred_size_max: number | null
           preferred_size_min: number | null
           preferred_zone_ids: string[] | null
           purpose_of_purchase:
-            | Database["public"]["Enums"]["PurchasePurpose"]
-            | null
+          | Database["public"]["Enums"]["PurchasePurpose"]
+          | null
           reactivate_on: string | null
           referred_by_id: string | null
           special_requirements: string | null
@@ -465,8 +465,8 @@ export type Database = {
           created_by_id?: string | null
           email?: string | null
           financing_method?:
-            | Database["public"]["Enums"]["FinancingMethod"]
-            | null
+          | Database["public"]["Enums"]["FinancingMethod"]
+          | null
           first_name: string
           has_ev_car?: boolean | null
           has_pet?: boolean | null
@@ -486,8 +486,8 @@ export type Database = {
           phone_primary?: string | null
           phone_secondary?: string | null
           potential_tier?:
-            | Database["public"]["Enums"]["PotentialTierValue"]
-            | null
+          | Database["public"]["Enums"]["PotentialTierValue"]
+          | null
           pre_approval_expiry_date?: string | null
           pre_approved_amount?: number | null
           preferred_bedrooms?: number | null
@@ -495,14 +495,14 @@ export type Database = {
           preferred_floor_max?: number | null
           preferred_floor_min?: number | null
           preferred_property_type?:
-            | Database["public"]["Enums"]["PropertyType"][]
-            | null
+          | Database["public"]["Enums"]["PropertyType"][]
+          | null
           preferred_size_max?: number | null
           preferred_size_min?: number | null
           preferred_zone_ids?: string[] | null
           purpose_of_purchase?:
-            | Database["public"]["Enums"]["PurchasePurpose"]
-            | null
+          | Database["public"]["Enums"]["PurchasePurpose"]
+          | null
           reactivate_on?: string | null
           referred_by_id?: string | null
           special_requirements?: string | null
@@ -523,8 +523,8 @@ export type Database = {
           created_by_id?: string | null
           email?: string | null
           financing_method?:
-            | Database["public"]["Enums"]["FinancingMethod"]
-            | null
+          | Database["public"]["Enums"]["FinancingMethod"]
+          | null
           first_name?: string
           has_ev_car?: boolean | null
           has_pet?: boolean | null
@@ -544,8 +544,8 @@ export type Database = {
           phone_primary?: string | null
           phone_secondary?: string | null
           potential_tier?:
-            | Database["public"]["Enums"]["PotentialTierValue"]
-            | null
+          | Database["public"]["Enums"]["PotentialTierValue"]
+          | null
           pre_approval_expiry_date?: string | null
           pre_approved_amount?: number | null
           preferred_bedrooms?: number | null
@@ -553,14 +553,14 @@ export type Database = {
           preferred_floor_max?: number | null
           preferred_floor_min?: number | null
           preferred_property_type?:
-            | Database["public"]["Enums"]["PropertyType"][]
-            | null
+          | Database["public"]["Enums"]["PropertyType"][]
+          | null
           preferred_size_max?: number | null
           preferred_size_min?: number | null
           preferred_zone_ids?: string[] | null
           purpose_of_purchase?:
-            | Database["public"]["Enums"]["PurchasePurpose"]
-            | null
+          | Database["public"]["Enums"]["PurchasePurpose"]
+          | null
           reactivate_on?: string | null
           referred_by_id?: string | null
           special_requirements?: string | null
@@ -1895,15 +1895,21 @@ export type Database = {
           action_type: Database["public"]["Enums"]["PlaybookActionType"]
           created_at: string
           created_by_id: string | null
+          deal_type: Database["public"]["Enums"]["DealType"] | null
           id: string
           is_active: boolean
+          is_recurring: boolean
           is_required: boolean
           last_updated_at: string
           last_updated_by_id: string | null
+          listing_status: Database["public"]["Enums"]["ListingStatus"] | null
+          listing_type: Database["public"]["Enums"]["ListingType"] | null
+          module: Database["public"]["Enums"]["ModuleType"]
           order: number
           override_interval_days: number | null
-          pipeline_stage_id: string
-          pipeline_type: Database["public"]["Enums"]["PipelineType"]
+          pipeline_stage_id: string | null
+          potential_tier: string | null
+          property_type: Database["public"]["Enums"]["PropertyType"] | null
           reminder_override: boolean
           workspace_id: string
         }
@@ -1914,15 +1920,21 @@ export type Database = {
           action_type: Database["public"]["Enums"]["PlaybookActionType"]
           created_at?: string
           created_by_id?: string | null
+          deal_type?: Database["public"]["Enums"]["DealType"] | null
           id?: string
           is_active?: boolean
+          is_recurring?: boolean
           is_required?: boolean
-          last_updated_at: string
+          last_updated_at?: string
           last_updated_by_id?: string | null
+          listing_status?: Database["public"]["Enums"]["ListingStatus"] | null
+          listing_type?: Database["public"]["Enums"]["ListingType"] | null
+          module?: Database["public"]["Enums"]["ModuleType"]
           order: number
           override_interval_days?: number | null
-          pipeline_stage_id: string
-          pipeline_type: Database["public"]["Enums"]["PipelineType"]
+          pipeline_stage_id?: string | null
+          potential_tier?: string | null
+          property_type?: Database["public"]["Enums"]["PropertyType"] | null
           reminder_override?: boolean
           workspace_id: string
         }
@@ -1933,15 +1945,21 @@ export type Database = {
           action_type?: Database["public"]["Enums"]["PlaybookActionType"]
           created_at?: string
           created_by_id?: string | null
+          deal_type?: Database["public"]["Enums"]["DealType"] | null
           id?: string
           is_active?: boolean
+          is_recurring?: boolean
           is_required?: boolean
           last_updated_at?: string
           last_updated_by_id?: string | null
+          listing_status?: Database["public"]["Enums"]["ListingStatus"] | null
+          listing_type?: Database["public"]["Enums"]["ListingType"] | null
+          module?: Database["public"]["Enums"]["ModuleType"]
           order?: number
           override_interval_days?: number | null
-          pipeline_stage_id?: string
-          pipeline_type?: Database["public"]["Enums"]["PipelineType"]
+          pipeline_stage_id?: string | null
+          potential_tier?: string | null
+          property_type?: Database["public"]["Enums"]["PropertyType"] | null
           reminder_override?: boolean
           workspace_id?: string
         }
@@ -2267,140 +2285,140 @@ export type Database = {
     }
     Enums: {
       ActionType:
-        | "CREATED"
-        | "UPDATED"
-        | "DELETED"
-        | "ARCHIVED"
-        | "RESTORED"
-        | "STATUS_CHANGED"
-        | "STAGE_CHANGED"
-        | "COMMENT_ADDED"
-        | "MENTION"
-        | "PHOTO_UPLOADED"
-        | "LOGIN"
-        | "EXPORT"
+      | "CREATED"
+      | "UPDATED"
+      | "DELETED"
+      | "ARCHIVED"
+      | "RESTORED"
+      | "STATUS_CHANGED"
+      | "STAGE_CHANGED"
+      | "COMMENT_ADDED"
+      | "MENTION"
+      | "PHOTO_UPLOADED"
+      | "LOGIN"
+      | "EXPORT"
       AgreementStatus: "ACTIVE" | "EXPIRED" | "RENEWED" | "CANCELLED"
       AIQueryType:
-        | "CONVERSATIONAL"
-        | "REPORT_GENERATION"
-        | "AUTOFILL"
-        | "AGENT_ASSISTANT"
+      | "CONVERSATIONAL"
+      | "REPORT_GENERATION"
+      | "AUTOFILL"
+      | "AGENT_ASSISTANT"
       AIReportType: "MARKETING_REPORT" | "LISTING_COMPARISON"
       CommissionType: "PERCENTAGE" | "FIXED_FEE"
       ContactSource:
-        | "LINE"
-        | "WEBSITE"
-        | "REFERRAL"
-        | "FACEBOOK"
-        | "WALK_IN"
-        | "COLD_CALL"
+      | "LINE"
+      | "WEBSITE"
+      | "REFERRAL"
+      | "FACEBOOK"
+      | "WALK_IN"
+      | "COLD_CALL"
       ContactStatus:
-        | "ACTIVE"
-        | "ON_HOLD"
-        | "CLOSED_WON"
-        | "CLOSED_LOST"
-        | "UNQUALIFIED"
-        | "REACTIVATE"
+      | "ACTIVE"
+      | "ON_HOLD"
+      | "CLOSED_WON"
+      | "CLOSED_LOST"
+      | "UNQUALIFIED"
+      | "REACTIVATE"
       CustomFieldType:
-        | "TEXT"
-        | "NUMBER"
-        | "DATE"
-        | "DROPDOWN"
-        | "MULTI_SELECT"
-        | "BOOLEAN"
-        | "URL"
+      | "TEXT"
+      | "NUMBER"
+      | "DATE"
+      | "DROPDOWN"
+      | "MULTI_SELECT"
+      | "BOOLEAN"
+      | "URL"
       DealStatus: "ACTIVE" | "ON_HOLD" | "CLOSED_WON" | "CLOSED_LOST"
       DealType: "BUY_SIDE" | "SELL_SIDE"
       DeliveredVia: "NONE" | "EMAIL" | "LINE" | "BOTH"
       EntityType:
-        | "LISTING"
-        | "DEAL"
-        | "CONTACT"
-        | "PROJECT"
-        | "PIPELINE_STAGE"
-        | "USER"
-        | "WORKSPACE"
-        | "WEBSITE"
-        | "GENERAL"
+      | "LISTING"
+      | "DEAL"
+      | "CONTACT"
+      | "PROJECT"
+      | "PIPELINE_STAGE"
+      | "USER"
+      | "WORKSPACE"
+      | "WEBSITE"
+      | "GENERAL"
       FileType: "IMAGE" | "DOCUMENT" | "VIDEO"
       FinancingMethod: "CASH" | "MORTGAGE" | "MIXED"
       InvitationStatus: "PENDING" | "ACCEPTED" | "REVOKED"
       ListingGrade: "A" | "B" | "C" | "D"
       ListingStatus:
-        | "NEW"
-        | "ACTIVE"
-        | "RESERVED"
-        | "SOLD"
-        | "EXPIRED"
-        | "WITHDRAWN"
+      | "NEW"
+      | "ACTIVE"
+      | "RESERVED"
+      | "SOLD"
+      | "EXPIRED"
+      | "WITHDRAWN"
       ListingType: "SELL" | "RENT" | "SELL_AND_RENT"
       MatchStatus: "NEW" | "SENT" | "VIEWED" | "INTERESTED" | "NOT_INTERESTED"
       ModuleType:
-        | "LISTINGS"
-        | "BUYER_CRM"
-        | "SELLER_CRM"
-        | "CRM"
-        | "CONTACTS"
-        | "DEALS"
+      | "LISTINGS"
+      | "BUYER_CRM"
+      | "SELLER_CRM"
+      | "CRM"
+      | "CONTACTS"
+      | "DEALS"
       NotificationType:
-        | "ACTION_REMINDER"
-        | "LISTING_EXPIRY"
-        | "STAGE_CHANGE"
-        | "MENTION"
-        | "SMART_MATCH"
+      | "ACTION_REMINDER"
+      | "LISTING_EXPIRY"
+      | "STAGE_CHANGE"
+      | "MENTION"
+      | "SMART_MATCH"
       PipelineType: "BUYER" | "SELLER"
       PlanTier: "FREE" | "SOLO" | "TEAM" | "AGENCY"
       PlaybookActionType:
-        | "CALL"
-        | "LINE_MESSAGE"
-        | "EMAIL"
-        | "SITE_VISIT"
-        | "SEND_REPORT"
-        | "SEND_LISTING"
-        | "SCHEDULE_VIEWING"
-        | "SEND_CONTRACT"
-        | "INTERNAL_NOTE"
-        | "CUSTOM"
+      | "CALL"
+      | "LINE_MESSAGE"
+      | "EMAIL"
+      | "SITE_VISIT"
+      | "SEND_REPORT"
+      | "SEND_LISTING"
+      | "SCHEDULE_VIEWING"
+      | "SEND_CONTRACT"
+      | "INTERNAL_NOTE"
+      | "CUSTOM"
       PotentialTierValue: "A" | "B" | "C" | "D"
       PropertyType:
-        | "HOUSE"
-        | "CONDO"
-        | "TOWNHOUSE"
-        | "LAND"
-        | "COMMERCIAL"
-        | "OTHER"
+      | "HOUSE"
+      | "CONDO"
+      | "TOWNHOUSE"
+      | "LAND"
+      | "COMMERCIAL"
+      | "OTHER"
       PurchasePurpose: "OWN_USE" | "INVESTMENT" | "BOTH"
       ReminderType:
-        | "NOTIFICATION_ONLY"
-        | "NOTIFICATION_LINE"
-        | "NOTIFICATION_EMAIL"
+      | "NOTIFICATION_ONLY"
+      | "NOTIFICATION_LINE"
+      | "NOTIFICATION_EMAIL"
       SubscriptionStatus: "ACTIVE" | "INACTIVE" | "CANCELLED" | "PAST_DUE"
       Timeline:
-        | "IMMEDIATE"
-        | "ONE_TO_THREE_MONTHS"
-        | "THREE_TO_SIX_MONTHS"
-        | "SIX_PLUS_MONTHS"
+      | "IMMEDIATE"
+      | "ONE_TO_THREE_MONTHS"
+      | "THREE_TO_SIX_MONTHS"
+      | "SIX_PLUS_MONTHS"
       UserRole: "OWNER" | "ADMIN" | "CO_WORKER" | "LISTING_SUPPORT"
       WebsitePageType:
-        | "HOMEPAGE"
-        | "LISTING_SEARCH"
-        | "LISTING_DETAIL"
-        | "ABOUT"
-        | "BLOG"
-        | "CONTACT"
-        | "CUSTOM"
+      | "HOMEPAGE"
+      | "LISTING_SEARCH"
+      | "LISTING_DETAIL"
+      | "ABOUT"
+      | "BLOG"
+      | "CONTACT"
+      | "CUSTOM"
       WebsiteSectionType:
-        | "HERO"
-        | "LISTING_GRID"
-        | "FEATURED_LISTINGS"
-        | "ABOUT"
-        | "TEAM"
-        | "TESTIMONIALS"
-        | "STATS"
-        | "CTA"
-        | "BLOG_FEED"
-        | "CONTACT_FORM"
-        | "CUSTOM_HTML"
+      | "HERO"
+      | "LISTING_GRID"
+      | "FEATURED_LISTINGS"
+      | "ABOUT"
+      | "TEAM"
+      | "TESTIMONIALS"
+      | "STATS"
+      | "CTA"
+      | "BLOG_FEED"
+      | "CONTACT_FORM"
+      | "CUSTOM_HTML"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2414,116 +2432,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {

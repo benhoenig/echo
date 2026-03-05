@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/activity-logger";
+import { sendNotification } from "@/lib/notifications";
 import type { Database } from "@/types/supabase";
 
 type EntityType = Database["public"]["Enums"]["EntityType"];
@@ -88,25 +89,23 @@ export async function addComment(
         description: "Added a comment",
     });
 
-    // 6. Create notification records for each user ID in `resolvedMentionIds`
+    // 6. Send MENTION notifications via unified dispatcher
     if (resolvedMentionIds.length > 0 && newComment) {
-        // Exclude the author from notifying themselves
         const notifyIds = resolvedMentionIds.filter(id => id !== user.id);
 
-        if (notifyIds.length > 0) {
-            const notifications = notifyIds.map(notifyUserId => ({
-                workspace_id: workspaceId,
-                user_id: notifyUserId,
-                type: "MENTION" as const,
+        for (const notifyUserId of notifyIds) {
+            sendNotification({
+                workspaceId,
+                userId: notifyUserId,
+                type: "MENTION",
+                entityType: entityType as "DEAL" | "LISTING" | "CONTACT",
+                entityId,
                 title: "New Mention",
                 message: "You were mentioned in a comment.",
-                entity_type: entityType,
-                entity_id: entityId,
-                action_url: pathname,
-                is_read: false
-            }));
-
-            await supabase.from("notifications").insert(notifications);
+                actionUrl: pathname,
+            }).catch((err: unknown) =>
+                console.error("Failed to send mention notification:", err)
+            );
         }
     }
 

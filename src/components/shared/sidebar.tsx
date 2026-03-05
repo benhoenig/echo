@@ -12,6 +12,7 @@ import {
     Settings,
     ChevronLeft,
     Menu,
+    ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,12 @@ const mainNavItems = [
         label: "Dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
+        phase: null,
+    },
+    {
+        label: "Reminders",
+        href: "/reminders",
+        icon: ClipboardCheck,
         phase: null,
     },
     {

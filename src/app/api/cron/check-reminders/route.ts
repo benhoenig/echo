@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { calculateReminderStatus, getEffectiveInterval } from "@/lib/reminder-engine";
-import type { PotentialConfigRow, PlaybookRow } from "@/lib/reminder-engine";
+import {
+    calculateReminderStatus,
+    findMatchingPlaybooks,
+    getEffectiveInterval,
+} from "@/lib/reminder-engine";
+import type { PlaybookRow, EntityMatchProps } from "@/lib/reminder-engine";
+import { sendNotificationBatch } from "@/lib/notifications";
 
 /**
  * Daily cron route that checks all active deals and listings for overdue reminders.
- * Creates ACTION_REMINDER notifications for overdue items.
+ * Uses Playbook-first logic — only creates notifications when an explicit Playbook exists.
  *
  * Schedule: 0 8 * * * (daily at 8 AM UTC / 3 PM ICT)
  * Protected by CRON_SECRET Bearer token.
@@ -30,37 +35,34 @@ export async function GET(req: NextRequest) {
         for (const workspace of workspaces) {
             const workspaceId = workspace.id;
 
-            // Fetch potential configs for this workspace (all modules)
-            const rawConfigs = await prisma.potentialConfig.findMany({
-                where: { workspaceId, isActive: true },
-            });
-
-            const potentialConfigs: PotentialConfigRow[] = rawConfigs.map((c) => ({
-                id: c.id,
-                module: c.module,
-                potentialLabel: c.potentialLabel,
-                reminderInterval: c.reminderInterval,
-                isActive: c.isActive,
-            }));
-
-            // Fetch playbooks for override checking
+            // Fetch all active playbooks for this workspace
             const rawPlaybooks = await prisma.stageActionPlaybook.findMany({
-                where: { workspaceId, isActive: true, reminderOverride: true },
+                where: { workspaceId, isActive: true },
             });
 
             const playbooks: PlaybookRow[] = rawPlaybooks.map((p) => ({
                 id: p.id,
+                module: p.module,
                 pipelineStageId: p.pipelineStageId,
+                listingStatus: p.listingStatus,
+                potentialTier: p.potentialTier,
+                propertyType: p.propertyType,
+                listingType: p.listingType,
+                dealType: p.dealType,
                 actionType: p.actionType,
                 actionLabel: p.actionLabel,
                 actionDescription: p.actionDescription,
                 actionTemplate: p.actionTemplate,
                 reminderOverride: p.reminderOverride,
                 overrideIntervalDays: p.overrideIntervalDays,
+                isRecurring: p.isRecurring,
                 isRequired: p.isRequired,
                 isActive: p.isActive,
                 order: p.order,
             }));
+
+            // Skip workspace if no playbooks defined
+            if (playbooks.length === 0) continue;
 
             // ─── Check Deals ─────────────────────────────────────────────
             const deals = await prisma.deal.findMany({
@@ -68,7 +70,6 @@ export async function GET(req: NextRequest) {
                     workspaceId,
                     archived: false,
                     dealStatus: { in: ["ACTIVE", "ON_HOLD"] },
-                    potentialTier: { not: null },
                 },
                 select: {
                     id: true,
@@ -80,10 +81,15 @@ export async function GET(req: NextRequest) {
                     createdAt: true,
                     assignedToId: true,
                     createdById: true,
+                    stageHistory: {
+                        orderBy: { changedAt: "desc" },
+                        take: 1,
+                        select: { changedAt: true, toStageId: true },
+                    },
                 },
             });
 
-            // Get existing unread ACTION_REMINDER notifications for deals in this workspace
+            // Get existing unread ACTION_REMINDER notifications for deals
             const existingDealReminders = await prisma.notification.findMany({
                 where: {
                     workspaceId,
@@ -104,7 +110,6 @@ export async function GET(req: NextRequest) {
                 title: string;
                 message: string;
                 actionUrl: string;
-                isRead: boolean;
             }> = [];
 
             for (const deal of deals) {
@@ -113,14 +118,30 @@ export async function GET(req: NextRequest) {
                 // Skip if there's already an unread reminder
                 if (dealsWithReminder.has(deal.id)) continue;
 
-                const module = deal.dealType === "SELL_SIDE" ? "SELLER_CRM" : "BUYER_CRM";
-                const moduleConfigs = potentialConfigs.filter((c) => c.module === module);
-                const interval = getEffectiveInterval(
-                    moduleConfigs,
-                    deal.potentialTier,
-                    playbooks,
-                    deal.pipelineStageId
+                const entityProps: EntityMatchProps = {
+                    module: "DEALS",
+                    pipelineStageId: deal.pipelineStageId,
+                    potentialTier: deal.potentialTier ?? undefined,
+                    dealType: deal.dealType,
+                };
+
+                const matchingPlaybooks = findMatchingPlaybooks(playbooks, entityProps);
+                if (matchingPlaybooks.length === 0) continue;
+
+                // Determine when this deal entered its current stage
+                const latestHistory = deal.stageHistory.find(
+                    (h) => h.toStageId === deal.pipelineStageId
                 );
+                const stageEnteredAt = latestHistory?.changedAt ?? deal.createdAt;
+
+                const interval = getEffectiveInterval(
+                    matchingPlaybooks,
+                    deal.lastActionDate,
+                    stageEnteredAt
+                );
+
+                // No applicable interval = no reminder
+                if (interval == null) continue;
 
                 const status = calculateReminderStatus(
                     deal.lastActionDate,
@@ -132,24 +153,23 @@ export async function GET(req: NextRequest) {
                     const notifyUserId = deal.assignedToId || deal.createdById;
                     if (!notifyUserId) continue;
 
+                    const actionLabel = matchingPlaybooks[0]?.actionLabel ?? "Follow up";
+
                     dealNotifications.push({
                         workspaceId,
                         userId: notifyUserId,
                         type: "ACTION_REMINDER",
                         entityType: "DEAL",
                         entityId: deal.id,
-                        title: `Follow-up overdue: ${deal.dealName || "Untitled Deal"}`,
-                        message: `Deal "${deal.dealName}" (Tier ${deal.potentialTier}) is ${Math.abs(status.daysUntilDue)} days overdue for follow-up.`,
+                        title: `Action overdue: ${deal.dealName || "Untitled Deal"}`,
+                        message: `"${actionLabel}" is ${Math.abs(status.daysUntilDue!)} days overdue for deal "${deal.dealName}"${deal.potentialTier ? ` (Tier ${deal.potentialTier})` : ""}.`,
                         actionUrl: `/crm/deals/${deal.id}`,
-                        isRead: false,
                     });
                 }
             }
 
             if (dealNotifications.length > 0) {
-                await prisma.notification.createMany({
-                    data: dealNotifications,
-                });
+                await sendNotificationBatch(dealNotifications);
                 remindersCreated += dealNotifications.length;
             }
 
@@ -158,13 +178,16 @@ export async function GET(req: NextRequest) {
                 where: {
                     workspaceId,
                     archived: false,
-                    listingStatus: { in: ["ACTIVE", "NEW"] },
-                    listingGrade: { not: null },
+                    listingStatus: { in: ["ACTIVE", "NEW", "RESERVED"] },
                 },
                 select: {
                     id: true,
                     listingName: true,
                     listingGrade: true,
+                    listingStatus: true,
+                    listingType: true,
+                    propertyType: true,
+                    listingStatusChangedAt: true,
                     lastActionDate: true,
                     createdAt: true,
                     createdById: true,
@@ -191,17 +214,33 @@ export async function GET(req: NextRequest) {
                 title: string;
                 message: string;
                 actionUrl: string;
-                isRead: boolean;
             }> = [];
-
-            const listingConfigs = potentialConfigs.filter((c) => c.module === "LISTINGS");
 
             for (const listing of listings) {
                 listingsChecked++;
 
                 if (listingsWithReminder.has(listing.id)) continue;
 
-                const interval = getEffectiveInterval(listingConfigs, listing.listingGrade);
+                const entityProps: EntityMatchProps = {
+                    module: "LISTINGS",
+                    listingStatus: listing.listingStatus,
+                    potentialTier: listing.listingGrade ?? undefined,
+                    propertyType: listing.propertyType,
+                    listingType: listing.listingType,
+                };
+
+                const matchingPlaybooks = findMatchingPlaybooks(playbooks, entityProps);
+                if (matchingPlaybooks.length === 0) continue;
+
+                const stageEnteredAt = listing.listingStatusChangedAt ?? listing.createdAt;
+
+                const interval = getEffectiveInterval(
+                    matchingPlaybooks,
+                    listing.lastActionDate,
+                    stageEnteredAt
+                );
+
+                if (interval == null) continue;
 
                 const status = calculateReminderStatus(
                     listing.lastActionDate,
@@ -213,24 +252,23 @@ export async function GET(req: NextRequest) {
                     const notifyUserId = listing.createdById;
                     if (!notifyUserId) continue;
 
+                    const actionLabel = matchingPlaybooks[0]?.actionLabel ?? "Follow up";
+
                     listingNotifications.push({
                         workspaceId,
                         userId: notifyUserId,
                         type: "ACTION_REMINDER",
                         entityType: "LISTING",
                         entityId: listing.id,
-                        title: `Follow-up overdue: ${listing.listingName || "Untitled Listing"}`,
-                        message: `Listing "${listing.listingName}" (Grade ${listing.listingGrade}) is ${Math.abs(status.daysUntilDue)} days overdue for follow-up.`,
+                        title: `Action overdue: ${listing.listingName || "Untitled Listing"}`,
+                        message: `"${actionLabel}" is ${Math.abs(status.daysUntilDue!)} days overdue for listing "${listing.listingName}"${listing.listingGrade ? ` (Grade ${listing.listingGrade})` : ""}.`,
                         actionUrl: `/listings/${listing.id}`,
-                        isRead: false,
                     });
                 }
             }
 
             if (listingNotifications.length > 0) {
-                await prisma.notification.createMany({
-                    data: listingNotifications,
-                });
+                await sendNotificationBatch(listingNotifications);
                 remindersCreated += listingNotifications.length;
             }
         }

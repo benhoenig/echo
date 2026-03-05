@@ -1,21 +1,22 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/queries";
+import { getNotificationPreferences } from "./notification-pref-actions";
+import { NotificationSettingsContent } from "./notification-settings-content";
 
-export default function NotificationSettingsPage() {
+export default async function NotificationSettingsPage() {
+    const user = await getCurrentUser();
+    if (!user) redirect("/login");
+
+    const preferences = await getNotificationPreferences(
+        user.workspace_id,
+        user.id
+    );
+
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-lg">Notification Preferences</CardTitle>
-                    <CardDescription>
-                        Configure which notifications you receive and how.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                        Coming in Phase 2 with the full notification system.
-                    </p>
-                </CardContent>
-            </Card>
-        </div>
+        <NotificationSettingsContent
+            initialPreferences={preferences}
+            workspaceId={user.workspace_id}
+            userId={user.id}
+        />
     );
 }

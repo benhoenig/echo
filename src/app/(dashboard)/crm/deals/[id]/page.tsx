@@ -6,8 +6,9 @@ import { SuggestedActionsPanel } from "@/components/shared/suggested-actions-pan
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/queries";
-import { getSuggestedActions, getPotentialConfigs } from "@/app/(dashboard)/reminder-actions";
-import { getEffectiveInterval } from "@/lib/reminder-engine";
+import { getSuggestedActions } from "@/app/(dashboard)/reminder-actions";
+import { findMatchingPlaybooks, getEffectiveInterval } from "@/lib/reminder-engine";
+import type { PlaybookRow, EntityMatchProps } from "@/lib/reminder-engine";
 
 export default async function DealDetailPage({
     params,
@@ -106,22 +107,59 @@ export default async function DealDetailPage({
             isDefault: s.isDefault,
         }));
 
-        // Fetch reminder/actions data
+        // Fetch playbooks and compute effective interval via playbook-first logic
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const dealAny = deal as any;
-        const dealModule = dealAny.deal_type === "SELL_SIDE" ? "SELLER_CRM" : "BUYER_CRM";
-        const [potentialConfigs, playbooks] = await Promise.all([
-            getPotentialConfigs(dealAny.workspace_id, dealModule),
+
+        const [rawPlaybooks, suggestedActions] = await Promise.all([
+            prisma.stageActionPlaybook.findMany({
+                where: { workspaceId: dealAny.workspace_id, isActive: true },
+            }),
             dealAny.pipeline_stage_id
                 ? getSuggestedActions(dealAny.workspace_id, dealAny.pipeline_stage_id)
                 : Promise.resolve([]),
         ]);
 
+        const playbooks: PlaybookRow[] = rawPlaybooks.map((p) => ({
+            id: p.id,
+            module: p.module,
+            pipelineStageId: p.pipelineStageId,
+            listingStatus: p.listingStatus,
+            potentialTier: p.potentialTier,
+            propertyType: p.propertyType,
+            listingType: p.listingType,
+            dealType: p.dealType,
+            actionType: p.actionType,
+            actionLabel: p.actionLabel,
+            actionDescription: p.actionDescription,
+            actionTemplate: p.actionTemplate,
+            reminderOverride: p.reminderOverride,
+            overrideIntervalDays: p.overrideIntervalDays,
+            isRecurring: p.isRecurring,
+            isRequired: p.isRequired,
+            isActive: p.isActive,
+            order: p.order,
+        }));
+
+        const entityProps: EntityMatchProps = {
+            module: "DEALS",
+            pipelineStageId: dealAny.pipeline_stage_id,
+            potentialTier: dealAny.potential_tier ?? undefined,
+            dealType: dealAny.deal_type,
+        };
+
+        const matchingPlaybooks = findMatchingPlaybooks(playbooks, entityProps);
+
+        // Use stage history to determine when deal entered current stage
+        const latestStageEntry = stageHistory.find(
+            (h: any) => h.to_stage_id === dealAny.pipeline_stage_id
+        );
+        const stageEnteredAt = latestStageEntry?.changed_at ?? dealAny.created_at;
+
         const effectiveInterval = getEffectiveInterval(
-            potentialConfigs,
-            dealAny.potential_tier,
-            undefined,
-            undefined
+            matchingPlaybooks,
+            dealAny.last_action_date,
+            stageEnteredAt
         );
 
         return (
@@ -142,7 +180,7 @@ export default async function DealDetailPage({
                         lastActionDate={deal.last_action_date}
                         createdAt={deal.created_at}
                         intervalDays={effectiveInterval}
-                        playbooks={playbooks}
+                        playbooks={suggestedActions}
                     />
                 }
                 commentsNode={

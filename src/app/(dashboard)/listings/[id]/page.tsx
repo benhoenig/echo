@@ -6,8 +6,8 @@ import { SuggestedActionsPanel } from "@/components/shared/suggested-actions-pan
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/queries";
-import { getPotentialConfigs } from "@/app/(dashboard)/reminder-actions";
-import { getEffectiveInterval } from "@/lib/reminder-engine";
+import { findMatchingPlaybooks, getEffectiveInterval } from "@/lib/reminder-engine";
+import type { PlaybookRow, EntityMatchProps } from "@/lib/reminder-engine";
 
 export default async function ListingDetailPage({
     params,
@@ -26,7 +26,6 @@ export default async function ListingDetailPage({
         if (!listing) notFound();
 
         // Fetch contacts and agents for the agreements form
-        // We only fetch basic nested info
         const [rawContacts, rawUsers] = await Promise.all([
             prisma.contact.findMany({
                 where: { workspaceId: listing.workspace_id },
@@ -50,9 +49,58 @@ export default async function ListingDetailPage({
             name: [u.firstName, u.lastName].filter(Boolean).join(" ") || "Unknown"
         }));
 
-        // Fetch reminder config for listing grade
-        const potentialConfigs = await getPotentialConfigs(listing.workspace_id, "LISTINGS");
-        const effectiveInterval = getEffectiveInterval(potentialConfigs, listing.listing_grade);
+        // Fetch playbooks and compute effective interval via playbook-first logic
+        const rawPlaybooks = await prisma.stageActionPlaybook.findMany({
+            where: { workspaceId: listing.workspace_id, isActive: true },
+        });
+
+        const playbooks: PlaybookRow[] = rawPlaybooks.map((p) => ({
+            id: p.id,
+            module: p.module,
+            pipelineStageId: p.pipelineStageId,
+            listingStatus: p.listingStatus,
+            potentialTier: p.potentialTier,
+            propertyType: p.propertyType,
+            listingType: p.listingType,
+            dealType: p.dealType,
+            actionType: p.actionType,
+            actionLabel: p.actionLabel,
+            actionDescription: p.actionDescription,
+            actionTemplate: p.actionTemplate,
+            reminderOverride: p.reminderOverride,
+            overrideIntervalDays: p.overrideIntervalDays,
+            isRecurring: p.isRecurring,
+            isRequired: p.isRequired,
+            isActive: p.isActive,
+            order: p.order,
+        }));
+
+        const entityProps: EntityMatchProps = {
+            module: "LISTINGS",
+            listingStatus: listing.listing_status,
+            potentialTier: listing.listing_grade ?? undefined,
+            propertyType: listing.property_type,
+            listingType: listing.listing_type,
+        };
+
+        const matchingPlaybooks = findMatchingPlaybooks(playbooks, entityProps);
+        const stageEnteredAt = listing.listing_status_changed_at ?? listing.created_at;
+
+        const effectiveInterval = getEffectiveInterval(
+            matchingPlaybooks,
+            listing.last_action_date,
+            stageEnteredAt
+        );
+
+        // Build suggested actions from matching playbooks
+        const suggestedActions = matchingPlaybooks.map((p) => ({
+            id: p.id,
+            actionType: p.actionType,
+            actionLabel: p.actionLabel,
+            actionDescription: p.actionDescription,
+            actionTemplate: p.actionTemplate,
+            isRequired: p.isRequired,
+        }));
 
         return (
             <ListingDetailContent
@@ -69,6 +117,7 @@ export default async function ListingDetailPage({
                         lastActionDate={listing.last_action_date}
                         createdAt={listing.created_at}
                         intervalDays={effectiveInterval}
+                        playbooks={suggestedActions}
                     />
                 }
                 commentsNode={
