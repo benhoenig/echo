@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
     Building,
@@ -14,38 +15,31 @@ import {
     MapPin,
 } from "lucide-react";
 
-const settingsNav = [
-    { label: "Workspace", href: "/settings", icon: Building },
-    { label: "Team", href: "/settings/team", icon: Users },
-    { label: "Pipeline Stages", href: "/settings/pipeline", icon: GitBranch },
-    { label: "Potential Tiers", href: "/settings/potential", icon: Gauge },
-    { label: "Playbook", href: "/settings/playbook", icon: BookOpen },
-    { label: "Zones", href: "/settings/zones", icon: MapPin },
-    {
-        label: "Notifications",
-        href: "/settings/notifications",
-        icon: Bell,
-    },
-    {
-        label: "Integrations",
-        href: "/settings/integrations",
-        icon: Plug,
-    },
-];
-
 export default function SettingsLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const t = useTranslations("settings");
+
+    const settingsNav = [
+        { label: t("workspace"), href: "/settings", icon: Building },
+        { label: t("team"), href: "/settings/team", icon: Users },
+        { label: t("pipelineStages"), href: "/settings/pipeline", icon: GitBranch },
+        { label: t("potentialTiers"), href: "/settings/potential", icon: Gauge },
+        { label: t("playbook"), href: "/settings/playbook", icon: BookOpen },
+        { label: t("zones"), href: "/settings/zones", icon: MapPin },
+        { label: t("notifications"), href: "/settings/notifications", icon: Bell },
+        { label: t("integrations"), href: "/settings/integrations", icon: Plug },
+    ];
 
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+                <h1 className="text-3xl font-bold text-foreground">{t("title")}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Manage your workspace, team, and preferences.
+                    {t("subtitle")}
                 </p>
             </div>
 

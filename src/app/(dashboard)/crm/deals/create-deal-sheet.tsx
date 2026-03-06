@@ -24,6 +24,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createDeal } from "./deal-actions";
+import { useTranslations } from "next-intl";
 
 interface PipelineStage {
     id: string;
@@ -53,6 +54,10 @@ export function CreateDealSheet({
     agents,
     listings,
 }: CreateDealSheetProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+    const tf = useTranslations("filters");
+
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -91,10 +96,10 @@ export function CreateDealSheet({
         const parts = [
             contact?.name,
             listing?.name,
-            dealType === "BUY_SIDE" ? "Buy" : "Sell",
+            dealType === "BUY_SIDE" ? t("buy") : t("sell"),
         ].filter(Boolean);
         return parts.join(" — ");
-    }, [dealType, buyerContactId, sellerContactId, listingId, contacts, listings]);
+    }, [dealType, buyerContactId, sellerContactId, listingId, contacts, listings, t]);
 
     function resetForm() {
         setDealName("");
@@ -113,11 +118,11 @@ export function CreateDealSheet({
     function handleSubmit() {
         const stageId = pipelineStageId || defaultStage?.id;
         if (!stageId) {
-            toast.error("No pipeline stage available. Please configure pipeline stages in Settings.");
+            toast.error(t("noPipelineStage"));
             return;
         }
 
-        const finalName = dealName.trim() || autoName || "Untitled Deal";
+        const finalName = dealName.trim() || autoName || t("untitledDeal");
 
         startTransition(async () => {
             try {
@@ -146,7 +151,7 @@ export function CreateDealSheet({
                     notes: notes.trim() || null,
                 });
 
-                toast.success("Deal created.");
+                toast.success(t("dealCreated"));
                 resetForm();
                 onOpenChange(false);
                 router.refresh();
@@ -154,7 +159,7 @@ export function CreateDealSheet({
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to create deal."
+                        : t("failedToCreateDeal")
                 );
             }
         });
@@ -164,16 +169,16 @@ export function CreateDealSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle>Create New Deal</SheetTitle>
+                    <SheetTitle>{t("newDeal")}</SheetTitle>
                     <SheetDescription>
-                        Create a deal to track a buyer or seller journey.
+                        {t("createDealDescription")}
                     </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                     {/* Deal Type */}
                     <div className="space-y-1.5 pb-4 border-b border-stone-100 dark:border-stone-800">
-                        <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Deal Type *</Label>
+                        <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("dealType")}</Label>
                         <div className="flex gap-2">
                             <button
                                 type="button"
@@ -184,7 +189,7 @@ export function CreateDealSheet({
                                         : "border-stone-200 dark:border-stone-700 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
                             >
-                                Buy-side
+                                {t("buySide")}
                             </button>
                             <button
                                 type="button"
@@ -195,7 +200,7 @@ export function CreateDealSheet({
                                         : "border-stone-200 dark:border-stone-700 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800"
                                 }`}
                             >
-                                Sell-side
+                                {t("sellSide")}
                             </button>
                         </div>
                     </div>
@@ -203,19 +208,19 @@ export function CreateDealSheet({
                     {/* Contact & Listing */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Contact & Listing
+                            {t("contactAndListing")}
                         </h4>
                         {dealType === "BUY_SIDE" ? (
                             <div className="space-y-1.5">
                                 <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Buyer Contact
+                                    {t("buyerContact")}
                                 </Label>
                                 <Select
                                     value={buyerContactId}
                                     onValueChange={setBuyerContactId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select buyer..." />
+                                        <SelectValue placeholder={t("selectBuyer")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {contacts.map((c) => (
@@ -229,14 +234,14 @@ export function CreateDealSheet({
                         ) : (
                             <div className="space-y-1.5">
                                 <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Seller Contact
+                                    {t("sellerContact")}
                                 </Label>
                                 <Select
                                     value={sellerContactId}
                                     onValueChange={setSellerContactId}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select seller..." />
+                                        <SelectValue placeholder={t("selectSeller")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {contacts.map((c) => (
@@ -252,11 +257,11 @@ export function CreateDealSheet({
                         {/* Listing */}
                         <div className="space-y-1.5">
                             <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Linked Listing
+                                {t("linkedListing")}
                             </Label>
                             <Select value={listingId} onValueChange={setListingId}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="None" />
+                                    <SelectValue placeholder={tc("none")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {listings.map((l) => (
@@ -272,18 +277,18 @@ export function CreateDealSheet({
                     {/* Deal Details */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Deal Details
+                            {t("dealDetails")}
                         </h4>
 
                         {/* Deal Name */}
                         <div className="space-y-1.5">
                             <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Deal Name
+                                {t("dealName")}
                             </Label>
                             <Input
                                 value={dealName}
                                 onChange={(e) => setDealName(e.target.value)}
-                                placeholder={autoName || "Auto-generated from contact + listing"}
+                                placeholder={autoName || t("autoGeneratedName")}
                             />
                             {!dealName && autoName && (
                                 <p className="text-xs text-stone-500">
@@ -295,7 +300,7 @@ export function CreateDealSheet({
                         {/* Pipeline Stage */}
                         <div className="space-y-1.5">
                             <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Pipeline Stage
+                                {t("pipelineStage")}
                             </Label>
                             <Select
                                 value={pipelineStageId || defaultStage?.id || ""}
@@ -308,7 +313,7 @@ export function CreateDealSheet({
                                     {relevantStages.map((s) => (
                                         <SelectItem key={s.id} value={s.id}>
                                             {s.name}
-                                            {s.isDefault ? " (Default)" : ""}
+                                            {s.isDefault ? ` (${tc("default")})` : ""}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -319,7 +324,7 @@ export function CreateDealSheet({
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Estimated Value (THB)
+                                    {t("estimatedValue")}
                                 </Label>
                                 <Input
                                     type="number"
@@ -333,7 +338,7 @@ export function CreateDealSheet({
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Commission Rate (%)
+                                    {t("commissionRate")}
                                 </Label>
                                 <Input
                                     type="number"
@@ -351,25 +356,25 @@ export function CreateDealSheet({
                     {/* Assignment & Source */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Assignment
+                            {t("assignment")}
                         </h4>
 
                         {/* Lead Source */}
                         <div className="space-y-1.5">
                             <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Lead Source
+                                {t("leadSource")}
                             </Label>
                             <Select value={leadSource} onValueChange={setLeadSource}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select source..." />
+                                    <SelectValue placeholder={t("selectSource")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="LINE">LINE</SelectItem>
-                                    <SelectItem value="WEBSITE">Website</SelectItem>
-                                    <SelectItem value="REFERRAL">Referral</SelectItem>
-                                    <SelectItem value="FACEBOOK">Facebook</SelectItem>
-                                    <SelectItem value="WALK_IN">Walk-in</SelectItem>
-                                    <SelectItem value="COLD_CALL">Cold Call</SelectItem>
+                                    <SelectItem value="LINE">{tf("line")}</SelectItem>
+                                    <SelectItem value="WEBSITE">{tf("website")}</SelectItem>
+                                    <SelectItem value="REFERRAL">{tf("referral")}</SelectItem>
+                                    <SelectItem value="FACEBOOK">{tf("facebook")}</SelectItem>
+                                    <SelectItem value="WALK_IN">{tf("walkIn")}</SelectItem>
+                                    <SelectItem value="COLD_CALL">{tf("coldCall")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -377,14 +382,14 @@ export function CreateDealSheet({
                         {/* Assigned To */}
                         <div className="space-y-1.5">
                             <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Assigned To
+                                {t("assignedTo")}
                             </Label>
                             <Select
                                 value={assignedToId}
                                 onValueChange={setAssignedToId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Unassigned" />
+                                    <SelectValue placeholder={tc("unassigned")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {agents.map((a) => (
@@ -400,20 +405,20 @@ export function CreateDealSheet({
                     {/* Notes */}
                     <div className="space-y-1.5 py-4">
                         <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                            Notes
+                            {tc("notes")}
                         </Label>
                         <Textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             rows={3}
-                            placeholder="Any additional notes..."
+                            placeholder=""
                         />
                     </div>
                 </div>
 
                 <SheetFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        {tc("cancel")}
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -422,7 +427,7 @@ export function CreateDealSheet({
                         {isPending && (
                             <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                         )}
-                        Create Deal
+                        {t("createDeal")}
                     </Button>
                 </SheetFooter>
             </SheetContent>

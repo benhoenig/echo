@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { createBrowserClient } from "@supabase/ssr";
 
 export default function ResetPasswordPage() {
+    const t = useTranslations("auth");
+    const tc = useTranslations("common");
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -19,12 +22,12 @@ export default function ResetPasswordPage() {
         const confirmPassword = formData.get("confirmPassword") as string;
 
         if (password.length < 6) {
-            setError("Password must be at least 6 characters.");
+            setError(t("passwordTooShort"));
             return;
         }
 
         if (password !== confirmPassword) {
-            setError("Passwords do not match.");
+            setError(t("passwordsMismatch"));
             return;
         }
 
@@ -49,9 +52,9 @@ export default function ResetPasswordPage() {
     return (
         <Card className="shadow-lg">
             <CardHeader className="text-center">
-                <CardTitle className="text-xl">Set new password</CardTitle>
+                <CardTitle className="text-xl">{t("setNewPassword")}</CardTitle>
                 <CardDescription>
-                    Enter your new password below
+                    {t("enterNewPassword")}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -62,31 +65,31 @@ export default function ResetPasswordPage() {
                 )}
                 <form action={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="password">New password</Label>
+                        <Label htmlFor="password">{t("newPassword")}</Label>
                         <Input
                             id="password"
                             name="password"
                             type="password"
-                            placeholder="Minimum 6 characters"
+                            placeholder={t("passwordMinLength")}
                             required
                             minLength={6}
                             disabled={isPending}
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm password</Label>
+                        <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                         <Input
                             id="confirmPassword"
                             name="confirmPassword"
                             type="password"
-                            placeholder="Confirm your password"
+                            placeholder={t("confirmYourPassword")}
                             required
                             minLength={6}
                             disabled={isPending}
                         />
                     </div>
                     <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? "Updating..." : "Update password"}
+                        {isPending ? tc("updating") : t("updatePassword")}
                     </Button>
                 </form>
             </CardContent>

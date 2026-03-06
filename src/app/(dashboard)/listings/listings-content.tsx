@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useTransition, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -43,15 +44,6 @@ interface ListingsContentProps {
     savedFilters: SavedFilter[];
 }
 
-const GROUP_OPTIONS = [
-    { value: "__none__", label: "None" },
-    { value: "listing_status", label: "Status" },
-    { value: "listing_grade", label: "Grade" },
-    { value: "project_name", label: "Project" },
-    { value: "zone", label: "Zone" },
-    { value: "property_type", label: "Property" },
-];
-
 export function ListingsContent({
     initialListings,
     archivedListings,
@@ -59,6 +51,17 @@ export function ListingsContent({
     userId,
     savedFilters,
 }: ListingsContentProps) {
+    const t = useTranslations("listings");
+    const tc = useTranslations("common");
+
+    const GROUP_OPTIONS = useMemo(() => [
+        { value: "__none__", label: tc("none") },
+        { value: "listing_status", label: tc("status") },
+        { value: "listing_grade", label: t("grade") },
+        { value: "project_name", label: t("project") },
+        { value: "zone", label: t("zone") },
+        { value: "property_type", label: t("property") },
+    ], [t, tc]);
     const [search, setSearch] = useState("");
     const [sheetOpen, setSheetOpen] = useState(false);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -95,10 +98,10 @@ export function ListingsContent({
         startTransition(async () => {
             try {
                 await restoreListing(listingId);
-                toast.success("Listing restored.");
+                toast.success(t("listingRestored"));
                 router.refresh();
             } catch (error) {
-                toast.error(error instanceof Error ? error.message : "Failed to restore listing.");
+                toast.error(error instanceof Error ? error.message : tc("failed"));
             }
         });
     }
@@ -107,10 +110,10 @@ export function ListingsContent({
         startTransition(async () => {
             try {
                 await archiveListing(listingId);
-                toast.success("Listing archived.");
+                toast.success(t("listingArchived"));
                 router.refresh();
             } catch (error) {
-                toast.error(error instanceof Error ? error.message : "Failed to archive listing.");
+                toast.error(error instanceof Error ? error.message : tc("failed"));
             }
         });
     }
@@ -125,12 +128,12 @@ export function ListingsContent({
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-semibold text-foreground">
-                        {showArchived ? "Archived Listings" : "Listings"}
+                        {showArchived ? t("archivedTitle") : t("title")}
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         {showArchived
-                            ? `${archivedListings.length} archived listing${archivedListings.length !== 1 ? "s" : ""}`
-                            : `${initialListings.length} listing${initialListings.length !== 1 ? "s" : ""} in your database`}
+                            ? t("archivedCount", { count: archivedListings.length })
+                            : t("countInDatabase", { count: initialListings.length })}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -143,14 +146,14 @@ export function ListingsContent({
                             />
                             <Label htmlFor="show-archived" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5">
                                 <Archive className="w-3.5 h-3.5" />
-                                Archived ({archivedListings.length})
+                                {tc("showArchived")} ({archivedListings.length})
                             </Label>
                         </div>
                     )}
                     {!showArchived && (
                         <Button onClick={() => setSheetOpen(true)}>
                             <Plus className="w-4 h-4 mr-1.5" />
-                            New Listing
+                            {t("newListing")}
                         </Button>
                     )}
                 </div>
@@ -161,7 +164,7 @@ export function ListingsContent({
                 <div className="relative max-w-sm flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search listings..."
+                        placeholder={t("searchListings")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-9"
@@ -176,7 +179,7 @@ export function ListingsContent({
                         onValueChange={handleGroupChange}
                     >
                         <SelectTrigger className="w-[130px] h-9 text-xs">
-                            <SelectValue placeholder="Group by" />
+                            <SelectValue placeholder={tc("groupBy")} />
                         </SelectTrigger>
                         <SelectContent>
                             {GROUP_OPTIONS.map((opt) => (
@@ -210,10 +213,10 @@ export function ListingsContent({
                                     strokeWidth={1.75}
                                 />
                                 <p className="text-sm font-medium text-foreground mt-4">
-                                    No archived listings
+                                    {t("noArchivedListings")}
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    Archived listings will appear here.
+                                    {t("archivedAppearHere")}
                                 </p>
                             </>
                         ) : (
@@ -223,17 +226,17 @@ export function ListingsContent({
                                     strokeWidth={1.75}
                                 />
                                 <p className="text-sm font-medium text-foreground mt-4">
-                                    {search ? "No listings match your search" : "No listings yet"}
+                                    {search ? t("noMatchSearch") : t("noListingsYet")}
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
                                     {search
-                                        ? "Try a different search term."
-                                        : "Add your first listing to get started."}
+                                        ? tc("tryDifferentSearch")
+                                        : t("addFirstListing")}
                                 </p>
                                 {!search && (
                                     <Button className="mt-4" size="sm" onClick={() => setSheetOpen(true)}>
                                         <Plus className="w-4 h-4 mr-1.5" />
-                                        New Listing
+                                        {t("newListing")}
                                     </Button>
                                 )}
                             </>

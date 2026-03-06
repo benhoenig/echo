@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
     LayoutDashboard,
     Building2,
@@ -19,69 +20,6 @@ import { Button } from "@/components/ui/button";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { Badge } from "@/components/ui/badge";
 import { WorkspaceSwitcher } from "./workspace-switcher";
-
-const mainNavItems = [
-    {
-        label: "Dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
-        phase: null,
-    },
-    {
-        label: "Reminders",
-        href: "/reminders",
-        icon: ClipboardCheck,
-        phase: null,
-    },
-    {
-        label: "Listings",
-        href: "/listings",
-        icon: Building2,
-        phase: null,
-    },
-    {
-        label: "CRM",
-        href: "/crm",
-        icon: Users,
-        phase: null,
-    },
-    {
-        label: "Projects",
-        href: "/projects",
-        icon: FolderOpen,
-        phase: null,
-    },
-];
-
-const toolNavItems = [
-    {
-        label: "Website",
-        href: "/website",
-        icon: Globe,
-        phase: "Phase 3",
-    },
-    {
-        label: "AI Assistant",
-        href: "/ai",
-        icon: Bot,
-        phase: "Phase 4",
-    },
-];
-
-const configNavItems = [
-    {
-        label: "Copy Templates",
-        href: "/copy-templates",
-        icon: Bot, // Using Bot or maybe FileText, let's use a generic doc icon
-        phase: null,
-    },
-    {
-        label: "Settings",
-        href: "/settings",
-        icon: Settings,
-        phase: null,
-    },
-];
 
 interface NavItem {
     label: string;
@@ -150,6 +88,70 @@ function NavSection({ label, items, pathname, collapsed }: NavSectionProps) {
 export function Sidebar() {
     const pathname = usePathname();
     const { isOpen, isCollapsed, setOpen, setCollapsed } = useSidebarStore();
+    const t = useTranslations("nav");
+
+    const mainNavItems: NavItem[] = [
+        {
+            label: t("dashboard"),
+            href: "/dashboard",
+            icon: LayoutDashboard,
+            phase: null,
+        },
+        {
+            label: t("reminders"),
+            href: "/reminders",
+            icon: ClipboardCheck,
+            phase: null,
+        },
+        {
+            label: t("listings"),
+            href: "/listings",
+            icon: Building2,
+            phase: null,
+        },
+        {
+            label: t("crm"),
+            href: "/crm",
+            icon: Users,
+            phase: null,
+        },
+        {
+            label: t("projects"),
+            href: "/projects",
+            icon: FolderOpen,
+            phase: null,
+        },
+    ];
+
+    const toolNavItems: NavItem[] = [
+        {
+            label: t("website"),
+            href: "/website",
+            icon: Globe,
+            phase: "Phase 3",
+        },
+        {
+            label: t("aiAssistant"),
+            href: "/ai",
+            icon: Bot,
+            phase: "Phase 4",
+        },
+    ];
+
+    const configNavItems: NavItem[] = [
+        {
+            label: t("copyTemplates"),
+            href: "/copy-templates",
+            icon: Bot,
+            phase: null,
+        },
+        {
+            label: t("settings"),
+            href: "/settings",
+            icon: Settings,
+            phase: null,
+        },
+    ];
 
     return (
         <>
@@ -179,21 +181,21 @@ export function Sidebar() {
                 {/* Navigation */}
                 <div className="flex-1 overflow-y-auto py-2">
                     <NavSection
-                        label="Main"
+                        label={t("main")}
                         items={mainNavItems}
                         pathname={pathname}
                         collapsed={isCollapsed}
                     />
                     <div className="border-t border-stone-800 mx-3 my-2" />
                     <NavSection
-                        label="Tools"
+                        label={t("tools")}
                         items={toolNavItems}
                         pathname={pathname}
                         collapsed={isCollapsed}
                     />
                     <div className="border-t border-stone-800 mx-3 my-2" />
                     <NavSection
-                        label="Configuration"
+                        label={t("configuration")}
                         items={configNavItems}
                         pathname={pathname}
                         collapsed={isCollapsed}
@@ -215,7 +217,7 @@ export function Sidebar() {
                             )}
                             strokeWidth={1.75}
                         />
-                        {!isCollapsed && <span className="ml-2 text-xs">Collapse</span>}
+                        {!isCollapsed && <span className="ml-2 text-xs">{t("collapse")}</span>}
                     </Button>
                 </div>
             </aside>

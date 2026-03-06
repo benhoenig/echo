@@ -11,45 +11,10 @@ import {
 } from "@/components/ui/select";
 import { X, Filter } from "lucide-react";
 import type { ColumnFiltersState } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ContactRow = any;
-
-const STATUS_OPTIONS = [
-    { value: "__all__", label: "All Statuses" },
-    { value: "ACTIVE", label: "Active" },
-    { value: "ON_HOLD", label: "On Hold" },
-    { value: "CLOSED_WON", label: "Closed Won" },
-    { value: "CLOSED_LOST", label: "Closed Lost" },
-    { value: "UNQUALIFIED", label: "Unqualified" },
-    { value: "REACTIVATE", label: "Reactivate" },
-];
-
-const TYPE_OPTIONS = [
-    { value: "__all__", label: "All Types" },
-    { value: "Buyer", label: "Buyer" },
-    { value: "Seller", label: "Seller" },
-    { value: "Both", label: "Both" },
-    { value: "Referrer", label: "Referrer" },
-];
-
-const POTENTIAL_OPTIONS = [
-    { value: "__all__", label: "All Tiers" },
-    { value: "A", label: "A — Hot" },
-    { value: "B", label: "B — Warm" },
-    { value: "C", label: "C — Cool" },
-    { value: "D", label: "D — Cold" },
-];
-
-const SOURCE_OPTIONS = [
-    { value: "__all__", label: "All Sources" },
-    { value: "LINE", label: "LINE" },
-    { value: "WEBSITE", label: "Website" },
-    { value: "REFERRAL", label: "Referral" },
-    { value: "FACEBOOK", label: "Facebook" },
-    { value: "WALK_IN", label: "Walk-in" },
-    { value: "COLD_CALL", label: "Cold Call" },
-];
 
 interface ContactsFilterBarProps {
     data: ContactRow[];
@@ -80,6 +45,56 @@ export function ContactsFilterBar({
     columnFilters,
     onColumnFiltersChange,
 }: ContactsFilterBarProps) {
+    const tf = useTranslations("filters");
+
+    const STATUS_OPTIONS = useMemo(
+        () => [
+            { value: "__all__", label: tf("allStatuses") },
+            { value: "ACTIVE", label: tf("active") },
+            { value: "ON_HOLD", label: tf("onHold") },
+            { value: "CLOSED_WON", label: tf("closedWon") },
+            { value: "CLOSED_LOST", label: tf("closedLost") },
+            { value: "UNQUALIFIED", label: tf("unqualified") },
+            { value: "REACTIVATE", label: tf("reactivate") },
+        ],
+        [tf]
+    );
+
+    const TYPE_OPTIONS = useMemo(
+        () => [
+            { value: "__all__", label: tf("allTypes") },
+            { value: "Buyer", label: tf("buyer") },
+            { value: "Seller", label: tf("seller") },
+            { value: "Both", label: tf("both") },
+            { value: "Referrer", label: tf("referrer") },
+        ],
+        [tf]
+    );
+
+    const POTENTIAL_OPTIONS = useMemo(
+        () => [
+            { value: "__all__", label: tf("allTiers") },
+            { value: "A", label: tf("tierAHot") },
+            { value: "B", label: tf("tierBWarm") },
+            { value: "C", label: tf("tierCCool") },
+            { value: "D", label: tf("tierDCold") },
+        ],
+        [tf]
+    );
+
+    const SOURCE_OPTIONS = useMemo(
+        () => [
+            { value: "__all__", label: tf("allSources") },
+            { value: "LINE", label: tf("line") },
+            { value: "WEBSITE", label: tf("website") },
+            { value: "REFERRAL", label: tf("referral") },
+            { value: "FACEBOOK", label: tf("facebook") },
+            { value: "WALK_IN", label: tf("walkIn") },
+            { value: "COLD_CALL", label: tf("coldCall") },
+        ],
+        [tf]
+    );
+
     const hasFilters = columnFilters.length > 0;
 
     return (
@@ -201,7 +216,7 @@ export function ContactsFilterBar({
                     onClick={() => onColumnFiltersChange([])}
                 >
                     <X className="w-3.5 h-3.5 mr-1" />
-                    Clear
+                    {tf("clear")}
                 </Button>
             )}
         </div>

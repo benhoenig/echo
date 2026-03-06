@@ -411,11 +411,12 @@ Build a shared engine that serves both Listings and CRM, driven entirely by Stag
 - [x] Suggested Action display: when a reminder triggers, show the required action from the Stage Action Playbook. Display on the deal/listing detail page and in the notification.
 - [x] "Mark as actioned" button: when the agent takes the suggested action, update `last_action_date` and dismiss the reminder.
 
-#### 4.2.5b Playbooks UI Implementation (Next Step)
+#### 4.2.5b Playbooks UI Implementation
 
-- [ ] Data table or interactive list in Settings > Playbooks to view all active playbooks.
-- [ ] "Add New Playbook Action" Sheet/Modal: Select the pipeline stage, action type, description, and the follow-up interval for this action.
-- [ ] Connect the UI to the `stage_action_playbooks` table via Server Actions.
+- [x] Interactive list in Settings > Playbooks to view all active playbooks, grouped by Deals/Listings with collapsible sections.
+- [x] "Add New Playbook Action" card form: two-step flow (Trigger Logic → Action Output) with multi-variable filters (module, pipeline stage/listing status, potential tier, property type, deal type/listing type).
+- [x] Edit Playbook dialog: pre-filled form with all fields editable via shared `PlaybookFormFields` component.
+- [x] Connect the UI to the `stage_action_playbooks` table via Server Actions (create, update, delete, toggle active).
 
 #### 4.2.6 Notification System
 

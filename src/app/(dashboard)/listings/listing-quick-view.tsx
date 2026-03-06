@@ -1,9 +1,12 @@
+"use client";
+
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
+import { useTranslations } from "next-intl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListingStatusBadge } from "@/components/shared/listing-status-badge";
 import { ListingGradeBadge } from "@/components/shared/listing-grade-badge";
@@ -70,6 +73,8 @@ export function ListingQuickView({
     onOpenChange,
     onArchive,
 }: ListingQuickViewProps) {
+    const t = useTranslations("listings");
+    const tc = useTranslations("common");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [comments, setComments] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,7 +97,7 @@ export function ListingQuickView({
             })
             .catch((err) => {
                 console.error("Failed to load drawer data", err);
-                toast.error("Failed to load activity and comments.");
+                toast.error(tc("failedToLoad"));
             })
             .finally(() => {
                 setIsLoadingData(false);
@@ -115,7 +120,7 @@ export function ListingQuickView({
     const copyLink = () => {
         const url = `${window.location.origin}/listings/${listing.id}`;
         navigator.clipboard.writeText(url);
-        toast.success("Link copied to clipboard");
+        toast.success(tc("linkCopied"));
     };
 
     return (
@@ -152,12 +157,12 @@ export function ListingQuickView({
                         <Button variant="outline" size="sm" asChild className="gap-2">
                             <Link href={`/listings/${listing.id}`}>
                                 <ExternalLink className="w-4 h-4" />
-                                Edit Full Details
+                                {t("editFullDetails")}
                             </Link>
                         </Button>
                         <Button variant="outline" size="sm" onClick={copyLink} className="gap-2">
                             <Copy className="w-4 h-4" />
-                            Copy Link
+                            {tc("copyLink")}
                         </Button>
                         <Button
                             variant="outline"
@@ -171,7 +176,7 @@ export function ListingQuickView({
                             }}
                         >
                             <Archive className="w-4 h-4" />
-                            Archive
+                            {tc("archive")}
                         </Button>
                     </div>
                 </div>
@@ -181,19 +186,19 @@ export function ListingQuickView({
                         <TabsList className="grid w-full grid-cols-4 mb-6">
                             <TabsTrigger value="overview" className="gap-2">
                                 <Info className="w-4 h-4" />
-                                <span className="hidden sm:inline">Overview</span>
+                                <span className="hidden sm:inline">{tc("overview")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="media" className="gap-2">
                                 <FileImage className="w-4 h-4" />
-                                <span className="hidden sm:inline">Media & Links</span>
+                                <span className="hidden sm:inline">{t("mediaAndLinks")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="activity" className="gap-2">
                                 <MessageSquare className="w-4 h-4" />
-                                <span className="hidden sm:inline">Activity</span>
+                                <span className="hidden sm:inline">{tc("activity")}</span>
                             </TabsTrigger>
                             <TabsTrigger value="agreements" className="gap-2">
                                 <Briefcase className="w-4 h-4" />
-                                <span className="hidden sm:inline">Legal</span>
+                                <span className="hidden sm:inline">{t("legal")}</span>
                             </TabsTrigger>
                         </TabsList>
 
@@ -201,22 +206,22 @@ export function ListingQuickView({
                             {/* OVERVIEW CONTENT */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-4">
-                                    <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100 flex items-center gap-2">Pricing</h4>
+                                    <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100 flex items-center gap-2">{t("pricing")}</h4>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <p className="text-xs text-muted-foreground">Asking Price</p>
+                                            <p className="text-xs text-muted-foreground">{t("askingPriceLabel")}</p>
                                             <p className="text-sm font-medium">
                                                 {listing.asking_price ? `฿${listing.asking_price.toLocaleString()}` : "—"}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground">Rental / mo</p>
+                                            <p className="text-xs text-muted-foreground">{t("rentalPerMo")}</p>
                                             <p className="text-sm font-medium">
                                                 {listing.rental_price ? `฿${listing.rental_price.toLocaleString()}` : "—"}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground">Comm.</p>
+                                            <p className="text-xs text-muted-foreground">{t("comm")}</p>
                                             <p className="text-sm font-medium">
                                                 {listing.commission_rate ? `${listing.commission_rate}%` : "—"}
                                             </p>
@@ -225,22 +230,22 @@ export function ListingQuickView({
                                 </div>
 
                                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-4">
-                                    <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100 flex items-center gap-2">Details</h4>
+                                    <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100 flex items-center gap-2">{t("details")}</h4>
                                     <div className="grid grid-cols-2 gap-y-4 gap-x-2">
                                         <div>
-                                            <p className="text-xs text-muted-foreground">Bed/Bath</p>
+                                            <p className="text-xs text-muted-foreground">{t("bedBath")}</p>
                                             <p className="text-sm font-medium text-foreground">
                                                 {listing.bedrooms || "-"} / {listing.bathrooms || "-"}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-muted-foreground">Floor</p>
+                                            <p className="text-xs text-muted-foreground">{t("floor")}</p>
                                             <p className="text-sm font-medium text-foreground">{listing.floor || "—"}</p>
                                         </div>
                                         <div className="col-span-2">
-                                            <p className="text-xs text-muted-foreground">Seller</p>
+                                            <p className="text-xs text-muted-foreground">{t("seller")}</p>
                                             <p className="text-sm font-medium text-foreground">
-                                                {listing.contacts?.first_name || "Unknown Seller"}
+                                                {listing.contacts?.first_name || t("unknownSeller")}
                                             </p>
                                             {listing.seller_phone && (
                                                 <p className="text-xs text-muted-foreground mt-0.5">{listing.seller_phone}</p>
@@ -257,7 +262,7 @@ export function ListingQuickView({
                                 <div className="space-y-4">
                                     <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
                                         <FileImage className="w-4 h-4" />
-                                        Photo Gallery
+                                        {t("photoGallery")}
                                     </h4>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                         {listing.unit_photos.map((url: string, index: number) => (
@@ -268,7 +273,7 @@ export function ListingQuickView({
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={url}
-                                                    alt={`Property photo ${index + 1}`}
+                                                    alt={`${t("propertyPhoto")} ${index + 1}`}
                                                     className="object-cover w-full h-full"
                                                 />
                                             </div>
@@ -278,9 +283,9 @@ export function ListingQuickView({
                             ) : (
                                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[300px]">
                                     <FileImage className="w-12 h-12 text-stone-300 dark:text-stone-600 mb-4" />
-                                    <h3 className="text-sm font-medium text-foreground">No Photos Uploaded</h3>
+                                    <h3 className="text-sm font-medium text-foreground">{t("noPhotos")}</h3>
                                     <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                                        Click "Edit Full Details" above to upload photos, arrange the gallery, and manage external marketing links.
+                                        {t("noPhotosDesc")}
                                     </p>
                                 </div>
                             )}
@@ -288,44 +293,44 @@ export function ListingQuickView({
 
                         <TabsContent value="activity" className="space-y-6">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-sm font-semibold">Activity Feed</h3>
+                                <h3 className="text-sm font-semibold">{tc("activityFeed")}</h3>
                                 <div className="flex items-center bg-muted/50 p-1 rounded-md border text-xs">
                                     <button
                                         onClick={() => setActivityFilter("ALL")}
                                         className={`px-3 py-1.5 rounded-sm font-medium transition-colors ${activityFilter === "ALL" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        All
+                                        {tc("all")}
                                     </button>
                                     <button
                                         onClick={() => setActivityFilter("COMMENTS")}
                                         className={`px-3 py-1.5 rounded-sm font-medium transition-colors ${activityFilter === "COMMENTS" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        Comments
+                                        {tc("comments")}
                                     </button>
                                     <button
                                         onClick={() => setActivityFilter("SYSTEM")}
                                         className={`px-3 py-1.5 rounded-sm font-medium transition-colors ${activityFilter === "SYSTEM" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                                     >
-                                        System
+                                        {tc("system")}
                                     </button>
                                 </div>
                             </div>
                             {/* ACTIVITY & COMMENTS */}
                             {isLoadingData ? (
-                                <div className="py-12 flex justify-center text-muted-foreground text-sm">Loading activity...</div>
+                                <div className="py-12 flex justify-center text-muted-foreground text-sm">{tc("loadingActivity")}</div>
                             ) : (
                                 <>
                                     {(activityFilter === "ALL" || activityFilter === "COMMENTS") && (
                                         <div className="flex flex-col gap-6">
                                             <div className="space-y-4">
                                                 {comments.length === 0 ? (
-                                                    <div className="text-sm text-muted-foreground italic">No comments yet. Be the first!</div>
+                                                    <div className="text-sm text-muted-foreground italic">{tc("noCommentsYet")}</div>
                                                 ) : (
                                                     comments.map((comment) => {
                                                         const user = Array.isArray(comment.users) ? comment.users[0] : comment.users;
                                                         const authorName = user
                                                             ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-                                                            : "Unknown User";
+                                                            : tc("unknownUser");
 
                                                         const initials = user
                                                             ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase()
@@ -345,7 +350,7 @@ export function ListingQuickView({
                                                                             </p>
                                                                         </div>
                                                                         <div className="text-sm italic text-muted-foreground mt-1 rounded-md bg-muted/50 p-3">
-                                                                            This comment was deleted.
+                                                                            {tc("commentDeleted")}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -388,7 +393,7 @@ export function ListingQuickView({
                                     {(activityFilter === "ALL" || activityFilter === "SYSTEM") && (
                                         <div className={`pt-4 space-y-0 ${activityFilter === "ALL" ? "mt-8 border-t" : ""}`}>
                                             {activityLogs.length === 0 ? (
-                                                <div className="text-sm text-muted-foreground italic">No system activity yet.</div>
+                                                <div className="text-sm text-muted-foreground italic">{tc("noSystemActivity")}</div>
                                             ) : (
                                                 activityLogs.map((log) => {
                                                     const ACTION_DOT_COLORS: Record<string, string> = {
@@ -409,7 +414,7 @@ export function ListingQuickView({
                                                     const user = Array.isArray(log.users) ? log.users[0] : log.users;
                                                     const actorName = user
                                                         ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-                                                        : "System";
+                                                        : tc("system");
 
                                                     return (
                                                         <div key={log.id} className="flex items-start gap-3 py-2">
@@ -437,9 +442,9 @@ export function ListingQuickView({
                         <TabsContent value="agreements" className="space-y-6">
                             <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-6 flex flex-col items-center justify-center text-center min-h-[300px]">
                                 <Briefcase className="w-12 h-12 text-stone-300 dark:text-stone-600 mb-4" />
-                                <h3 className="text-sm font-medium text-foreground">Exclusive Agreements</h3>
+                                <h3 className="text-sm font-medium text-foreground">{t("exclusiveAgreements")}</h3>
                                 <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                                    Contract forms, signatures, and agreement tracking will be built in Sub-Phase 1I.
+                                    {t("agreementsComingSoon")}
                                 </p>
                             </div>
                         </TabsContent>

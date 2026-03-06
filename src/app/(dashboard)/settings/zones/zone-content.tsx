@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { createZone, updateZone, deleteZone } from "./zone-actions";
 import type { Tables } from "@/types/supabase";
 
@@ -24,6 +25,8 @@ interface ZoneContentProps {
 }
 
 export function ZoneContent({ initialZones }: ZoneContentProps) {
+    const t = useTranslations("zones");
+    const tc = useTranslations("common");
     const [zones, setZones] = useState<Zone[]>(initialZones);
     const [isPending, startTransition] = useTransition();
 
@@ -130,15 +133,15 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-lg font-semibold text-foreground">
-                        Zones
+                        {t("title")}
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Manage location zones for your projects and listings.
+                        {t("description")}
                     </p>
                 </div>
                 <Button onClick={openCreateDialog} size="sm">
                     <Plus className="w-4 h-4 mr-1.5" />
-                    Add Zone
+                    {t("addZone")}
                 </Button>
             </div>
 
@@ -151,10 +154,10 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                             strokeWidth={1.75}
                         />
                         <p className="text-sm font-medium text-foreground mt-3">
-                            No zones yet
+                            {t("noZonesYet")}
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">
-                            Add zones to organize your projects by area.
+                            {t("addZonesDescription")}
                         </p>
                     </div>
                 ) : (
@@ -162,13 +165,13 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                         <thead>
                             <tr className="border-b border-stone-200 dark:border-stone-800">
                                 <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                    English Name
+                                    {t("englishName")}
                                 </th>
                                 <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                    Thai Name
+                                    {t("thaiName")}
                                 </th>
                                 <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3 w-24">
-                                    Actions
+                                    {tc("actions")}
                                 </th>
                             </tr>
                         </thead>
@@ -220,18 +223,18 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {editingZone ? "Edit Zone" : "Add Zone"}
+                            {editingZone ? t("editZone") : t("addZone")}
                         </DialogTitle>
                         <DialogDescription>
                             {editingZone
-                                ? "Update the zone details."
-                                : "Add a new location zone."}
+                                ? t("updateDetails")
+                                : t("addNewZone")}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-2">
                             <Label htmlFor="name-english">
-                                English Name
+                                {t("englishName")}
                             </Label>
                             <Input
                                 id="name-english"
@@ -243,7 +246,7 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="name-thai">Thai Name</Label>
+                            <Label htmlFor="name-thai">{t("thaiName")}</Label>
                             <Input
                                 id="name-thai"
                                 placeholder="e.g. สุขุมวิท"
@@ -259,13 +262,13 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                             variant="outline"
                             onClick={() => setDialogOpen(false)}
                         >
-                            Cancel
+                            {tc("cancel")}
                         </Button>
                         <Button onClick={handleSave} disabled={isPending}>
                             {isPending && (
                                 <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                             )}
-                            {editingZone ? "Save Changes" : "Add Zone"}
+                            {editingZone ? tc("save") : t("addZone")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -278,11 +281,10 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Delete Zone</DialogTitle>
+                        <DialogTitle>{t("deleteZone")}</DialogTitle>
                         <DialogDescription>
-                            Are you sure you want to delete &ldquo;
-                            {deletingZone?.zone_name_english}&rdquo;? This
-                            action cannot be undone.
+                            {t("confirmDelete")} &ldquo;
+                            {deletingZone?.zone_name_english}&rdquo;? {t("cannotBeUndone")}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -290,7 +292,7 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                             variant="outline"
                             onClick={() => setDeleteDialogOpen(false)}
                         >
-                            Cancel
+                            {tc("cancel")}
                         </Button>
                         <Button
                             variant="destructive"
@@ -300,7 +302,7 @@ export function ZoneContent({ initialZones }: ZoneContentProps) {
                             {isPending && (
                                 <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                             )}
-                            Delete
+                            {tc("delete")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -36,6 +36,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { getActionTypeLabel } from "@/lib/reminder-engine";
 import {
     createPlaybookAction,
@@ -170,6 +171,8 @@ function PlaybookRow({
     pipelineStages: PipelineStageOption[];
     onRefresh: () => void;
 }) {
+    const t = useTranslations("playbook");
+    const tc = useTranslations("common");
     const [isPending, startTransition] = useTransition();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showEdit, setShowEdit] = useState(false);
@@ -310,21 +313,21 @@ function PlaybookRow({
             <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>Delete Playbook?</DialogTitle>
+                        <DialogTitle>{t("deletePlaybook")}</DialogTitle>
                     </DialogHeader>
                     <p className="text-sm text-stone-500">
                         Delete &quot;{item.actionLabel}&quot;? This action cannot be undone.
                     </p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                            Cancel
+                            {tc("cancel")}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={isPending}
                         >
-                            Delete
+                            {tc("delete")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -350,6 +353,8 @@ function EditPlaybookDialog({
     onOpenChange: (open: boolean) => void;
     onSaved: () => void;
 }) {
+    const t = useTranslations("playbook");
+    const tc = useTranslations("common");
     const [isPending, startTransition] = useTransition();
     const [form, setForm] = useState<PlaybookFormData>(() => itemToForm(item));
 
@@ -381,7 +386,7 @@ function EditPlaybookDialog({
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Edit Playbook</DialogTitle>
+                    <DialogTitle>{t("editPlaybook")}</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-2">
@@ -389,7 +394,7 @@ function EditPlaybookDialog({
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-300">
                             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-[10px] font-bold dark:bg-orange-900/30 dark:text-orange-400">1</span>
-                            Trigger Logic
+                            {t("triggerLogic")}
                             <span className="text-xs font-normal text-stone-400">(optional filters)</span>
                         </div>
 
@@ -414,7 +419,7 @@ function EditPlaybookDialog({
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-300">
                             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-[10px] font-bold dark:bg-orange-900/30 dark:text-orange-400">2</span>
-                            Action Output
+                            {t("actionOutput")}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -428,7 +433,7 @@ function EditPlaybookDialog({
 
                         {/* Description */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Description (optional)</Label>
+                            <Label className="text-xs">{tc("description")} ({tc("optional").toLowerCase()})</Label>
                             <Textarea
                                 className="min-h-[60px] text-sm"
                                 placeholder="Explain what this action involves..."
@@ -439,7 +444,7 @@ function EditPlaybookDialog({
 
                         {/* Template */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Message Template (optional)</Label>
+                            <Label className="text-xs">Message Template ({tc("optional").toLowerCase()})</Label>
                             <Textarea
                                 className="min-h-[60px] text-sm font-mono"
                                 placeholder="Template for the message or script..."
@@ -452,10 +457,10 @@ function EditPlaybookDialog({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-                        Cancel
+                        {tc("cancel")}
                     </Button>
                     <Button onClick={handleSave} disabled={isPending}>
-                        {isPending ? "Saving..." : "Save Changes"}
+                        {isPending ? tc("saving") : tc("save")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -495,6 +500,7 @@ function PlaybookFormFields({
     pipelineStages: PipelineStageOption[];
     section: "trigger" | "action";
 }) {
+    const t = useTranslations("playbook");
     const isDeals = form.module === "DEALS";
 
     if (section === "trigger") {
@@ -532,10 +538,10 @@ function PlaybookFormFields({
                             onValueChange={(v) => setForm({ ...form, pipelineStageId: v === "__none__" ? null : v })}
                         >
                             <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Any stage" />
+                                <SelectValue placeholder={t("anyStage")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="__none__">Any stage</SelectItem>
+                                <SelectItem value="__none__">{t("anyStage")}</SelectItem>
                                 {pipelineStages.map((s) => (
                                     <SelectItem key={s.id} value={s.id}>
                                         <span className="flex items-center gap-1.5">
@@ -559,10 +565,10 @@ function PlaybookFormFields({
                             onValueChange={(v) => setForm({ ...form, listingStatus: v === "__none__" ? null : v })}
                         >
                             <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Any status" />
+                                <SelectValue placeholder={t("anyStatus")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="__none__">Any status</SelectItem>
+                                <SelectItem value="__none__">{t("anyStatus")}</SelectItem>
                                 {LISTING_STATUSES.map((s) => (
                                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                                 ))}
@@ -579,10 +585,10 @@ function PlaybookFormFields({
                         onValueChange={(v) => setForm({ ...form, potentialTier: v === "__none__" ? null : v })}
                     >
                         <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Any tier" />
+                            <SelectValue placeholder={t("anyTier")} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__none__">Any tier</SelectItem>
+                            <SelectItem value="__none__">{t("anyTier")}</SelectItem>
                             {POTENTIAL_TIERS.map((t) => (
                                 <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                             ))}
@@ -598,10 +604,10 @@ function PlaybookFormFields({
                         onValueChange={(v) => setForm({ ...form, propertyType: v === "__none__" ? null : v })}
                     >
                         <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Any type" />
+                            <SelectValue placeholder={t("anyType")} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__none__">Any type</SelectItem>
+                            <SelectItem value="__none__">{t("anyType")}</SelectItem>
                             {PROPERTY_TYPES.map((t) => (
                                 <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                             ))}
@@ -618,10 +624,10 @@ function PlaybookFormFields({
                             onValueChange={(v) => setForm({ ...form, dealType: v === "__none__" ? null : v })}
                         >
                             <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Any deal type" />
+                                <SelectValue placeholder={t("anyDealType")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="__none__">Any deal type</SelectItem>
+                                <SelectItem value="__none__">{t("anyDealType")}</SelectItem>
                                 {DEAL_TYPES.map((t) => (
                                     <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                                 ))}
@@ -636,10 +642,10 @@ function PlaybookFormFields({
                             onValueChange={(v) => setForm({ ...form, listingType: v === "__none__" ? null : v })}
                         >
                             <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Any listing type" />
+                                <SelectValue placeholder={t("anyListingType")} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="__none__">Any listing type</SelectItem>
+                                <SelectItem value="__none__">{t("anyListingType")}</SelectItem>
                                 {LISTING_TYPES.map((t) => (
                                     <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
                                 ))}
@@ -656,7 +662,7 @@ function PlaybookFormFields({
         <>
             {/* Action Name */}
             <div className="space-y-1.5">
-                <Label className="text-xs">Action Name *</Label>
+                <Label className="text-xs">{t("actionName")}</Label>
                 <Input
                     className="h-9"
                     placeholder="e.g. Follow up call"
@@ -667,7 +673,7 @@ function PlaybookFormFields({
 
             {/* Action Type */}
             <div className="space-y-1.5">
-                <Label className="text-xs">Action Type</Label>
+                <Label className="text-xs">{t("actionType")}</Label>
                 <Select
                     value={form.actionType}
                     onValueChange={(v) => setForm({ ...form, actionType: v })}
@@ -685,7 +691,7 @@ function PlaybookFormFields({
 
             {/* Interval Days */}
             <div className="space-y-1.5">
-                <Label className="text-xs">Interval (days)</Label>
+                <Label className="text-xs">{t("intervalDays")}</Label>
                 <Input
                     className="h-9"
                     type="number"
@@ -708,7 +714,7 @@ function PlaybookFormFields({
             <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between">
                     <Label className="text-xs">
-                        Recurring
+                        {t("recurring")}
                         <span className="block text-[10px] text-stone-400 font-normal">
                             Re-triggers every X days after each action
                         </span>
@@ -748,6 +754,8 @@ function CreatePlaybookForm({
     onCreated: () => void;
     onCancel: () => void;
 }) {
+    const t = useTranslations("playbook");
+    const tc = useTranslations("common");
     const [isPending, startTransition] = useTransition();
     const [form, setForm] = useState<PlaybookFormData>(emptyForm());
 
@@ -771,9 +779,9 @@ function CreatePlaybookForm({
     return (
         <Card className="border-orange-200 dark:border-orange-800/50">
             <CardHeader className="pb-4">
-                <CardTitle className="text-base">New Playbook Action</CardTitle>
+                <CardTitle className="text-base">{t("addPlaybook")}</CardTitle>
                 <CardDescription>
-                    Define when this reminder triggers and what action to suggest.
+                    {t("description")}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -781,8 +789,8 @@ function CreatePlaybookForm({
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-300">
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-[10px] font-bold dark:bg-orange-900/30 dark:text-orange-400">1</span>
-                        Trigger Logic
-                        <span className="text-xs font-normal text-stone-400">(optional filters — leave blank to match all)</span>
+                        {t("triggerLogic")}
+                        <span className="text-xs font-normal text-stone-400">({tc("optional").toLowerCase()})</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -806,7 +814,7 @@ function CreatePlaybookForm({
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-300">
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-[10px] font-bold dark:bg-orange-900/30 dark:text-orange-400">2</span>
-                        Action Output
+                        {t("actionOutput")}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -820,7 +828,7 @@ function CreatePlaybookForm({
 
                     {/* Description */}
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Description (optional)</Label>
+                        <Label className="text-xs">{tc("description")} ({tc("optional").toLowerCase()})</Label>
                         <Textarea
                             className="min-h-[60px] text-sm"
                             placeholder="Explain what this action involves..."
@@ -831,7 +839,7 @@ function CreatePlaybookForm({
 
                     {/* Template */}
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Message Template (optional)</Label>
+                        <Label className="text-xs">Message Template ({tc("optional").toLowerCase()})</Label>
                         <Textarea
                             className="min-h-[60px] text-sm font-mono"
                             placeholder="Template for the message or script..."
@@ -844,10 +852,10 @@ function CreatePlaybookForm({
                 {/* Submit */}
                 <div className="flex items-center gap-2 justify-end pt-2">
                     <Button variant="outline" size="sm" onClick={onCancel} disabled={isPending}>
-                        Cancel
+                        {tc("cancel")}
                     </Button>
                     <Button size="sm" onClick={handleSubmit} disabled={isPending}>
-                        {isPending ? "Creating..." : "Create Playbook"}
+                        {isPending ? tc("saving") : t("addPlaybook")}
                     </Button>
                 </div>
             </CardContent>
@@ -866,6 +874,8 @@ export function PlaybookContent({
     pipelineStages: PipelineStageOption[];
     workspaceId: string;
 }) {
+    const t = useTranslations("playbook");
+    const tReminders = useTranslations("reminders");
     const [playbooks, setPlaybooks] = useState(initialPlaybooks);
     const [showCreate, setShowCreate] = useState(false);
     const [dealsOpen, setDealsOpen] = useState(true);
@@ -890,16 +900,16 @@ export function PlaybookContent({
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
-                        Action Playbooks
+                        {t("actionPlaybooks")}
                     </h2>
                     <p className="text-sm text-stone-500 dark:text-stone-400">
-                        Define reminder triggers and suggested actions for deals and listings.
+                        {t("description")}
                     </p>
                 </div>
                 {!showCreate && (
                     <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
                         <Plus className="w-4 h-4" />
-                        Add Playbook
+                        {t("addPlaybook")}
                     </Button>
                 )}
             </div>
@@ -925,7 +935,7 @@ export function PlaybookContent({
                 >
                     {dealsOpen ? <ChevronDown className="w-4 h-4 text-stone-400" /> : <ChevronRight className="w-4 h-4 text-stone-400" />}
                     <Users className="w-4 h-4 text-purple-500" />
-                    <span className="text-sm font-semibold text-stone-800 dark:text-stone-100">Deals</span>
+                    <span className="text-sm font-semibold text-stone-800 dark:text-stone-100">{tReminders("deals")}</span>
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-1">
                         {dealPlaybooks.length}
                     </Badge>
@@ -934,7 +944,7 @@ export function PlaybookContent({
                     <CardContent className="pt-0 space-y-2">
                         {dealPlaybooks.length === 0 ? (
                             <p className="text-sm text-stone-400 dark:text-stone-500 text-center py-6">
-                                No playbooks for deals yet. Click &quot;Add Playbook&quot; to create one.
+                                {t("noPlaybooksDeals")}
                             </p>
                         ) : (
                             dealPlaybooks.map((p) => (
@@ -953,7 +963,7 @@ export function PlaybookContent({
                 >
                     {listingsOpen ? <ChevronDown className="w-4 h-4 text-stone-400" /> : <ChevronRight className="w-4 h-4 text-stone-400" />}
                     <Building2 className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm font-semibold text-stone-800 dark:text-stone-100">Listings</span>
+                    <span className="text-sm font-semibold text-stone-800 dark:text-stone-100">{tReminders("listings")}</span>
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-1">
                         {listingPlaybooks.length}
                     </Badge>
@@ -962,7 +972,7 @@ export function PlaybookContent({
                     <CardContent className="pt-0 space-y-2">
                         {listingPlaybooks.length === 0 ? (
                             <p className="text-sm text-stone-400 dark:text-stone-500 text-center py-6">
-                                No playbooks for listings yet. Click &quot;Add Playbook&quot; to create one.
+                                {t("noPlaybooksListings")}
                             </p>
                         ) : (
                             listingPlaybooks.map((p) => (

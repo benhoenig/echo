@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
     useReactTable,
     getCoreRowModel,
@@ -105,6 +106,7 @@ function InlineNumberCell({
     prefix?: string;
     format?: boolean;
 }) {
+    const t = useTranslations("listings");
     const [editing, setEditing] = useState(false);
     const [inputValue, setInputValue] = useState(value?.toString() ?? "");
 
@@ -119,7 +121,7 @@ function InlineNumberCell({
         try {
             await updateListingField(listingId, field, newVal);
         } catch {
-            toast.error("Failed to update.");
+            toast.error(t("failedToUpdate"));
         }
     }
 
@@ -167,6 +169,7 @@ function InlineSelectCell({
     options: { value: string; label: string }[];
     renderValue: (val: string | null) => React.ReactNode;
 }) {
+    const t = useTranslations("listings");
     const [editing, setEditing] = useState(false);
 
     async function handleChange(newVal: string) {
@@ -175,7 +178,7 @@ function InlineSelectCell({
         try {
             await updateListingField(listingId, field, newVal);
         } catch {
-            toast.error("Failed to update.");
+            toast.error(t("failedToUpdate"));
         }
     }
 
@@ -227,6 +230,8 @@ function StatusSelectCell({
     listingId: string;
     listingName: string;
 }) {
+    const t = useTranslations("listings");
+    const tc = useTranslations("common");
     const [editing, setEditing] = useState(false);
     const [pendingStatus, setPendingStatus] = useState<string | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -246,7 +251,7 @@ function StatusSelectCell({
             await updateListingField(listingId, "listing_status", pendingStatus);
             toast.success(`Status changed to ${pendingStatus}`);
         } catch {
-            toast.error("Failed to update status.");
+            toast.error(t("failedToUpdateStatus"));
         } finally {
             setIsPending(false);
             setDialogOpen(false);
@@ -302,7 +307,7 @@ function StatusSelectCell({
                             {isTerminal && (
                                 <AlertTriangle className="w-5 h-5 text-amber-500" />
                             )}
-                            Confirm Status Change
+                            {t("confirmStatusChange")}
                         </DialogTitle>
                         <DialogDescription className="space-y-2">
                             <span className="block">
@@ -312,14 +317,14 @@ function StatusSelectCell({
                             </span>
                             {isTerminal && (
                                 <span className="block text-amber-600 dark:text-amber-400 text-xs font-medium">
-                                    ⚠️ This is a terminal status. The listing will no longer appear in active views.
+                                    {t("terminalStatusWarning")}
                                 </span>
                             )}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={cancelChange} disabled={isPending}>
-                            Cancel
+                            {tc("cancel")}
                         </Button>
                         <Button
                             size="sm"
@@ -327,7 +332,7 @@ function StatusSelectCell({
                             disabled={isPending}
                             className={isTerminal ? "bg-amber-600 hover:bg-amber-700" : ""}
                         >
-                            {isPending ? "Updating..." : "Confirm"}
+                            {isPending ? tc("updating") : tc("confirm")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -347,12 +352,13 @@ function InlineToggleCell({
     field: string;
     icon: React.ComponentType<{ className?: string }>;
 }) {
+    const t = useTranslations("listings");
     async function handleToggle(e: React.MouseEvent) {
         e.stopPropagation();
         try {
             await updateListingField(listingId, field, !value);
         } catch {
-            toast.error("Failed to update.");
+            toast.error(t("failedToUpdate"));
         }
     }
 
@@ -368,17 +374,10 @@ function InlineToggleCell({
     );
 }
 
-// ── Listing Type Labels ──────────────────────────────────────
-
-const LISTING_TYPE_LABELS: Record<string, string> = {
-    SELL: "Sell",
-    RENT: "Rent",
-    SELL_AND_RENT: "Both",
-};
-
 // ── Column Definitions ───────────────────────────────────────
 
-function getColumns(): ColumnDef<ListingRow>[] {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getColumns(t: any, tc: any, tlt: any): ColumnDef<ListingRow>[] {
     return [
         {
             accessorKey: "listing_name",
@@ -389,7 +388,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
                     className="-ml-3 h-8 text-xs"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Listing Name
+                    {t("listingName")}
                     <ArrowUpDown className="ml-1 h-3 w-3" />
                 </Button>
             ),
@@ -400,7 +399,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
                     </p>
                     {row.original.unit_no && (
                         <p className="text-[11px] text-muted-foreground">
-                            Unit {row.original.unit_no}
+                            {t("unit")} {row.original.unit_no}
                         </p>
                     )}
                 </div>
@@ -409,7 +408,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "listing_status",
-            header: "Status",
+            header: tc("status"),
             cell: ({ row }) => (
                 <StatusSelectCell
                     value={row.original.listing_status}
@@ -422,7 +421,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "listing_grade",
-            header: "Grade",
+            header: t("grade"),
             cell: ({ row }) => (
                 <InlineSelectCell
                     value={row.original.listing_grade}
@@ -437,18 +436,25 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "listing_type",
-            header: "Type",
-            cell: ({ row }) => (
-                <span className="text-xs text-muted-foreground">
-                    {LISTING_TYPE_LABELS[row.getValue("listing_type") as string] ?? row.getValue("listing_type")}
-                </span>
-            ),
+            header: tc("type"),
+            cell: ({ row }) => {
+                const LISTING_TYPE_LABELS: Record<string, string> = {
+                    SELL: tlt("sell"),
+                    RENT: tlt("rent"),
+                    SELL_AND_RENT: tlt("sellAndRent"),
+                };
+                return (
+                    <span className="text-xs text-muted-foreground">
+                        {LISTING_TYPE_LABELS[row.getValue("listing_type") as string] ?? row.getValue("listing_type")}
+                    </span>
+                );
+            },
             filterFn: multiValueFilter,
             size: 70,
         },
         {
             accessorKey: "property_type",
-            header: "Property",
+            header: t("property"),
             cell: ({ row }) => (
                 <span className="text-xs text-muted-foreground">
                     {(row.getValue("property_type") as string)?.charAt(0) + (row.getValue("property_type") as string)?.slice(1).toLowerCase()}
@@ -467,7 +473,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
                     className="-ml-3 h-8 text-xs"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Project
+                    {t("project")}
                     <ArrowUpDown className="ml-1 h-3 w-3" />
                 </Button>
             ),
@@ -481,7 +487,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "zone",
-            header: "Zone",
+            header: t("zone"),
             cell: ({ row }) => (
                 <span className="text-xs text-muted-foreground">
                     {row.getValue("zone") ?? "—"}
@@ -492,7 +498,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "bedrooms",
-            header: "Beds",
+            header: t("beds"),
             cell: ({ row }) => (
                 <InlineNumberCell
                     value={row.original.bedrooms}
@@ -504,7 +510,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "size_sqm",
-            header: "SQM",
+            header: t("sqm"),
             cell: ({ row }) => (
                 <InlineNumberCell
                     value={row.original.size_sqm}
@@ -516,7 +522,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "floor",
-            header: "Floor",
+            header: t("floor"),
             cell: ({ row }) => (
                 <InlineNumberCell
                     value={row.original.floor}
@@ -535,7 +541,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
                     className="-ml-3 h-8 text-xs"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Asking ฿
+                    {t("askingPrice")}
                     <ArrowUpDown className="ml-1 h-3 w-3" />
                 </Button>
             ),
@@ -552,7 +558,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             accessorKey: "rental_price",
-            header: "Rental ฿",
+            header: t("rentalPrice"),
             cell: ({ row }) => (
                 <InlineNumberCell
                     value={row.original.rental_price}
@@ -566,7 +572,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             id: "seller",
-            header: "Seller",
+            header: t("seller"),
             cell: ({ row }) => {
                 const c = row.original.contacts;
                 if (!c) return <span className="text-xs text-muted-foreground">—</span>;
@@ -577,7 +583,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             id: "transit",
-            header: "BTS/MRT",
+            header: t("btsMrt"),
             cell: ({ row }) => {
                 const parts = [row.original.bts, row.original.mrt].filter(Boolean);
                 return (
@@ -593,7 +599,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
             header: () => (
                 <div className="flex items-center gap-1 text-muted-foreground">
                     <Clock className="w-3 h-3" strokeWidth={1.75} />
-                    <span className="text-[10px]">DOM</span>
+                    <span className="text-[10px]">{t("dom")}</span>
                 </div>
             ),
             cell: ({ row }) => {
@@ -632,7 +638,7 @@ function getColumns(): ColumnDef<ListingRow>[] {
         },
         {
             id: "last_action",
-            header: "Last Action",
+            header: t("lastAction"),
             cell: ({ row }) => {
                 const lastAction = row.original.last_action_date;
                 const createdAt = row.original.created_at;
@@ -786,6 +792,9 @@ export function ListingsDataTable({
     showArchived,
     onRestore,
 }: ListingsDataTableProps) {
+    const t = useTranslations("listings");
+    const tc = useTranslations("common");
+    const tlt = useTranslations("listingTypes");
     const router = useRouter();
     const mountedRef = useRef(false);
     useEffect(() => {
@@ -797,12 +806,12 @@ export function ListingsDataTable({
     const [expanded, setExpanded] = useState<ExpandedState>(true);
 
     const columns = useMemo(() => {
-        const base = getColumns();
+        const base = getColumns(t, tc, tlt);
         if (!showArchived) return base;
 
         const restoreColumn: ColumnDef<ListingRow> = {
             id: "restore",
-            header: () => <span className="text-xs">Action</span>,
+            header: () => <span className="text-xs">{tc("actions")}</span>,
             cell: ({ row }) => (
                 <Button
                     variant="outline"
@@ -814,7 +823,7 @@ export function ListingsDataTable({
                     }}
                 >
                     <ArchiveRestore className="w-3.5 h-3.5 mr-1" />
-                    Restore
+                    {tc("restore")}
                 </Button>
             ),
             size: 100,
@@ -824,7 +833,7 @@ export function ListingsDataTable({
 
         return [...base, restoreColumn];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showArchived]);
+    }, [showArchived, t, tc, tlt]);
 
     const table = useReactTable({
         data,
@@ -862,8 +871,8 @@ export function ListingsDataTable({
                 {/* Count */}
                 <p className="text-xs text-muted-foreground">
                     {columnFilters.length > 0
-                        ? `Showing ${filteredCount} of ${data.length} listings`
-                        : `${data.length} listings`}
+                        ? t("showingOfListings", { shown: filteredCount, total: data.length })
+                        : t("countInDatabase", { count: data.length })}
                 </p>
 
                 {/* Column visibility toggle */}
@@ -871,7 +880,7 @@ export function ListingsDataTable({
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="text-xs">
                             <Columns3 className="w-3.5 h-3.5 mr-1.5" />
-                            Columns
+                            {tc("columns")}
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
@@ -923,7 +932,7 @@ export function ListingsDataTable({
                             {table.getRowModel().rows.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={columns.length} className="h-24 text-center text-sm text-muted-foreground">
-                                        No listings match your filters.
+                                        {t("noMatchFilters")}
                                     </TableCell>
                                 </TableRow>
                             ) : (

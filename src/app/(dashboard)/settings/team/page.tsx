@@ -1,22 +1,24 @@
 import { getCurrentUser, getTeamMembers, getPendingInvitations } from "@/lib/queries";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { TeamContent } from "./team-content";
 
 export default async function TeamSettingsPage() {
     const user = await getCurrentUser();
     if (!user) redirect("/login");
 
-    const [members, pendingInvites] = await Promise.all([
+    const [members, pendingInvites, t] = await Promise.all([
         getTeamMembers(user.workspace_id),
-        getPendingInvitations(user.workspace_id)
+        getPendingInvitations(user.workspace_id),
+        getTranslations("team"),
     ]);
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold">Team Members</h2>
+                <h2 className="text-lg font-semibold">{t("title")}</h2>
                 <p className="text-sm text-muted-foreground">
-                    Manage who has access to your workspace
+                    {t("subtitle")}
                 </p>
             </div>
             <TeamContent

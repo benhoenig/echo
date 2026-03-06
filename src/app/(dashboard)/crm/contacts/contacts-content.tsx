@@ -21,6 +21,7 @@ import { restoreContact, archiveContact } from "./contact-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CrmSubNav } from "../crm-sub-nav";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ContactRow = any;
@@ -32,19 +33,25 @@ interface ContactsContentProps {
     userId: string;
 }
 
-const GROUP_OPTIONS = [
-    { value: "__none__", label: "None" },
-    { value: "contact_status", label: "Status" },
-    { value: "potential_tier", label: "Potential" },
-    { value: "contact_source", label: "Source" },
-];
-
 export function ContactsContent({
     initialContacts,
     archivedContacts,
     workspaceId,
     userId,
 }: ContactsContentProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+
+    const GROUP_OPTIONS = useMemo(
+        () => [
+            { value: "__none__", label: tc("none") },
+            { value: "contact_status", label: tc("status") },
+            { value: "potential_tier", label: t("potential") },
+            { value: "contact_source", label: t("source") },
+        ],
+        [t, tc]
+    );
+
     const [search, setSearch] = useState("");
     const [sheetOpen, setSheetOpen] = useState(false);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -79,13 +86,13 @@ export function ContactsContent({
         startTransition(async () => {
             try {
                 await restoreContact(contactId);
-                toast.success("Contact restored.");
+                toast.success(t("contactRestored"));
                 router.refresh();
             } catch (error) {
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to restore contact."
+                        : t("failedToRestoreContact")
                 );
             }
         });
@@ -95,13 +102,13 @@ export function ContactsContent({
         startTransition(async () => {
             try {
                 await archiveContact(contactId);
-                toast.success("Contact archived.");
+                toast.success(t("contactArchived"));
                 router.refresh();
             } catch (error) {
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to archive contact."
+                        : t("failedToArchiveContact")
                 );
             }
         });
@@ -130,12 +137,12 @@ export function ContactsContent({
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-semibold text-foreground">
-                        {showArchived ? "Archived Contacts" : "Contacts"}
+                        {showArchived ? t("archivedContacts") : t("contacts")}
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         {showArchived
-                            ? `${archivedContacts.length} archived contact${archivedContacts.length !== 1 ? "s" : ""}`
-                            : `${typeCounts.total} contact${typeCounts.total !== 1 ? "s" : ""} — ${typeCounts.buyer} buyers, ${typeCounts.seller} sellers`}
+                            ? t("archivedContactCount", { count: archivedContacts.length })
+                            : t("contactCount", { count: typeCounts.total })}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -151,14 +158,14 @@ export function ContactsContent({
                                 className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5"
                             >
                                 <Archive className="w-3.5 h-3.5" />
-                                Archived ({archivedContacts.length})
+                                {tc("showArchived")} ({archivedContacts.length})
                             </Label>
                         </div>
                     )}
                     {!showArchived && (
                         <Button onClick={() => setSheetOpen(true)}>
                             <Plus className="w-4 h-4 mr-1.5" />
-                            New Contact
+                            {t("newContact")}
                         </Button>
                     )}
                 </div>
@@ -169,7 +176,7 @@ export function ContactsContent({
                 <div className="relative max-w-sm flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search contacts..."
+                        placeholder={t("searchContacts")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-9"
@@ -184,7 +191,7 @@ export function ContactsContent({
                         onValueChange={handleGroupChange}
                     >
                         <SelectTrigger className="w-[130px] h-9 text-xs">
-                            <SelectValue placeholder="Group by" />
+                            <SelectValue placeholder={tc("groupBy")} />
                         </SelectTrigger>
                         <SelectContent>
                             {GROUP_OPTIONS.map((opt) => (
@@ -219,10 +226,10 @@ export function ContactsContent({
                                     strokeWidth={1.75}
                                 />
                                 <p className="text-sm font-medium text-foreground mt-4">
-                                    No archived contacts
+                                    {t("noArchivedContacts")}
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    Archived contacts will appear here.
+                                    {t("archivedAppearHere")}
                                 </p>
                             </>
                         ) : (
@@ -233,13 +240,13 @@ export function ContactsContent({
                                 />
                                 <p className="text-sm font-medium text-foreground mt-4">
                                     {search
-                                        ? "No contacts match your search"
-                                        : "No contacts yet"}
+                                        ? t("noContactsMatch")
+                                        : t("noContactsYet")}
                                 </p>
                                 <p className="text-sm text-muted-foreground mt-1">
                                     {search
-                                        ? "Try a different search term."
-                                        : "Add your first contact to get started."}
+                                        ? tc("tryDifferentSearch")
+                                        : t("addFirstContact")}
                                 </p>
                                 {!search && (
                                     <Button
@@ -248,7 +255,7 @@ export function ContactsContent({
                                         onClick={() => setSheetOpen(true)}
                                     >
                                         <Plus className="w-4 h-4 mr-1.5" />
-                                        New Contact
+                                        {t("newContact")}
                                     </Button>
                                 )}
                             </>

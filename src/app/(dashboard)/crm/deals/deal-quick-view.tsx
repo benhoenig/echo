@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
     Sheet,
     SheetContent,
@@ -29,6 +29,7 @@ import {
     fetchDealQuickViewData,
     fetchDealBuyerRequirements,
 } from "./deal-quick-view-actions";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealRow = any;
@@ -73,23 +74,16 @@ const TIER_COLORS: Record<string, string> = {
     D: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
 };
 
-const TIMELINE_LABELS: Record<string, string> = {
-    IMMEDIATE: "Immediate",
-    "1_3_MONTHS": "1–3 months",
-    "3_6_MONTHS": "3–6 months",
-    "6_PLUS_MONTHS": "6+ months",
-};
-
-const PURPOSE_LABELS: Record<string, string> = {
-    OWN_USE: "Own use",
-    INVESTMENT: "Investment",
-    BOTH: "Both",
-};
-
-const FINANCING_LABELS: Record<string, string> = {
-    CASH: "Cash",
-    MORTGAGE: "Mortgage",
-    MIXED: "Mixed",
+const ACTION_DOT_COLORS: Record<string, string> = {
+    CREATED: "bg-green-500",
+    UPDATED: "bg-blue-500",
+    DELETED: "bg-red-500",
+    ARCHIVED: "bg-orange-500",
+    RESTORED: "bg-teal-500",
+    STATUS_CHANGED: "bg-purple-500",
+    STAGE_CHANGED: "bg-indigo-500",
+    COMMENT_ADDED: "bg-pink-500",
+    MENTION: "bg-yellow-500",
 };
 
 const parseCommentContent = (text: string) => {
@@ -123,18 +117,6 @@ const parseCommentContent = (text: string) => {
     });
 };
 
-const ACTION_DOT_COLORS: Record<string, string> = {
-    CREATED: "bg-green-500",
-    UPDATED: "bg-blue-500",
-    DELETED: "bg-red-500",
-    ARCHIVED: "bg-orange-500",
-    RESTORED: "bg-teal-500",
-    STATUS_CHANGED: "bg-purple-500",
-    STAGE_CHANGED: "bg-indigo-500",
-    COMMENT_ADDED: "bg-pink-500",
-    MENTION: "bg-yellow-500",
-};
-
 // ── Main Component ──────────────────────────────────────────
 
 export function DealQuickView({
@@ -143,6 +125,9 @@ export function DealQuickView({
     onOpenChange,
     onArchive,
 }: DealQuickViewProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [comments, setComments] = useState<any[]>([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -157,6 +142,34 @@ export function DealQuickView({
     const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
     const [requirementsLoaded, setRequirementsLoaded] = useState(false);
 
+    const TIMELINE_LABELS: Record<string, string> = useMemo(
+        () => ({
+            IMMEDIATE: t("immediate"),
+            "1_3_MONTHS": t("oneToThreeMonths"),
+            "3_6_MONTHS": t("threeToSixMonths"),
+            "6_PLUS_MONTHS": t("sixPlusMonths"),
+        }),
+        [t]
+    );
+
+    const PURPOSE_LABELS: Record<string, string> = useMemo(
+        () => ({
+            OWN_USE: t("ownUse"),
+            INVESTMENT: t("investment"),
+            BOTH: t("both"),
+        }),
+        [t]
+    );
+
+    const FINANCING_LABELS: Record<string, string> = useMemo(
+        () => ({
+            CASH: t("cash"),
+            MORTGAGE: t("mortgage"),
+            MIXED: t("mixed"),
+        }),
+        [t]
+    );
+
     const loadData = () => {
         if (!deal?.id || !deal?.workspace_id) return;
         setIsLoadingData(true);
@@ -170,7 +183,7 @@ export function DealQuickView({
                 }
             })
             .catch(() => {
-                toast.error("Failed to load activity and comments.");
+                toast.error(t("failedToLoadActivity"));
             })
             .finally(() => {
                 setIsLoadingData(false);
@@ -225,7 +238,7 @@ export function DealQuickView({
     const copyLink = () => {
         const url = `${window.location.origin}/crm/deals/${deal.id}`;
         navigator.clipboard.writeText(url);
-        toast.success("Link copied to clipboard");
+        toast.success(tc("linkCopied"));
     };
 
     const tabCount = isBuySide ? 3 : 2;
@@ -238,7 +251,7 @@ export function DealQuickView({
                     <SheetHeader className="text-left flex flex-row items-start justify-between space-y-0 p-0 border-0">
                         <div className="flex-1 min-w-0">
                             <SheetTitle className="text-lg font-semibold text-stone-800 dark:text-stone-100 truncate">
-                                {deal.deal_name || "Untitled Deal"}
+                                {deal.deal_name || t("untitledDeal")}
                             </SheetTitle>
                             <div className="flex items-center gap-2 mt-2 flex-wrap">
                                 {/* Deal Type */}
@@ -246,7 +259,7 @@ export function DealQuickView({
                                     variant="outline"
                                     className="text-xs font-medium"
                                 >
-                                    {isBuySide ? "Buy-side" : "Sell-side"}
+                                    {isBuySide ? t("buySide") : t("sellSide")}
                                 </Badge>
                                 {/* Pipeline Stage */}
                                 <Badge
@@ -272,7 +285,7 @@ export function DealQuickView({
                                     <Badge
                                         className={`text-xs border-0 ${TIER_COLORS[deal.potential_tier] ?? ""}`}
                                     >
-                                        Tier {deal.potential_tier}
+                                        {t("tier")} {deal.potential_tier}
                                     </Badge>
                                 )}
                             </div>
@@ -289,7 +302,7 @@ export function DealQuickView({
                         >
                             <Link href={`/crm/deals/${deal.id}`}>
                                 <ExternalLink className="w-4 h-4" />
-                                View Full Details
+                                {tc("viewDetails")}
                             </Link>
                         </Button>
                         <Button
@@ -299,7 +312,7 @@ export function DealQuickView({
                             className="gap-2"
                         >
                             <Copy className="w-4 h-4" />
-                            Copy Link
+                            {tc("copyLink")}
                         </Button>
                         {onArchive && (
                             <Button
@@ -312,7 +325,7 @@ export function DealQuickView({
                                 }}
                             >
                                 <Archive className="w-4 h-4" />
-                                Archive
+                                {tc("archive")}
                             </Button>
                         )}
                     </div>
@@ -335,7 +348,7 @@ export function DealQuickView({
                             <TabsTrigger value="overview" className="gap-2">
                                 <Info className="w-4 h-4" />
                                 <span className="hidden sm:inline">
-                                    Overview
+                                    {tc("overview")}
                                 </span>
                             </TabsTrigger>
                             {isBuySide && (
@@ -345,14 +358,14 @@ export function DealQuickView({
                                 >
                                     <ShoppingCart className="w-4 h-4" />
                                     <span className="hidden sm:inline">
-                                        Requirements
+                                        {t("requirements")}
                                     </span>
                                 </TabsTrigger>
                             )}
                             <TabsTrigger value="activity" className="gap-2">
                                 <MessageSquare className="w-4 h-4" />
                                 <span className="hidden sm:inline">
-                                    Activity
+                                    {tc("activity")}
                                 </span>
                             </TabsTrigger>
                         </TabsList>
@@ -365,11 +378,11 @@ export function DealQuickView({
                             {/* Deal Info Card */}
                             <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-4">
                                 <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                                    Deal Information
+                                    {t("dealInformation")}
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <InfoField
-                                        label="Estimated Value"
+                                        label={t("estimatedValue")}
                                         value={
                                             deal.estimated_deal_value
                                                 ? `฿${deal.estimated_deal_value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
@@ -378,7 +391,7 @@ export function DealQuickView({
                                         mono
                                     />
                                     <InfoField
-                                        label="Commission Rate"
+                                        label={t("commissionRate")}
                                         value={
                                             deal.commission_rate
                                                 ? `${deal.commission_rate}%`
@@ -386,7 +399,7 @@ export function DealQuickView({
                                         }
                                     />
                                     <InfoField
-                                        label="Est. Commission"
+                                        label={t("estCommission")}
                                         value={
                                             deal.estimated_commission
                                                 ? `฿${deal.estimated_commission.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
@@ -395,14 +408,14 @@ export function DealQuickView({
                                         mono
                                     />
                                     <InfoField
-                                        label="Lead Source"
+                                        label={t("leadSource")}
                                         value={deal.lead_source?.replace(
                                             /_/g,
                                             " "
                                         )}
                                     />
                                     <InfoField
-                                        label="Assigned Agent"
+                                        label={t("assignedAgent")}
                                         value={assignedName}
                                     />
                                 </div>
@@ -412,13 +425,13 @@ export function DealQuickView({
                             <div className="grid grid-cols-2 gap-4">
                                 {buyerContact && (
                                     <ContactCard
-                                        label="Buyer"
+                                        label={t("buyer")}
                                         contact={buyerContact}
                                     />
                                 )}
                                 {sellerContact && (
                                     <ContactCard
-                                        label="Seller"
+                                        label={t("seller")}
                                         contact={sellerContact}
                                     />
                                 )}
@@ -430,7 +443,7 @@ export function DealQuickView({
                                     <div className="flex items-center gap-2">
                                         <Building2 className="w-4 h-4 text-stone-400" />
                                         <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                                            Linked Listing
+                                            {t("linkedListing")}
                                         </h4>
                                     </div>
                                     <Link
@@ -438,7 +451,7 @@ export function DealQuickView({
                                         className="text-sm text-orange-600 hover:text-orange-700 mt-2 block"
                                     >
                                         {deal.listing.listing_name ||
-                                            "Untitled"}
+                                            t("untitled")}
                                     </Link>
                                 </div>
                             )}
@@ -449,7 +462,7 @@ export function DealQuickView({
                                     <div className="flex items-center gap-2 mb-2">
                                         <FileText className="w-4 h-4 text-stone-400" />
                                         <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                                            Notes
+                                            {tc("notes")}
                                         </h4>
                                     </div>
                                     <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap">
@@ -467,16 +480,18 @@ export function DealQuickView({
                             >
                                 {isLoadingRequirements ? (
                                     <div className="py-12 flex justify-center text-muted-foreground text-sm">
-                                        Loading requirements...
+                                        {t("loadingRequirements")}
                                     </div>
                                 ) : buyerRequirements ? (
                                     <RequirementsDisplay
                                         req={buyerRequirements}
+                                        timelineLabels={TIMELINE_LABELS}
+                                        purposeLabels={PURPOSE_LABELS}
+                                        financingLabels={FINANCING_LABELS}
                                     />
                                 ) : (
                                     <div className="py-12 text-center text-sm text-muted-foreground">
-                                        No buyer requirements set. Edit the deal
-                                        to add requirements.
+                                        {t("noRequirementsSet")}
                                     </div>
                                 )}
                             </TabsContent>
@@ -489,7 +504,7 @@ export function DealQuickView({
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-semibold">
-                                    Activity Feed
+                                    {tc("activityFeed")}
                                 </h3>
                                 <div className="flex items-center bg-muted/50 p-1 rounded-md border text-xs">
                                     {(
@@ -507,10 +522,10 @@ export function DealQuickView({
                                             }`}
                                         >
                                             {f === "ALL"
-                                                ? "All"
+                                                ? tc("all")
                                                 : f === "COMMENTS"
-                                                  ? "Comments"
-                                                  : "System"}
+                                                  ? tc("comments")
+                                                  : tc("system")}
                                         </button>
                                     ))}
                                 </div>
@@ -518,7 +533,7 @@ export function DealQuickView({
 
                             {isLoadingData ? (
                                 <div className="py-12 flex justify-center text-muted-foreground text-sm">
-                                    Loading activity...
+                                    {tc("loadingActivity")}
                                 </div>
                             ) : (
                                 <>
@@ -528,8 +543,7 @@ export function DealQuickView({
                                             <div className="space-y-4">
                                                 {comments.length === 0 ? (
                                                     <div className="text-sm text-muted-foreground italic">
-                                                        No comments yet. Be the
-                                                        first!
+                                                        {tc("noCommentsYet")}
                                                     </div>
                                                 ) : (
                                                     comments.map(
@@ -565,7 +579,7 @@ export function DealQuickView({
                                         >
                                             {activityLogs.length === 0 ? (
                                                 <div className="text-sm text-muted-foreground italic">
-                                                    No system activity yet.
+                                                    {tc("noSystemActivity")}
                                                 </div>
                                             ) : (
                                                 activityLogs.map(
@@ -650,12 +664,14 @@ function ContactCard({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CommentItem({ comment }: { comment: any }) {
+    const tc = useTranslations("common");
+
     const user = Array.isArray(comment.users)
         ? comment.users[0]
         : comment.users;
     const authorName = user
         ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
-        : "Unknown User";
+        : tc("unknownUser");
     const initials = user
         ? `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase()
         : "??";
@@ -685,7 +701,7 @@ function CommentItem({ comment }: { comment: any }) {
                         </p>
                     </div>
                     <div className="text-sm italic text-muted-foreground mt-1 rounded-md bg-muted/50 p-3">
-                        This comment was deleted.
+                        {tc("commentDeleted")}
                     </div>
                 </div>
             </div>
@@ -757,7 +773,20 @@ function ActivityLogItem({ log }: { log: any }) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function RequirementsDisplay({ req }: { req: any }) {
+function RequirementsDisplay({
+    req,
+    timelineLabels,
+    purposeLabels,
+    financingLabels,
+}: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    req: any;
+    timelineLabels: Record<string, string>;
+    purposeLabels: Record<string, string>;
+    financingLabels: Record<string, string>;
+}) {
+    const t = useTranslations("crm");
+
     const hasAnyValue =
         req.budget_min ||
         req.budget_max ||
@@ -773,7 +802,7 @@ function RequirementsDisplay({ req }: { req: any }) {
     if (!hasAnyValue) {
         return (
             <div className="py-12 text-center text-sm text-muted-foreground">
-                No buyer requirements set. Edit the deal to add requirements.
+                {t("noRequirementsSet")}
             </div>
         );
     }
@@ -783,11 +812,11 @@ function RequirementsDisplay({ req }: { req: any }) {
             {/* Budget & Size */}
             <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-3">
                 <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                    Budget & Size
+                    {t("budgetAndSize")}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                     <InfoField
-                        label="Budget Range"
+                        label={t("budgetRange")}
                         value={
                             req.budget_min || req.budget_max
                                 ? `฿${(req.budget_min ?? 0).toLocaleString()} – ฿${(req.budget_max ?? 0).toLocaleString()}`
@@ -796,7 +825,7 @@ function RequirementsDisplay({ req }: { req: any }) {
                         mono
                     />
                     <InfoField
-                        label="Bedrooms"
+                        label={t("bedrooms")}
                         value={
                             req.preferred_bedrooms
                                 ? `${req.preferred_bedrooms}+`
@@ -804,7 +833,7 @@ function RequirementsDisplay({ req }: { req: any }) {
                         }
                     />
                     <InfoField
-                        label="Size Range"
+                        label={t("sizeRange")}
                         value={
                             req.preferred_size_min || req.preferred_size_max
                                 ? `${req.preferred_size_min ?? "—"} – ${req.preferred_size_max ?? "—"} sqm`
@@ -812,7 +841,7 @@ function RequirementsDisplay({ req }: { req: any }) {
                         }
                     />
                     <InfoField
-                        label="Floor Range"
+                        label={t("floorRange")}
                         value={
                             req.preferred_floor_min || req.preferred_floor_max
                                 ? `${req.preferred_floor_min ?? "—"} – ${req.preferred_floor_max ?? "—"}`
@@ -820,10 +849,10 @@ function RequirementsDisplay({ req }: { req: any }) {
                         }
                     />
                     <InfoField
-                        label="Parking"
+                        label={t("parking")}
                         value={
                             req.parking_slots_needed
-                                ? `${req.parking_slots_needed} slot(s)`
+                                ? t("parkingSlots", { count: req.parking_slots_needed })
                                 : null
                         }
                     />
@@ -832,12 +861,12 @@ function RequirementsDisplay({ req }: { req: any }) {
                     <div className="flex gap-2 mt-2">
                         {req.has_pet && (
                             <Badge variant="secondary" className="text-xs">
-                                Has Pet
+                                {t("hasPet")}
                             </Badge>
                         )}
                         {req.has_ev_car && (
                             <Badge variant="secondary" className="text-xs">
-                                Has EV Car
+                                {t("hasEvCar")}
                             </Badge>
                         )}
                     </div>
@@ -848,16 +877,16 @@ function RequirementsDisplay({ req }: { req: any }) {
             {req.preferred_property_type?.length > 0 && (
                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-2">
                     <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                        Property Types
+                        {t("propertyTypes")}
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
-                        {req.preferred_property_type.map((t: string) => (
+                        {req.preferred_property_type.map((pt: string) => (
                             <Badge
-                                key={t}
+                                key={pt}
                                 variant="secondary"
                                 className="text-xs"
                             >
-                                {t.replace(/_/g, " ")}
+                                {pt.replace(/_/g, " ")}
                             </Badge>
                         ))}
                     </div>
@@ -868,7 +897,7 @@ function RequirementsDisplay({ req }: { req: any }) {
             {req.preferred_facilities?.length > 0 && (
                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-2">
                     <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                        Facilities
+                        {t("facilities")}
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                         {req.preferred_facilities.map((f: string) => (
@@ -890,31 +919,31 @@ function RequirementsDisplay({ req }: { req: any }) {
                 req.financing_method) && (
                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-3">
                     <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                        Purchase Details
+                        {t("purchaseDetails")}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                         <InfoField
-                            label="Timeline"
+                            label={t("timeline")}
                             value={
-                                TIMELINE_LABELS[req.timeline] ?? req.timeline
+                                timelineLabels[req.timeline] ?? req.timeline
                             }
                         />
                         <InfoField
-                            label="Purpose"
+                            label={t("purpose")}
                             value={
-                                PURPOSE_LABELS[req.purpose_of_purchase] ??
+                                purposeLabels[req.purpose_of_purchase] ??
                                 req.purpose_of_purchase
                             }
                         />
                         <InfoField
-                            label="Financing"
+                            label={t("financing")}
                             value={
-                                FINANCING_LABELS[req.financing_method] ??
+                                financingLabels[req.financing_method] ??
                                 req.financing_method
                             }
                         />
                         <InfoField
-                            label="Pre-approved"
+                            label={t("preApproved")}
                             value={
                                 req.pre_approved_amount
                                     ? `฿${req.pre_approved_amount.toLocaleString()}`
@@ -930,12 +959,12 @@ function RequirementsDisplay({ req }: { req: any }) {
             {(req.pain_points || req.special_requirements) && (
                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 space-y-3">
                     <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                        Additional Notes
+                        {t("additionalNotes")}
                     </h4>
                     {req.pain_points && (
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Pain Points
+                                {t("painPoints")}
                             </p>
                             <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap mt-0.5">
                                 {req.pain_points}
@@ -945,7 +974,7 @@ function RequirementsDisplay({ req }: { req: any }) {
                     {req.special_requirements && (
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                Special Requirements
+                                {t("specialRequirements")}
                             </p>
                             <p className="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-wrap mt-0.5">
                                 {req.special_requirements}

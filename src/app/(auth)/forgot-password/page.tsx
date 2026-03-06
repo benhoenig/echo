@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { forgotPassword } from "../actions";
 
 export default function ForgotPasswordPage() {
+    const t = useTranslations("auth");
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -36,15 +38,15 @@ export default function ForgotPasswordPage() {
                             strokeWidth={1.75}
                         />
                     </div>
-                    <CardTitle className="text-xl">Check your email</CardTitle>
+                    <CardTitle className="text-xl">{t("checkYourEmail")}</CardTitle>
                     <CardDescription>
-                        We&apos;ve sent a password reset link to your email address.
+                        {t("resetLinkSent")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
                     <Link href="/login">
                         <Button variant="secondary" className="w-full">
-                            Back to sign in
+                            {t("backToSignIn")}
                         </Button>
                     </Link>
                 </CardContent>
@@ -55,9 +57,9 @@ export default function ForgotPasswordPage() {
     return (
         <Card className="shadow-lg">
             <CardHeader className="text-center">
-                <CardTitle className="text-xl">Reset your password</CardTitle>
+                <CardTitle className="text-xl">{t("resetPassword")}</CardTitle>
                 <CardDescription>
-                    Enter your email and we&apos;ll send you a reset link
+                    {t("enterEmailForReset")}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -68,7 +70,7 @@ export default function ForgotPasswordPage() {
                 )}
                 <form action={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t("email")}</Label>
                         <Input
                             id="email"
                             name="email"
@@ -79,7 +81,7 @@ export default function ForgotPasswordPage() {
                         />
                     </div>
                     <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? "Sending..." : "Send reset link"}
+                        {isPending ? t("sending") : t("sendResetLink")}
                     </Button>
                 </form>
                 <div className="mt-4 text-center">
@@ -88,7 +90,7 @@ export default function ForgotPasswordPage() {
                         className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
                     >
                         <ArrowLeft className="w-3 h-3" />
-                        Back to sign in
+                        {t("backToSignIn")}
                     </Link>
                 </div>
             </CardContent>

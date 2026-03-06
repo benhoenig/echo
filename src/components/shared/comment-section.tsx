@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import type { Database } from "@/types/supabase";
 import { CommentForm } from "./comment-form";
 import { DeleteCommentButton } from "./delete-comment-button";
+import { getTranslations } from "next-intl/server";
 
 type EntityType = Database["public"]["Enums"]["EntityType"];
 
@@ -52,6 +53,7 @@ export async function CommentSection({
     entityId,
     currentUserAuthId,
 }: CommentSectionProps) {
+    const tc = await getTranslations("common");
     const supabase = await createClient();
 
     const { data: comments, error } = await supabase
@@ -74,7 +76,7 @@ export async function CommentSection({
 
     if (error) {
         console.error("Failed to load comments:", error);
-        return <div className="text-sm text-destructive">Failed to load comments.</div>;
+        return <div className="text-sm text-destructive">{tc("failedToLoad")}</div>;
     }
 
     return (
@@ -82,13 +84,13 @@ export async function CommentSection({
             {/* Display existing comments */}
             <div className="space-y-4">
                 {!comments || comments.length === 0 ? (
-                    <div className="text-sm text-muted-foreground italic">No comments yet. Be the first!</div>
+                    <div className="text-sm text-muted-foreground italic">{tc("noCommentsYet")}</div>
                 ) : (
                     comments.map((comment) => {
                         const user = Array.isArray(comment.users) ? comment.users[0] : comment.users;
                         const authorName = user
                             ? `${user.first_name} ${user.last_name || ""}`.trim()
-                            : "Unknown User";
+                            : tc("unknownUser");
 
                         // Extract initials
                         const initials = user
@@ -110,7 +112,7 @@ export async function CommentSection({
                                             </p>
                                         </div>
                                         <div className="text-sm italic text-muted-foreground mt-1 rounded-md bg-muted/50 p-3">
-                                            This comment was deleted.
+                                            {tc("commentDeleted")}
                                         </div>
                                     </div>
                                 </div>

@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import type { NotificationItem } from "@/stores/notification-store";
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 
 const TYPE_ICONS: Record<string, typeof Clock> = {
     ACTION_REMINDER: Clock,
@@ -53,12 +54,12 @@ const TYPE_COLORS: Record<string, string> = {
     SMART_MATCH: "text-emerald-500",
 };
 
-const TYPE_LABELS: Record<string, string> = {
-    ACTION_REMINDER: "Reminder",
-    STAGE_CHANGE: "Stage Change",
-    MENTION: "Mention",
-    LISTING_EXPIRY: "Listing Expiry",
-    SMART_MATCH: "Smart Match",
+const TYPE_LABEL_KEYS: Record<string, string> = {
+    ACTION_REMINDER: "reminder",
+    STAGE_CHANGE: "stageChange",
+    MENTION: "mention",
+    LISTING_EXPIRY: "listingExpiry",
+    SMART_MATCH: "smartMatch",
 };
 
 function NotificationItemRow({
@@ -68,8 +69,10 @@ function NotificationItemRow({
     notification: NotificationItem;
     onMarkAsRead: (id: string, actionUrl: string | null) => void;
 }) {
+    const t = useTranslations("notifications");
     const Icon = TYPE_ICONS[notification.type] || Bell;
     const iconColor = TYPE_COLORS[notification.type] || "text-stone-500";
+    const labelKey = TYPE_LABEL_KEYS[notification.type];
 
     return (
         <button
@@ -104,7 +107,7 @@ function NotificationItemRow({
                             iconColor
                         )}
                     >
-                        {TYPE_LABELS[notification.type] || notification.type}
+                        {labelKey ? t(labelKey as "reminder" | "stageChange" | "mention" | "listingExpiry" | "smartMatch") : notification.type}
                     </span>
                     <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(
@@ -145,6 +148,7 @@ function NotificationItemRow({
 }
 
 export function NotificationPanel() {
+    const t = useTranslations("notifications");
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [open, setOpen] = useState(false);
@@ -215,7 +219,7 @@ export function NotificationPanel() {
                 userContext.userId
             );
             if (result.error) {
-                toast.error("Failed to mark all as read");
+                toast.error(t("failedToMarkRead"));
             }
         });
     };
@@ -244,7 +248,7 @@ export function NotificationPanel() {
                         </Button>
                     </PopoverTrigger>
                 </TooltipTrigger>
-                <TooltipContent>Notifications</TooltipContent>
+                <TooltipContent>{t("title")}</TooltipContent>
             </Tooltip>
 
             <PopoverContent
@@ -256,7 +260,7 @@ export function NotificationPanel() {
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-2">
                         <h3 className="text-sm font-semibold text-foreground">
-                            Notifications
+                            {t("title")}
                         </h3>
                         {unreadCount > 0 && (
                             <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-orange-100 text-orange-700 text-xs font-medium dark:bg-orange-500/10 dark:text-orange-400">
@@ -276,7 +280,7 @@ export function NotificationPanel() {
                                 className="w-3.5 h-3.5 mr-1"
                                 strokeWidth={1.75}
                             />
-                            Mark all read
+                            {t("markAllRead")}
                         </Button>
                     )}
                 </div>
@@ -288,7 +292,7 @@ export function NotificationPanel() {
                             className="w-8 h-8 mb-2"
                             strokeWidth={1.5}
                         />
-                        <p className="text-sm">No notifications yet</p>
+                        <p className="text-sm">{t("noNotifications")}</p>
                     </div>
                 ) : (
                     <ScrollArea className="max-h-[400px]">
@@ -320,7 +324,7 @@ export function NotificationPanel() {
                                 }}
                                 className="w-full text-xs text-muted-foreground hover:text-foreground h-7"
                             >
-                                Notification settings
+                                {t("notificationSettings")}
                             </Button>
                         </div>
                     </>

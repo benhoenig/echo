@@ -59,6 +59,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateDealField } from "./deal-actions";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealRow = any;
@@ -143,12 +144,14 @@ function InlineNumberCell({
     field,
     prefix = "",
     format = false,
+    failedMessage,
 }: {
     value: number | null;
     dealId: string;
     field: string;
     prefix?: string;
     format?: boolean;
+    failedMessage: string;
 }) {
     const [editing, setEditing] = useState(false);
     const [inputValue, setInputValue] = useState(value?.toString() ?? "");
@@ -164,7 +167,7 @@ function InlineNumberCell({
         try {
             await updateDealField(dealId, field, newVal);
         } catch {
-            toast.error("Failed to update.");
+            toast.error(failedMessage);
         }
     }
 
@@ -205,12 +208,14 @@ function InlineSelectCell({
     field,
     options,
     renderValue,
+    failedMessage,
 }: {
     value: string | null;
     dealId: string;
     field: string;
     options: { value: string; label: string }[];
     renderValue: (val: string | null) => React.ReactNode;
+    failedMessage: string;
 }) {
     const [editing, setEditing] = useState(false);
 
@@ -220,7 +225,7 @@ function InlineSelectCell({
         try {
             await updateDealField(dealId, field, newVal);
         } catch {
-            toast.error("Failed to update.");
+            toast.error(failedMessage);
         }
     }
 
@@ -274,6 +279,8 @@ function StatusSelectCell({
     value: string;
     dealId: string;
 }) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
     const [editing, setEditing] = useState(false);
     const [pendingStatus, setPendingStatus] = useState<string | null>(null);
     const [closedLostReason, setClosedLostReason] = useState("");
@@ -300,9 +307,9 @@ function StatusSelectCell({
             if (reason) {
                 await updateDealField(dealId, "closed_lost_reason", reason);
             }
-            toast.success(`Status changed to ${status.replace(/_/g, " ")}`);
+            toast.success(t("statusChangedTo", { status: status.replace(/_/g, " ") }));
         } catch {
-            toast.error("Failed to update status.");
+            toast.error(t("failedToUpdateStatus"));
         } finally {
             setIsPending(false);
             setDialogOpen(false);
@@ -312,7 +319,7 @@ function StatusSelectCell({
 
     async function confirmClosedLost() {
         if (!closedLostReason.trim()) {
-            toast.error("Please provide a reason for closing as lost.");
+            toast.error(t("provideClosedLostReason"));
             return;
         }
         await doUpdate("CLOSED_LOST", closedLostReason);
@@ -363,10 +370,9 @@ function StatusSelectCell({
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Close Deal as Lost</DialogTitle>
+                        <DialogTitle>{t("closeDealAsLost")}</DialogTitle>
                         <DialogDescription>
-                            Please provide a reason for marking this deal as
-                            lost. This is required.
+                            {t("closeDealReason")}
                         </DialogDescription>
                     </DialogHeader>
                     <Textarea
@@ -384,7 +390,7 @@ function StatusSelectCell({
                                 setPendingStatus(null);
                             }}
                         >
-                            Cancel
+                            {tc("cancel")}
                         </Button>
                         <Button
                             size="sm"
@@ -392,7 +398,7 @@ function StatusSelectCell({
                             onClick={confirmClosedLost}
                             disabled={isPending || !closedLostReason.trim()}
                         >
-                            {isPending ? "Saving..." : "Mark as Lost"}
+                            {isPending ? t("savingStatus") : t("markAsLost")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -418,6 +424,7 @@ function StageSelectCell({
     pipelineStages: PipelineStage[];
     dealType: string;
 }) {
+    const t = useTranslations("crm");
     const [editing, setEditing] = useState(false);
 
     const relevantStages = pipelineStages.filter((s) => {
@@ -431,9 +438,9 @@ function StageSelectCell({
         if (newStageId === currentStageId) return;
         try {
             await updateDealField(dealId, "pipeline_stage_id", newStageId);
-            toast.success("Pipeline stage updated.");
+            toast.success(t("pipelineStageUpdated"));
         } catch {
-            toast.error("Failed to update stage.");
+            toast.error(t("failedToUpdateStage"));
         }
     }
 
@@ -499,6 +506,9 @@ export function DealsDataTable({
     pipelineStages,
     onRowClick,
 }: DealsDataTableProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+
     const router = useRouter();
     const mountedRef = useRef(false);
     useEffect(() => {
@@ -523,34 +533,34 @@ export function DealsDataTable({
                             column.toggleSorting(column.getIsSorted() === "asc")
                         }
                     >
-                        Deal Name
+                        {t("dealName")}
                         <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
                 ),
                 cell: ({ row }) => (
                     <span className="font-medium text-sm">
-                        {row.original.deal_name || "Untitled Deal"}
+                        {row.original.deal_name || t("untitledDeal")}
                     </span>
                 ),
                 enableHiding: false,
             },
             {
                 accessorKey: "deal_type",
-                header: "Type",
+                header: tc("type"),
                 cell: ({ row }) => (
                     <Badge
                         variant="outline"
                         className="text-[10px] px-1.5 py-0"
                     >
                         {row.original.deal_type === "BUY_SIDE"
-                            ? "Buy"
-                            : "Sell"}
+                            ? t("buy")
+                            : t("sell")}
                     </Badge>
                 ),
             },
             {
                 id: "contact_name",
-                header: "Contact",
+                header: t("contact"),
                 cell: ({ row }) => {
                     const buyer = row.original.buyer_contact;
                     const seller = row.original.seller_contact;
@@ -567,7 +577,7 @@ export function DealsDataTable({
                 id: "stage_name",
                 accessorFn: (row: DealRow) =>
                     row.pipeline_stages?.pipeline_stage_name ?? "—",
-                header: "Stage",
+                header: t("stage"),
                 cell: ({ row }) => {
                     const stage = row.original.pipeline_stages;
                     if (!stage) return <span className="text-sm">—</span>;
@@ -600,7 +610,7 @@ export function DealsDataTable({
             },
             {
                 accessorKey: "deal_status",
-                header: "Status",
+                header: tc("status"),
                 cell: ({ row }) => {
                     if (showArchived) {
                         return (
@@ -623,7 +633,7 @@ export function DealsDataTable({
             {
                 id: "potential_display",
                 accessorFn: (row: DealRow) => row.potential_tier ?? "—",
-                header: "Tier",
+                header: t("tier"),
                 cell: ({ row }) => {
                     const tier = row.original.potential_tier;
                     if (showArchived) {
@@ -647,6 +657,7 @@ export function DealsDataTable({
                             dealId={row.original.id}
                             field="potential_tier"
                             options={TIER_OPTIONS}
+                            failedMessage={t("failedToUpdate")}
                             renderValue={(val) =>
                                 val ? (
                                     <Badge
@@ -676,7 +687,7 @@ export function DealsDataTable({
                             column.toggleSorting(column.getIsSorted() === "asc")
                         }
                     >
-                        Value
+                        {t("value")}
                         <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
                 ),
@@ -697,6 +708,7 @@ export function DealsDataTable({
                             field="estimated_deal_value"
                             prefix="฿"
                             format
+                            failedMessage={t("failedToUpdate")}
                         />
                     );
                 },
@@ -705,13 +717,13 @@ export function DealsDataTable({
                 id: "assigned_to_display",
                 accessorFn: (row: DealRow) => {
                     const u = row.assigned_user;
-                    if (!u) return "Unassigned";
+                    if (!u) return tc("unassigned");
                     return (
                         [u.first_name, u.last_name].filter(Boolean).join(" ") ||
                         "Unknown"
                     );
                 },
-                header: "Assigned To",
+                header: t("assignedTo"),
                 cell: ({ getValue }) => (
                     <span className="text-sm text-muted-foreground">
                         {getValue() as string}
@@ -720,7 +732,7 @@ export function DealsDataTable({
             },
             {
                 accessorKey: "last_action_date",
-                header: "Last Action",
+                header: t("lastAction"),
                 cell: ({ row }) => {
                     const lastAction = row.original.last_action_date;
                     const createdAt = row.original.created_at;
@@ -751,7 +763,7 @@ export function DealsDataTable({
                         <div className="flex items-center gap-1.5">
                             <Clock className="w-3 h-3 text-muted-foreground" strokeWidth={1.75} />
                             <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 font-medium tabular-nums ${badgeClass}`}>
-                                {daysSince}d ago
+                                {t("daysAgo", { days: daysSince })}
                             </Badge>
                         </div>
                     );
@@ -768,7 +780,7 @@ export function DealsDataTable({
                             column.toggleSorting(column.getIsSorted() === "asc")
                         }
                     >
-                        Created
+                        {tc("created")}
                         <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
                 ),
@@ -798,14 +810,14 @@ export function DealsDataTable({
                                   }}
                               >
                                   <ArchiveRestore className="w-3.5 h-3.5 mr-1" />
-                                  Restore
+                                  {tc("restore")}
                               </Button>
                           ),
                       } as ColumnDef<DealRow>,
                   ]
                 : []),
         ],
-        [showArchived, onRestore, pipelineStages]
+        [showArchived, onRestore, pipelineStages, t, tc]
     );
 
     const [expanded, setExpanded] = useState<true | Record<string, boolean>>(
@@ -856,8 +868,8 @@ export function DealsDataTable({
             <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
                     {columnFilters.length > 0
-                        ? `Showing ${table.getFilteredRowModel().rows.length} of ${data.length} deals`
-                        : `${data.length} deals`}
+                        ? t("showingOfDeals", { shown: table.getFilteredRowModel().rows.length, total: data.length })
+                        : t("dealsCount", { count: data.length })}
                 </p>
 
                 {/* Column visibility toggle */}
@@ -869,7 +881,7 @@ export function DealsDataTable({
                             className="text-xs"
                         >
                             <Columns3 className="w-3.5 h-3.5 mr-1.5" />
-                            Columns
+                            {tc("columns")}
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
@@ -926,7 +938,7 @@ export function DealsDataTable({
                                         colSpan={columns.length}
                                         className="h-24 text-center text-sm text-muted-foreground"
                                     >
-                                        No deals match your filters.
+                                        {t("noDealsMatchFilters")}
                                     </TableCell>
                                 </TableRow>
                             ) : (

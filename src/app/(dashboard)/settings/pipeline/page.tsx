@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { PipelineContent } from "./pipeline-content";
 import {
     ensureDefaultPipelineStages,
@@ -15,21 +16,22 @@ export default async function PipelineSettingsPage() {
     await ensureDefaultPipelineStages(user.workspace_id);
 
     const supabase = await createClient();
-    const [{ data: stages }, dealCounts] = await Promise.all([
+    const [{ data: stages }, dealCounts, t] = await Promise.all([
         supabase
             .from("pipeline_stages")
             .select("*")
             .eq("workspace_id", user.workspace_id)
             .order("stage_order", { ascending: true }),
         getDealCountForStages(user.workspace_id),
+        getTranslations("pipeline"),
     ]);
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold">Pipeline Stages</h2>
+                <h2 className="text-lg font-semibold">{t("title")}</h2>
                 <p className="text-sm text-muted-foreground">
-                    Configure deal pipeline stages for buyer and seller flows
+                    {t("subtitle")}
                 </p>
             </div>
             <PipelineContent

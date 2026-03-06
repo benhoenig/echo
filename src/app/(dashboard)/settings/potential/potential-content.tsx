@@ -8,13 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save } from "lucide-react";
 import { updatePotentialConfig } from "../pipeline-actions";
+import { useTranslations } from "next-intl";
 import type { Tables } from "@/types/supabase";
 
-const MODULE_LABELS: Record<string, string> = {
-    LISTINGS: "Listings",
-    BUYER_CRM: "Buyer CRM",
-    SELLER_CRM: "Seller CRM",
-};
+// Module labels are now handled via translations in the component
 
 const TIER_COLORS = [
     "#EF4444", "#F97316", "#EAB308", "#22C55E",
@@ -26,9 +23,23 @@ export function PotentialContent({
 }: {
     configs: Tables<"potential_configs">[];
 }) {
+    const t = useTranslations("potential");
+    const tc = useTranslations("common");
     const [isPending, startTransition] = useTransition();
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    const MODULE_LABELS: Record<string, string> = {
+        LISTINGS: t("listings"),
+        BUYER_CRM: t("buyerCrm"),
+        SELLER_CRM: t("sellerCrm"),
+    };
+
+    const MODULE_TIER_LABELS: Record<string, string> = {
+        LISTINGS: t("listingsTiers"),
+        BUYER_CRM: t("buyerCrmTiers"),
+        SELLER_CRM: t("sellerCrmTiers"),
+    };
 
     const modules = ["LISTINGS", "BUYER_CRM", "SELLER_CRM"];
 
@@ -39,7 +50,7 @@ export function PotentialContent({
             const result = await updatePotentialConfig(formData);
             if (result?.error) setError(result.error);
             else {
-                setSuccess("Saved!");
+                setSuccess(t("saved"));
                 setTimeout(() => setSuccess(null), 2000);
             }
         });
@@ -73,7 +84,7 @@ export function PotentialContent({
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-base">
-                                    {MODULE_LABELS[m]} Tiers
+                                    {MODULE_TIER_LABELS[m]}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -103,6 +114,8 @@ function TierRow({
     onSave: (formData: FormData) => void;
     isPending: boolean;
 }) {
+    const t = useTranslations("potential");
+    const tc = useTranslations("common");
     const [color, setColor] = useState(config.color);
     const [showColors, setShowColors] = useState(false);
 
@@ -113,12 +126,12 @@ function TierRow({
 
             {/* Tier Label */}
             <div className="shrink-0">
-                <Label className="text-xs text-muted-foreground">Tier</Label>
+                <Label className="text-xs text-muted-foreground">{t("tier")}</Label>
                 <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm mt-1 cursor-pointer"
                     style={{ backgroundColor: color || undefined }}
                     onClick={() => setShowColors(!showColors)}
-                    title="Click to change color"
+                    title={t("clickToChangeColor")}
                 >
                     {config.potential_label}
                 </div>
@@ -144,7 +157,7 @@ function TierRow({
             {/* Name */}
             <div className="flex-1 min-w-0">
                 <Label htmlFor={`name-${config.id}`} className="text-xs">
-                    Display Name
+                    {t("displayName")}
                 </Label>
                 <Input
                     id={`name-${config.id}`}
@@ -158,7 +171,7 @@ function TierRow({
             {/* Reminder */}
             <div className="w-20 shrink-0">
                 <Label htmlFor={`reminder-${config.id}`} className="text-xs">
-                    Days
+                    {tc("days")}
                 </Label>
                 <Input
                     id={`reminder-${config.id}`}
@@ -174,7 +187,7 @@ function TierRow({
             {/* Description */}
             <div className="flex-1 min-w-0 hidden lg:block">
                 <Label htmlFor={`desc-${config.id}`} className="text-xs">
-                    Description
+                    {tc("description")}
                 </Label>
                 <Input
                     id={`desc-${config.id}`}

@@ -14,6 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTranslations } from "next-intl";
 
 interface WorkspaceContext {
     user: { id: string; first_name: string; last_name: string; email: string };
@@ -21,6 +22,7 @@ interface WorkspaceContext {
 }
 
 export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
+    const t = useTranslations("workspace");
     const router = useRouter();
     const [context, setContext] = useState<WorkspaceContext | null>(null);
     const { workspaceName, setWorkspaceName } = useWorkspaceStore();
@@ -81,7 +83,7 @@ export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
                                     {displayName}
                                 </p>
                                 <p className="text-[11px] text-stone-500 truncate capitalize">
-                                    {workspace.plan_tier.toLowerCase()} Plan
+                                    {workspace.plan_tier.toLowerCase()} {t("plan")}
                                 </p>
                             </div>
                             <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />
@@ -95,7 +97,7 @@ export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
                 className="w-56"
             >
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                    Workspaces
+                    {t("workspaces")}
                 </DropdownMenuLabel>
                 <DropdownMenuItem className="gap-2 cursor-default bg-muted/50">
                     <div
@@ -112,11 +114,11 @@ export function WorkspaceSwitcher({ isCollapsed }: { isCollapsed: boolean }) {
                     className="cursor-pointer"
                 >
                     <Settings className="w-4 h-4 mr-2 text-muted-foreground" />
-                    Workspace Settings
+                    {t("workspaceSettings")}
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled className="cursor-not-allowed">
                     <Plus className="w-4 h-4 mr-2 text-muted-foreground" />
-                    Create New Workspace
+                    {t("createNewWorkspace")}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

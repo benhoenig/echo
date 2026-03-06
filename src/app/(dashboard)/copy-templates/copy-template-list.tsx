@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CopyTemplate, ListingType } from "@prisma/client";
+import { CopyTemplate } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -18,7 +18,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +38,7 @@ import {
 } from "./copy-template-actions";
 import { toast } from "sonner";
 import { ListingGradeBadge } from "@/components/shared/listing-grade-badge";
+import { useTranslations } from "next-intl";
 
 interface Props {
     initialTemplates: CopyTemplate[];
@@ -70,6 +70,11 @@ const TEMPLATE_TAGS = [
 ];
 
 export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
+    const t = useTranslations("copyTemplates");
+    const tc = useTranslations("common");
+    const tpt = useTranslations("propertyTypes");
+    const tlt = useTranslations("listingTypes");
+    const tg = useTranslations("grades");
     const [templates, setTemplates] = useState<CopyTemplate[]>(initialTemplates);
     const [isPending, startTransition] = useTransition();
 
@@ -109,7 +114,7 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
 
     function handleSave() {
         if (!name || !content) {
-            toast.error("Name and Content are required.");
+            toast.error(t("nameAndContentRequired"));
             return;
         }
 
@@ -126,30 +131,30 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
             try {
                 if (editingId) {
                     await updateCopyTemplate(editingId, payload);
-                    toast.success("Template updated successfully.");
+                    toast.success(t("templateUpdated"));
                 } else {
                     await createCopyTemplate(workspaceId, payload);
-                    toast.success("Template created successfully.");
+                    toast.success(t("templateCreated"));
                 }
 
                 // Temporary optimistic update until page refresh
                 setIsOpen(false);
                 window.location.reload(); // Hard reload for now to get fresh data
             } catch (error) {
-                toast.error(error instanceof Error ? error.message : "Failed to save template.");
+                toast.error(error instanceof Error ? error.message : t("failedToSave"));
             }
         });
     }
 
     function handleDelete(id: string) {
-        if (!confirm("Are you sure you want to delete this template?")) return;
+        if (!confirm(t("confirmDelete"))) return;
         startTransition(async () => {
             try {
                 await deleteCopyTemplate(id);
-                setTemplates((prev) => prev.filter((t) => t.id !== id));
-                toast.success("Template deleted.");
+                setTemplates((prev) => prev.filter((tmpl) => tmpl.id !== id));
+                toast.success(t("templateDeleted"));
             } catch (error) {
-                toast.error(error instanceof Error ? error.message : "Failed to delete.");
+                toast.error(error instanceof Error ? error.message : t("failedToDelete"));
             }
         });
     }
@@ -163,12 +168,12 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
         <div className="space-y-4">
             <div className="flex justify-between items-center bg-white dark:bg-stone-900 p-4 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
                 <div>
-                    <h3 className="font-medium text-foreground">Your Templates</h3>
-                    <p className="text-sm text-stone-500">{templates.length} total templates</p>
+                    <h3 className="font-medium text-foreground">{t("yourTemplates")}</h3>
+                    <p className="text-sm text-stone-500">{templates.length} {t("totalTemplates")}</p>
                 </div>
                 <Button onClick={handleOpenCreate}>
                     <Plus className="w-4 h-4 mr-2" />
-                    Create Template
+                    {t("createTemplate")}
                 </Button>
             </div>
 
@@ -176,19 +181,19 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Template Name</TableHead>
-                            <TableHead>Property Type</TableHead>
-                            <TableHead>Listing Type</TableHead>
-                            <TableHead>Target Grade</TableHead>
-                            <TableHead>Default</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
+                            <TableHead>{t("templateName")}</TableHead>
+                            <TableHead>{t("propertyType")}</TableHead>
+                            <TableHead>{t("listingType")}</TableHead>
+                            <TableHead>{t("targetGrade")}</TableHead>
+                            <TableHead>{tc("default")}</TableHead>
+                            <TableHead className="text-right">{tc("actions")}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {templates.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-stone-500">
-                                    No copy templates found. Create one to get started!
+                                <TableCell colSpan={6} className="text-center py-8 text-stone-500">
+                                    {t("noTemplates")}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -203,7 +208,7 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
                                                 {template.propertyType}
                                             </span>
                                         ) : (
-                                            <span className="text-stone-400 italic text-sm">Any</span>
+                                            <span className="text-stone-400 italic text-sm">{tc("all")}</span>
                                         )}
                                     </TableCell>
                                     <TableCell>
@@ -212,20 +217,20 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
                                                 {template.listingType}
                                             </span>
                                         ) : (
-                                            <span className="text-stone-400 italic text-sm">Any</span>
+                                            <span className="text-stone-400 italic text-sm">{tc("all")}</span>
                                         )}
                                     </TableCell>
                                     <TableCell>
                                         {template.listingGrade ? (
                                             <ListingGradeBadge grade={template.listingGrade} />
                                         ) : (
-                                            <span className="text-stone-400 italic text-sm">Any</span>
+                                            <span className="text-stone-400 italic text-sm">{tc("all")}</span>
                                         )}
                                     </TableCell>
                                     <TableCell>
                                         {template.isDefault && (
                                             <span className="text-xs font-semibold bg-orange-100 text-orange-700 px-2.5 py-1 rounded-md">
-                                                Default
+                                                {tc("default")}
                                             </span>
                                         )}
                                     </TableCell>
@@ -260,16 +265,16 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogContent className="max-w-5xl sm:max-w-5xl max-h-[90vh] flex flex-col">
                     <DialogHeader>
-                        <DialogTitle>{editingId ? "Edit" : "Create"} Copy Template</DialogTitle>
+                        <DialogTitle>{editingId ? t("editCopyTemplate") : t("createCopyTemplate")}</DialogTitle>
                         <DialogDescription>
-                            Define the template and the rules for when it should be suggested.
+                            {t("templateDescription")}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid grid-cols-3 gap-6 py-4 flex-1 overflow-y-auto">
                         <div className="col-span-2 space-y-4">
                             <div className="space-y-2">
-                                <Label>Template Name</Label>
+                                <Label>{t("templateName")}</Label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
@@ -279,42 +284,42 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
 
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Apply to Property Type</Label>
+                                    <Label>{t("applyToPropertyType")}</Label>
                                     <Select value={propertyType} onValueChange={setPropertyType}>
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="ANY">Any Type (Fallback)</SelectItem>
-                                            <SelectItem value="HOUSE">House</SelectItem>
-                                            <SelectItem value="CONDO">Condo</SelectItem>
-                                            <SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-                                            <SelectItem value="LAND">Land</SelectItem>
-                                            <SelectItem value="COMMERCIAL">Commercial</SelectItem>
-                                            <SelectItem value="OTHER">Other</SelectItem>
+                                            <SelectItem value="ANY">{t("anyTypeFallback")}</SelectItem>
+                                            <SelectItem value="HOUSE">{tpt("house")}</SelectItem>
+                                            <SelectItem value="CONDO">{tpt("condo")}</SelectItem>
+                                            <SelectItem value="TOWNHOUSE">{tpt("townhouse")}</SelectItem>
+                                            <SelectItem value="LAND">{tpt("land")}</SelectItem>
+                                            <SelectItem value="COMMERCIAL">{tpt("commercial")}</SelectItem>
+                                            <SelectItem value="OTHER">{tpt("other")}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Apply to Listing Type</Label>
+                                    <Label>{t("applyToListingType")}</Label>
                                     <Select value={listingType} onValueChange={setListingType}>
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="ANY">Any Type (Fallback)</SelectItem>
-                                            <SelectItem value="SELL">Sell</SelectItem>
-                                            <SelectItem value="RENT">Rent</SelectItem>
-                                            <SelectItem value="SELL_AND_RENT">Sell & Rent</SelectItem>
+                                            <SelectItem value="ANY">{t("anyTypeFallback")}</SelectItem>
+                                            <SelectItem value="SELL">{tlt("sell")}</SelectItem>
+                                            <SelectItem value="RENT">{tlt("rent")}</SelectItem>
+                                            <SelectItem value="SELL_AND_RENT">{tlt("sellAndRent")}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Apply to Grade</Label>
+                                    <Label>{t("applyToGrade")}</Label>
                                     <Select value={listingGrade} onValueChange={setListingGrade}>
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="ANY">Any Grade (Fallback)</SelectItem>
-                                            <SelectItem value="A">Grade A (Luxury)</SelectItem>
-                                            <SelectItem value="B">Grade B (Premium)</SelectItem>
-                                            <SelectItem value="C">Grade C (Standard)</SelectItem>
-                                            <SelectItem value="D">Grade D (Budget)</SelectItem>
+                                            <SelectItem value="ANY">{tg("anyGrade")}</SelectItem>
+                                            <SelectItem value="A">{tg("a")}</SelectItem>
+                                            <SelectItem value="B">{tg("b")}</SelectItem>
+                                            <SelectItem value="C">{tg("c")}</SelectItem>
+                                            <SelectItem value="D">{tg("d")}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -322,9 +327,9 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
 
                             <div className="flex items-center justify-between p-3 border rounded-lg bg-stone-50">
                                 <div className="space-y-0.5">
-                                    <Label className="text-sm">Set as Default Template</Label>
+                                    <Label className="text-sm">{t("setAsDefault")}</Label>
                                     <p className="text-xs text-stone-500">
-                                        Use this template if no specific type/grade match is found.
+                                        {t("setAsDefaultDesc")}
                                     </p>
                                 </div>
                                 <Switch checked={isDefault} onCheckedChange={setIsDefault} />
@@ -332,15 +337,15 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
 
                             <div className="space-y-2 flex-1 flex flex-col">
                                 <div className="flex items-center justify-between">
-                                    <Label>Template Content</Label>
+                                    <Label>{t("templateContent")}</Label>
                                     <span className="text-[10px] text-stone-500 uppercase tracking-widest font-semibold flex items-center gap-1">
-                                        <Wand2 className="w-3 h-3" /> Auto-replaces tags
+                                        <Wand2 className="w-3 h-3" /> {t("autoReplacesTags")}
                                     </span>
                                 </div>
                                 <Textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    placeholder={`Paste your marketing text here...\nUse the tags on the right to insert dynamic data.`}
+                                    placeholder={t("pasteTemplateHere")}
                                     className="flex-1 min-h-[300px] font-mono text-sm leading-relaxed"
                                 />
                             </div>
@@ -349,8 +354,8 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
                         {/* Sidebar panel for tags */}
                         <div className="border-l pl-6 space-y-4">
                             <div>
-                                <h4 className="font-semibold text-sm mb-1 text-foreground">Available Tags</h4>
-                                <p className="text-xs text-stone-500 mb-4">Click a tag to append it to your content.</p>
+                                <h4 className="font-semibold text-sm mb-1 text-foreground">{t("availableTags")}</h4>
+                                <p className="text-xs text-stone-500 mb-4">{t("clickToAppend")}</p>
                             </div>
                             <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
                                 {TEMPLATE_TAGS.map((tag) => (
@@ -369,11 +374,11 @@ export function CopyTemplateList({ initialTemplates, workspaceId }: Props) {
 
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isPending}>
-                            Cancel
+                            {tc("cancel")}
                         </Button>
                         <Button onClick={handleSave} disabled={isPending}>
                             {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            Save Template
+                            {t("saveTemplate")}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

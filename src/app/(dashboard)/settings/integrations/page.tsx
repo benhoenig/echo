@@ -7,8 +7,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, MessageSquare } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-export default function IntegrationsSettingsPage() {
+export default async function IntegrationsSettingsPage() {
+    const t = await getTranslations("integrations");
     const hasResendKey = !!process.env.RESEND_API_KEY;
 
     return (
@@ -26,11 +28,10 @@ export default function IntegrationsSettingsPage() {
                             </div>
                             <div>
                                 <CardTitle className="text-lg">
-                                    Email (Resend)
+                                    {t("emailResend")}
                                 </CardTitle>
                                 <CardDescription>
-                                    Transactional email for notification
-                                    delivery.
+                                    {t("emailResendDesc")}
                                 </CardDescription>
                             </div>
                         </div>
@@ -42,15 +43,15 @@ export default function IntegrationsSettingsPage() {
                                     : ""
                             }
                         >
-                            {hasResendKey ? "Configured" : "Not configured"}
+                            {hasResendKey ? t("configured") : t("notConfigured")}
                         </Badge>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground">
                         {hasResendKey
-                            ? "Email notifications are active. Users can enable email delivery per notification type in their notification preferences."
-                            : "Set the RESEND_API_KEY environment variable to enable email notifications."}
+                            ? t("emailActiveDesc")
+                            : t("emailSetupDesc")}
                     </p>
                 </CardContent>
             </Card>
@@ -68,22 +69,19 @@ export default function IntegrationsSettingsPage() {
                             </div>
                             <div>
                                 <CardTitle className="text-lg">
-                                    LINE Messaging
+                                    {t("lineMessaging")}
                                 </CardTitle>
                                 <CardDescription>
-                                    Send notifications via LINE, Thailand's
-                                    primary messaging platform.
+                                    {t("lineDesc")}
                                 </CardDescription>
                             </div>
                         </div>
-                        <Badge variant="secondary">Coming soon</Badge>
+                        <Badge variant="secondary">{t("comingSoon")}</Badge>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground">
-                        LINE integration will be available in a future update.
-                        This will allow agents to receive deal reminders,
-                        mentions, and stage change alerts directly in LINE.
+                        {t("lineComingSoonDesc")}
                     </p>
                 </CardContent>
             </Card>

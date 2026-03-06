@@ -37,6 +37,7 @@ import {
 import { inviteTeamMember, updateTeamMemberRole, removeTeamMember, revokeInvitation } from "../actions";
 import type { Tables } from "@/types/supabase";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 const ROLE_LABELS: Record<string, string> = {
     owner: "Owner",
@@ -74,6 +75,8 @@ export function TeamContent({
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const [inviteOpen, setInviteOpen] = useState(false);
+    const t = useTranslations("team");
+    const tc = useTranslations("common");
 
     const handleInvite = async (formData: FormData) => {
         setError(null);
@@ -131,32 +134,32 @@ export function TeamContent({
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
                     <CardTitle className="text-base">
-                        Active Members ({activeMembers.length})
+                        {t("activeMembers")} ({activeMembers.length})
                     </CardTitle>
                     <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                         <DialogTrigger asChild>
                             <Button size="sm">
                                 <UserPlus className="w-4 h-4 mr-2" strokeWidth={1.75} />
-                                Invite
+                                {t("invite")}
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Invite Team Member</DialogTitle>
+                                <DialogTitle>{t("inviteTeamMember")}</DialogTitle>
                             </DialogHeader>
                             <form action={handleInvite} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-2">
-                                        <Label htmlFor="firstName">First name</Label>
+                                        <Label htmlFor="firstName">{t("firstName")}</Label>
                                         <Input id="firstName" name="firstName" required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="lastName">Last name</Label>
+                                        <Label htmlFor="lastName">{t("lastName")}</Label>
                                         <Input id="lastName" name="lastName" required />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
+                                    <Label htmlFor="email">{t("email")}</Label>
                                     <Input
                                         id="email"
                                         name="email"
@@ -166,16 +169,16 @@ export function TeamContent({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="role">Role</Label>
+                                    <Label htmlFor="role">{t("role")}</Label>
                                     <Select name="role" defaultValue="co_worker">
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="admin">Admin</SelectItem>
-                                            <SelectItem value="co_worker">Agent</SelectItem>
+                                            <SelectItem value="admin">{t("admin")}</SelectItem>
+                                            <SelectItem value="co_worker">{t("agent")}</SelectItem>
                                             <SelectItem value="listing_support">
-                                                Listing Support
+                                                {t("listingSupport")}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -183,11 +186,11 @@ export function TeamContent({
                                 <div className="flex justify-end gap-2">
                                     <DialogClose asChild>
                                         <Button type="button" variant="secondary">
-                                            Cancel
+                                            {tc("cancel")}
                                         </Button>
                                     </DialogClose>
                                     <Button type="submit" disabled={isPending}>
-                                        {isPending ? "Inviting..." : "Send invite"}
+                                        {isPending ? t("inviting") : t("sendInvite")}
                                     </Button>
                                 </div>
                             </form>
@@ -267,7 +270,7 @@ export function TeamContent({
                 <Card>
                     <CardHeader className="border-b pb-4">
                         <CardTitle className="text-base text-muted-foreground">
-                            Pending Invitations ({pendingInvites.length})
+                            {t("pendingInvitations")} ({pendingInvites.length})
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4">
@@ -286,7 +289,7 @@ export function TeamContent({
                                                 {invite.email}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-0.5">
-                                                Sent {new Date(invite.invited_at).toLocaleDateString()}
+                                                {t("sent")} {new Date(invite.invited_at).toLocaleDateString()}
                                             </p>
                                         </div>
                                     </div>

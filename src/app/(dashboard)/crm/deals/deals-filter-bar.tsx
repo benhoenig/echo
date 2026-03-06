@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { X } from "lucide-react";
 import type { ColumnFiltersState } from "@tanstack/react-table";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealRow = any;
@@ -63,6 +64,7 @@ export function DealsFilterBar({
     pipelineStages,
     dealTypeFilter,
 }: DealsFilterBarProps) {
+    const tf = useTranslations("filters");
     const hasFilters = columnFilters.length > 0;
 
     // Filter stages by current deal type tab
@@ -86,23 +88,23 @@ export function DealsFilterBar({
                 }
             >
                 <SelectTrigger className="w-[130px] h-8 text-xs">
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder={tf("allStatuses")} />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="__all__" className="text-xs">
-                        All Statuses
+                        {tf("allStatuses")}
                     </SelectItem>
                     <SelectItem value="ACTIVE" className="text-xs">
-                        Active
+                        {tf("active")}
                     </SelectItem>
                     <SelectItem value="ON_HOLD" className="text-xs">
-                        On Hold
+                        {tf("onHold")}
                     </SelectItem>
                     <SelectItem value="CLOSED_WON" className="text-xs">
-                        Closed Won
+                        {tf("closedWon")}
                     </SelectItem>
                     <SelectItem value="CLOSED_LOST" className="text-xs">
-                        Closed Lost
+                        {tf("closedLost")}
                     </SelectItem>
                 </SelectContent>
             </Select>
@@ -119,11 +121,11 @@ export function DealsFilterBar({
                 }
             >
                 <SelectTrigger className="w-[160px] h-8 text-xs">
-                    <SelectValue placeholder="Stage" />
+                    <SelectValue placeholder={tf("allStages")} />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="__all__" className="text-xs">
-                        All Stages
+                        {tf("allStages")}
                     </SelectItem>
                     {relevantStages.map((stage) => (
                         <SelectItem
@@ -150,23 +152,23 @@ export function DealsFilterBar({
                 }
             >
                 <SelectTrigger className="w-[120px] h-8 text-xs">
-                    <SelectValue placeholder="Tier" />
+                    <SelectValue placeholder={tf("allTiers")} />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="__all__" className="text-xs">
-                        All Tiers
+                        {tf("allTiers")}
                     </SelectItem>
                     <SelectItem value="A" className="text-xs">
-                        Tier A
+                        {tf("tierA")}
                     </SelectItem>
                     <SelectItem value="B" className="text-xs">
-                        Tier B
+                        {tf("tierB")}
                     </SelectItem>
                     <SelectItem value="C" className="text-xs">
-                        Tier C
+                        {tf("tierC")}
                     </SelectItem>
                     <SelectItem value="D" className="text-xs">
-                        Tier D
+                        {tf("tierD")}
                     </SelectItem>
                 </SelectContent>
             </Select>
@@ -180,7 +182,7 @@ export function DealsFilterBar({
                     onClick={() => onColumnFiltersChange([])}
                 >
                     <X className="w-3.5 h-3.5 mr-1" />
-                    Clear
+                    {tf("clear")}
                 </Button>
             )}
         </div>

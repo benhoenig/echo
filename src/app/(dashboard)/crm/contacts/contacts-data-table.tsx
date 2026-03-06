@@ -46,6 +46,7 @@ import { updateContactField } from "./contact-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ContactRow = any;
@@ -148,6 +149,9 @@ export function ContactsDataTable({
     onRestore,
     onArchive,
 }: ContactsDataTableProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+
     const mountedRef = useRef(false);
     useEffect(() => {
         mountedRef.current = true;
@@ -166,7 +170,7 @@ export function ContactsDataTable({
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to update field."
+                        : t("failedToUpdateField")
                 );
             }
         });
@@ -185,7 +189,7 @@ export function ContactsDataTable({
                             column.toggleSorting(column.getIsSorted() === "asc")
                         }
                     >
-                        Name
+                        {tc("name")}
                         <ArrowUpDown className="ml-1.5 h-3.5 w-3.5" />
                     </Button>
                 ),
@@ -195,19 +199,19 @@ export function ContactsDataTable({
             {
                 id: "contact_type_display",
                 accessorFn: (row) => formatContactType(row.contact_type),
-                header: "Type",
+                header: tc("type"),
                 cell: ({ row }) => {
                     const types = row.original.contact_type as string[] | null;
                     if (!types?.length) return <span className="text-muted-foreground">—</span>;
                     return (
                         <div className="flex gap-1 flex-wrap">
-                            {types.map((t: string) => (
+                            {types.map((tp: string) => (
                                 <Badge
-                                    key={t}
+                                    key={tp}
                                     variant="secondary"
                                     className="text-[10px] px-1.5 py-0"
                                 >
-                                    {t}
+                                    {tp}
                                 </Badge>
                             ))}
                         </div>
@@ -217,7 +221,7 @@ export function ContactsDataTable({
             },
             {
                 accessorKey: "phone_primary",
-                header: "Phone",
+                header: tc("phone"),
                 cell: ({ getValue }) => {
                     const phone = getValue() as string | null;
                     if (!phone)
@@ -237,7 +241,7 @@ export function ContactsDataTable({
             },
             {
                 accessorKey: "contact_status",
-                header: "Status",
+                header: tc("status"),
                 cell: ({ row }) => {
                     const status = row.original.contact_status as
                         | string
@@ -245,7 +249,7 @@ export function ContactsDataTable({
                     if (!status)
                         return (
                             <span className="text-muted-foreground text-xs">
-                                Not set
+                                {tc("notSet")}
                             </span>
                         );
                     return (
@@ -260,7 +264,7 @@ export function ContactsDataTable({
             },
             {
                 accessorKey: "potential_tier",
-                header: "Potential",
+                header: t("potential"),
                 cell: ({ row }) => {
                     const tier = row.original.potential_tier as string | null;
                     if (!tier)
@@ -281,7 +285,7 @@ export function ContactsDataTable({
             },
             {
                 accessorKey: "contact_source",
-                header: "Source",
+                header: t("source"),
                 cell: ({ getValue }) => {
                     const source = getValue() as string | null;
                     if (!source)
@@ -306,13 +310,13 @@ export function ContactsDataTable({
                         .filter(Boolean)
                         .join(" ");
                 },
-                header: "Assigned To",
+                header: t("assignedTo"),
                 cell: ({ getValue }) => {
                     const name = getValue() as string | null;
                     if (!name)
                         return (
                             <span className="text-muted-foreground text-xs">
-                                Unassigned
+                                {tc("unassigned")}
                             </span>
                         );
                     return <span className="text-xs">{name}</span>;
@@ -322,7 +326,7 @@ export function ContactsDataTable({
             {
                 id: "completeness",
                 accessorFn: (row) => getCompletenessScore(row),
-                header: "Score",
+                header: t("score"),
                 cell: ({ getValue }) => {
                     const score = getValue() as number;
                     const color =
@@ -360,7 +364,7 @@ export function ContactsDataTable({
                             column.toggleSorting(column.getIsSorted() === "asc")
                         }
                     >
-                        Created
+                        {tc("created")}
                         <ArrowUpDown className="ml-1.5 h-3.5 w-3.5" />
                     </Button>
                 ),
@@ -397,7 +401,7 @@ export function ContactsDataTable({
                                 <DropdownMenuItem asChild>
                                     <Link href={`/crm/contacts/${contact.id}`}>
                                         <ExternalLink className="w-4 h-4 mr-2" />
-                                        View Details
+                                        {tc("viewDetails")}
                                     </Link>
                                 </DropdownMenuItem>
                                 {contact.phone_primary && (
@@ -416,7 +420,7 @@ export function ContactsDataTable({
                                             href={`mailto:${contact.email}`}
                                         >
                                             <Mail className="w-4 h-4 mr-2" />
-                                            Email
+                                            {tc("email")}
                                         </a>
                                     </DropdownMenuItem>
                                 )}
@@ -428,7 +432,7 @@ export function ContactsDataTable({
                                         }
                                     >
                                         <ArchiveRestore className="w-4 h-4 mr-2" />
-                                        Restore
+                                        {tc("restore")}
                                     </DropdownMenuItem>
                                 ) : (
                                     <DropdownMenuItem
@@ -438,7 +442,7 @@ export function ContactsDataTable({
                                         className="text-red-600"
                                     >
                                         <Archive className="w-4 h-4 mr-2" />
-                                        Archive
+                                        {tc("archive")}
                                     </DropdownMenuItem>
                                 )}
                             </DropdownMenuContent>
@@ -448,7 +452,7 @@ export function ContactsDataTable({
                 enableGrouping: false,
             },
         ],
-        [showArchived, onRestore, onArchive]
+        [showArchived, onRestore, onArchive, t, tc]
     );
 
     const table = useReactTable({
@@ -508,7 +512,7 @@ export function ContactsDataTable({
                                 colSpan={columns.length}
                                 className="h-24 text-center text-muted-foreground"
                             >
-                                No contacts match your filters.
+                                {t("noContactsMatchFilters")}
                             </TableCell>
                         </TableRow>
                     ) : (
@@ -533,7 +537,7 @@ export function ContactsDataTable({
                                                 <span className="text-sm font-medium">
                                                     {String(
                                                         row.groupingValue ??
-                                                            "Not set"
+                                                            tc("notSet")
                                                     ).replace(/_/g, " ")}
                                                 </span>
                                                 <Badge

@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { PotentialContent } from "./potential-content";
 import { ensureDefaultPotentialConfigs } from "../pipeline-actions";
 
@@ -11,18 +12,21 @@ export default async function PotentialSettingsPage() {
     await ensureDefaultPotentialConfigs(user.workspace_id);
 
     const supabase = await createClient();
-    const { data: configs } = await supabase
-        .from("potential_configs")
-        .select("*")
-        .eq("workspace_id", user.workspace_id)
-        .order("order", { ascending: true });
+    const [{ data: configs }, t] = await Promise.all([
+        supabase
+            .from("potential_configs")
+            .select("*")
+            .eq("workspace_id", user.workspace_id)
+            .order("order", { ascending: true }),
+        getTranslations("potential"),
+    ]);
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold">Potential Tiers</h2>
+                <h2 className="text-lg font-semibold">{t("title")}</h2>
                 <p className="text-sm text-muted-foreground">
-                    Configure A/B/C/D tier labels, colors, and follow-up reminder intervals
+                    {t("subtitle")}
                 </p>
             </div>
             <PotentialContent configs={configs ?? []} />

@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { updateWorkspace } from "./actions";
 import { useWorkspaceStore } from "@/stores/workspace-store";
+import { useTranslations } from "next-intl";
+import { LanguageToggle } from "@/components/shared/language-toggle";
 import type { Tables } from "@/types/supabase";
 
 const COLORS = [
@@ -30,6 +32,8 @@ export function WorkspaceSettingsForm({
     const [selectedColor, setSelectedColor] = useState(workspace.primary_color || "#F97316");
     const [isPending, startTransition] = useTransition();
     const setWorkspaceName = useWorkspaceStore((s) => s.setWorkspaceName);
+    const t = useTranslations("settings");
+    const tc = useTranslations("common");
 
     const handleSubmit = async (formData: FormData) => {
         setError(null);
@@ -54,8 +58,8 @@ export function WorkspaceSettingsForm({
         <div className="space-y-6 max-w-2xl">
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-base">General</CardTitle>
-                    <CardDescription>Update your workspace name and branding</CardDescription>
+                    <CardTitle className="text-base">{t("general")}</CardTitle>
+                    <CardDescription>{t("updateWorkspace")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {error && (
@@ -65,13 +69,13 @@ export function WorkspaceSettingsForm({
                     )}
                     {success && (
                         <div className="bg-green-500/10 text-green-700 dark:text-green-400 text-sm rounded-md p-3 mb-4">
-                            Settings updated successfully
+                            {t("settingsUpdated")}
                         </div>
                     )}
                     <form action={handleSubmit} className="space-y-4">
                         <input type="hidden" name="workspaceId" value={workspace.id} />
                         <div className="space-y-2">
-                            <Label htmlFor="name">Workspace Name</Label>
+                            <Label htmlFor="name">{t("workspaceName")}</Label>
                             <Input
                                 id="name"
                                 name="workspace_name"
@@ -81,7 +85,7 @@ export function WorkspaceSettingsForm({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Brand Color</Label>
+                            <Label>{t("brandColor")}</Label>
                             <div className="flex gap-2">
                                 {COLORS.map((color) => (
                                     <button
@@ -99,7 +103,7 @@ export function WorkspaceSettingsForm({
                             </div>
                         </div>
                         <Button type="submit" disabled={isPending} size="sm">
-                            {isPending ? "Saving..." : "Save changes"}
+                            {isPending ? tc("saving") : t("saveChanges")}
                         </Button>
                     </form>
                 </CardContent>
@@ -107,15 +111,15 @@ export function WorkspaceSettingsForm({
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-base">Workspace Info</CardTitle>
+                    <CardTitle className="text-base">{t("workspaceInfo")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Plan</span>
+                        <span className="text-muted-foreground">{t("plan")}</span>
                         <span className="font-medium capitalize">{workspace.plan_tier}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Created</span>
+                        <span className="text-muted-foreground">{t("created")}</span>
                         <span className="font-medium">
                             {new Date(workspace.created_at).toLocaleDateString("en-US", {
                                 year: "numeric",
@@ -125,7 +129,7 @@ export function WorkspaceSettingsForm({
                         </span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Status</span>
+                        <span className="text-muted-foreground">{t("status")}</span>
                         <span className="font-medium capitalize">{workspace.subscription_status}</span>
                     </div>
                 </CardContent>
@@ -133,16 +137,16 @@ export function WorkspaceSettingsForm({
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-base">Brand Signature</CardTitle>
+                    <CardTitle className="text-base">{t("brandSignature")}</CardTitle>
                     <CardDescription>
-                        This signature block will be appended to the bottom of all generated listing copies.
+                        {t("signatureDescription")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form action={handleSubmit} className="space-y-4">
                         <input type="hidden" name="workspaceId" value={workspace.id} />
                         <div className="space-y-2">
-                            <Label htmlFor="brand_signature">Signature Text</Label>
+                            <Label htmlFor="brand_signature">{t("signatureText")}</Label>
                             <textarea
                                 id="brand_signature"
                                 name="brand_signature"
@@ -153,9 +157,19 @@ export function WorkspaceSettingsForm({
                             />
                         </div>
                         <Button type="submit" disabled={isPending} size="sm">
-                            {isPending ? "Saving..." : "Save Signature"}
+                            {isPending ? tc("saving") : t("saveSignature")}
                         </Button>
                     </form>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">{t("language")}</CardTitle>
+                    <CardDescription>{t("languageDescription")}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <LanguageToggle />
                 </CardContent>
             </Card>
         </div>

@@ -17,45 +17,28 @@ import {
     FileWarning,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
     updateNotificationPreference,
     type NotificationPref,
 } from "./notification-pref-actions";
 
-const NOTIFICATION_TYPE_META: Record<
-    string,
-    { label: string; description: string; icon: typeof Clock }
-> = {
-    ACTION_REMINDER: {
-        label: "Action Reminders",
-        description:
-            "Follow-up reminders when deals or listings are overdue based on potential tier intervals.",
-        icon: Clock,
-    },
-    STAGE_CHANGE: {
-        label: "Stage Changes",
-        description:
-            "Alerts when a deal you're assigned to moves to a new pipeline stage.",
-        icon: GitBranch,
-    },
-    MENTION: {
-        label: "Mentions",
-        description:
-            "Notifications when someone @mentions you in a comment.",
-        icon: AtSign,
-    },
-    LISTING_EXPIRY: {
-        label: "Listing Expiry",
-        description:
-            "Alerts for listing-related milestones such as exclusive agreement expiry.",
-        icon: FileWarning,
-    },
-    SMART_MATCH: {
-        label: "Smart Matches",
-        description:
-            "Notifications when a new listing matches a buyer's requirements.",
-        icon: Sparkles,
-    },
+const NOTIFICATION_TYPE_ICONS: Record<string, typeof Clock> = {
+    ACTION_REMINDER: Clock,
+    STAGE_CHANGE: GitBranch,
+    MENTION: AtSign,
+    LISTING_EXPIRY: FileWarning,
+    SMART_MATCH: Sparkles,
+};
+
+type NotificationSettingsKey = "actionReminders" | "stageChanges" | "mentions" | "listingExpiry" | "smartMatches" | "actionRemindersDesc" | "stageChangesDesc" | "mentionsDesc" | "listingExpiryDesc" | "smartMatchesDesc";
+
+const NOTIFICATION_TYPE_KEYS: Record<string, { labelKey: NotificationSettingsKey; descKey: NotificationSettingsKey }> = {
+    ACTION_REMINDER: { labelKey: "actionReminders", descKey: "actionRemindersDesc" },
+    STAGE_CHANGE: { labelKey: "stageChanges", descKey: "stageChangesDesc" },
+    MENTION: { labelKey: "mentions", descKey: "mentionsDesc" },
+    LISTING_EXPIRY: { labelKey: "listingExpiry", descKey: "listingExpiryDesc" },
+    SMART_MATCH: { labelKey: "smartMatches", descKey: "smartMatchesDesc" },
 };
 
 interface NotificationSettingsContentProps {
@@ -69,6 +52,7 @@ export function NotificationSettingsContent({
     workspaceId,
     userId,
 }: NotificationSettingsContentProps) {
+    const t = useTranslations("notificationSettings");
     const [preferences, setPreferences] =
         useState<NotificationPref[]>(initialPreferences);
     const [isPending, startTransition] = useTransition();
@@ -122,35 +106,33 @@ export function NotificationSettingsContent({
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg">
-                        Notification Preferences
+                        {t("title")}
                     </CardTitle>
                     <CardDescription>
-                        Choose which notifications you receive and how
-                        they're delivered.
+                        {t("description")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {/* Column headers */}
                     <div className="flex items-center gap-4 pb-3 mb-1 border-b border-border">
                         <div className="flex-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Notification Type
+                            {t("notificationType")}
                         </div>
                         <div className="w-16 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            In-App
+                            {t("inApp")}
                         </div>
                         <div className="w-16 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            Email
+                            {t("email")}
                         </div>
                     </div>
 
                     {/* Preference rows */}
                     <div className="divide-y divide-border">
                         {preferences.map((pref) => {
-                            const meta =
-                                NOTIFICATION_TYPE_META[pref.notificationType];
-                            if (!meta) return null;
-
-                            const Icon = meta.icon;
+                            const keys =
+                                NOTIFICATION_TYPE_KEYS[pref.notificationType];
+                            const Icon = NOTIFICATION_TYPE_ICONS[pref.notificationType];
+                            if (!keys || !Icon) return null;
 
                             return (
                                 <div
@@ -166,10 +148,10 @@ export function NotificationSettingsContent({
                                         </div>
                                         <div>
                                             <p className="text-sm font-medium text-foreground">
-                                                {meta.label}
+                                                {t(keys.labelKey)}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-0.5">
-                                                {meta.description}
+                                                {t(keys.descKey)}
                                             </p>
                                         </div>
                                     </div>

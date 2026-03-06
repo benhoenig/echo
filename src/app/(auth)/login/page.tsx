@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,6 +20,8 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+    const t = useTranslations("auth");
+    const tc = useTranslations("common");
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
     const searchParams = useSearchParams();
@@ -47,18 +50,18 @@ function LoginForm() {
     return (
         <Card className="shadow-lg">
             <CardHeader className="text-center">
-                <CardTitle className="text-xl">Welcome back</CardTitle>
-                <CardDescription>Sign in to your ECHO workspace</CardDescription>
+                <CardTitle className="text-xl">{t("welcomeBack")}</CardTitle>
+                <CardDescription>{t("signInToWorkspace")}</CardDescription>
             </CardHeader>
             <CardContent>
                 {(error || callbackError) && (
                     <div className="bg-destructive/10 text-destructive text-sm rounded-md p-3 mb-4">
-                        {error || "Authentication failed. Please try again."}
+                        {error || t("authFailed")}
                     </div>
                 )}
                 <form action={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t("email")}</Label>
                         <Input
                             id="email"
                             name="email"
@@ -70,12 +73,12 @@ function LoginForm() {
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{t("password")}</Label>
                             <Link
                                 href="/forgot-password"
                                 className="text-xs text-orange-600 hover:text-orange-700"
                             >
-                                Forgot password?
+                                {t("forgotPassword")}
                             </Link>
                         </div>
                         <Input
@@ -88,14 +91,14 @@ function LoginForm() {
                         />
                     </div>
                     <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? "Signing in..." : "Sign in"}
+                        {isPending ? t("signingIn") : t("signIn")}
                     </Button>
                 </form>
 
                 <div className="relative my-4">
                     <Separator />
                     <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                        or
+                        {tc("or")}
                     </span>
                 </div>
 
@@ -123,16 +126,16 @@ function LoginForm() {
                             fill="#EA4335"
                         />
                     </svg>
-                    Continue with Google
+                    {t("continueWithGoogle")}
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground mt-4">
-                    Don&apos;t have an account?{" "}
+                    {t("noAccount")}{" "}
                     <Link
                         href="/signup"
                         className="text-orange-600 hover:text-orange-700 font-medium"
                     >
-                        Sign up
+                        {t("signUp")}
                     </Link>
                 </p>
             </CardContent>

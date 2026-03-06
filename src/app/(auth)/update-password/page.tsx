@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ type PageProps = {
 };
 
 export default async function UpdatePasswordPage({ searchParams }: PageProps) {
+    const t = await getTranslations("auth");
     const resolvedParams = await searchParams;
     const error = resolvedParams?.error as string | undefined;
 
@@ -25,15 +27,15 @@ export default async function UpdatePasswordPage({ searchParams }: PageProps) {
     return (
         <Card className="mx-auto max-w-sm w-full">
             <CardHeader>
-                <CardTitle className="text-2xl">Create Password</CardTitle>
+                <CardTitle className="text-2xl">{t("createPassword")}</CardTitle>
                 <CardDescription>
-                    Welcome to ECHO! Please set a secure password to complete your account setup.
+                    {t("welcomeToEcho")}
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <form action={updatePassword} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="password">New Password</Label>
+                        <Label htmlFor="password">{t("newPassword")}</Label>
                         <Input
                             id="password"
                             name="password"
@@ -49,7 +51,7 @@ export default async function UpdatePasswordPage({ searchParams }: PageProps) {
                         </div>
                     )}
                     <Button type="submit" className="w-full">
-                        Complete Setup
+                        {t("completeSetup")}
                     </Button>
                 </form>
             </CardContent>

@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateDealStage } from "./deal-actions";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealRow = any;
@@ -78,6 +79,7 @@ const TIER_COLORS: Record<string, string> = {
 // ── Sub-components ──────────────────────────────────────────
 
 function KanbanDealCard({ deal, onCardClick }: { deal: DealRow; onCardClick?: (deal: DealRow) => void }) {
+    const t = useTranslations("crm");
     const { attributes, listeners, setNodeRef, transform, isDragging } =
         useDraggable({ id: deal.id });
     const router = useRouter();
@@ -115,7 +117,7 @@ function KanbanDealCard({ deal, onCardClick }: { deal: DealRow; onCardClick?: (d
         >
             {/* Deal Name */}
             <p className="text-sm font-medium text-stone-800 dark:text-stone-200 truncate">
-                {deal.deal_name || "Untitled Deal"}
+                {deal.deal_name || t("untitledDeal")}
             </p>
 
             {/* Contact */}
@@ -162,6 +164,7 @@ function KanbanDealCard({ deal, onCardClick }: { deal: DealRow; onCardClick?: (d
 }
 
 function DragOverlayCard({ deal }: { deal: DealRow | undefined }) {
+    const t = useTranslations("crm");
     if (!deal) return null;
 
     const contact =
@@ -173,7 +176,7 @@ function DragOverlayCard({ deal }: { deal: DealRow | undefined }) {
     return (
         <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-3 shadow-xl rotate-2 w-[264px]">
             <p className="text-sm font-medium text-stone-800 dark:text-stone-200 truncate">
-                {deal.deal_name || "Untitled Deal"}
+                {deal.deal_name || t("untitledDeal")}
             </p>
             <p className="text-xs text-muted-foreground mt-1 truncate">
                 {contactName}
@@ -215,6 +218,7 @@ function KanbanColumn({
     isOver: boolean;
     onCardClick?: (deal: DealRow) => void;
 }) {
+    const t = useTranslations("crm");
     const { setNodeRef } = useDroppable({ id: stage.id });
     const stageColor = stage.color || "#78716c";
 
@@ -267,7 +271,7 @@ function KanbanColumn({
                 ))}
                 {deals.length === 0 && (
                     <div className="flex items-center justify-center h-20 text-xs text-muted-foreground">
-                        No deals
+                        {t("noDeals")}
                     </div>
                 )}
             </div>
@@ -283,6 +287,7 @@ export function DealsKanbanBoard({
     dealTypeFilter,
     onCardClick,
 }: DealsKanbanBoardProps) {
+    const t = useTranslations("crm");
     const [activeDragId, setActiveDragId] = useState<string | null>(null);
     const [overColumnId, setOverColumnId] = useState<string | null>(null);
     const [optimisticMoves, setOptimisticMoves] = useState<
@@ -376,9 +381,9 @@ export function DealsKanbanBoard({
 
         try {
             await updateDealStage(dealId, newStageId);
-            toast.success("Pipeline stage updated.");
+            toast.success(t("pipelineStageUpdated"));
         } catch {
-            toast.error("Failed to update stage.");
+            toast.error(t("failedToUpdateStage"));
         }
 
         // Clear optimistic state — server revalidation will update real data

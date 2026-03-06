@@ -2,6 +2,7 @@ import { getCurrentUser, getDashboardMetrics } from "@/lib/queries";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, FolderKanban, Users, Clock } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export default async function DashboardPage() {
     console.log("[Dashboard Page] Fetching current user...");
@@ -15,44 +16,45 @@ export default async function DashboardPage() {
 
     const metrics = await getDashboardMetrics(user.workspace_id);
     const workspace = user.workspaces as { workspace_name: string } | null;
+    const t = await getTranslations("dashboard");
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-semibold tracking-tight">
-                    Welcome to {workspace?.workspace_name ?? "ECHO"}
+                    {t("welcomeTo", { workspaceName: workspace?.workspace_name ?? "ECHO" })}
                 </h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                    Here&apos;s an overview of your workspace activity
+                    {t("overviewText")}
                 </p>
             </div>
 
             {/* Metric Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <MetricCard
-                    title="Total Listings"
+                    title={t("totalListings")}
                     value={metrics.totalListings}
                     icon={<Building2 className="w-4 h-4" strokeWidth={1.75} />}
-                    description="Active properties"
+                    description={t("activeProperties")}
                 />
                 <MetricCard
-                    title="Active Deals"
+                    title={t("activeDeals")}
                     value={metrics.totalDeals}
                     icon={<FolderKanban className="w-4 h-4" strokeWidth={1.75} />}
-                    description="In pipeline"
+                    description={t("inPipeline")}
                 />
                 <MetricCard
-                    title="CRM Contacts"
+                    title={t("crmContacts")}
                     value={metrics.totalContacts}
                     icon={<Users className="w-4 h-4" strokeWidth={1.75} />}
-                    description="Buyers & sellers"
+                    description={t("buyersAndSellers")}
                 />
                 <MetricCard
-                    title="Recent Activity"
+                    title={t("recentActivity")}
                     value={metrics.recentActivity.length}
                     icon={<Clock className="w-4 h-4" strokeWidth={1.75} />}
-                    description="Last 24 hours"
+                    description={t("last24Hours")}
                 />
             </div>
 
@@ -60,12 +62,12 @@ export default async function DashboardPage() {
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Recent Activity</CardTitle>
+                        <CardTitle className="text-base">{t("recentActivity")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {metrics.recentActivity.length === 0 ? (
                             <p className="text-sm text-muted-foreground py-8 text-center">
-                                No recent activity — start by adding your first listing!
+                                {t("noRecentActivity")}
                             </p>
                         ) : (
                             <ul className="space-y-3">
@@ -95,27 +97,27 @@ export default async function DashboardPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Quick Start</CardTitle>
+                        <CardTitle className="text-base">{t("quickStart")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <QuickAction
-                            title="Add your first listing"
-                            description="Create a property listing to get started"
+                            title={t("addFirstListing")}
+                            description={t("createListingDesc")}
                             href="/listings"
                         />
                         <QuickAction
-                            title="Import contacts"
-                            description="Add your buyer and seller contacts to CRM"
+                            title={t("importContacts")}
+                            description={t("importContactsDesc")}
                             href="/crm"
                         />
                         <QuickAction
-                            title="Configure pipeline"
-                            description="Set up your deal pipeline stages"
+                            title={t("configurePipeline")}
+                            description={t("configurePipelineDesc")}
                             href="/settings/pipeline"
                         />
                         <QuickAction
-                            title="Invite your team"
-                            description="Add team members to collaborate"
+                            title={t("inviteTeam")}
+                            description={t("inviteTeamDesc")}
                             href="/settings/team"
                         />
                     </CardContent>

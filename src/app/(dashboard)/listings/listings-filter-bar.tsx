@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -47,21 +48,6 @@ interface SavedFilter {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ListingRow = any;
 
-const LISTING_TYPES = [
-    { value: "SELL", label: "Sell" },
-    { value: "RENT", label: "Rent" },
-    { value: "SELL_AND_RENT", label: "Both" },
-];
-
-const PROPERTY_TYPES = [
-    { value: "HOUSE", label: "House" },
-    { value: "CONDO", label: "Condo" },
-    { value: "TOWNHOUSE", label: "Townhouse" },
-    { value: "LAND", label: "Land" },
-    { value: "COMMERCIAL", label: "Commercial" },
-    { value: "OTHER", label: "Other" },
-];
-
 // ── Filter Bar ───────────────────────────────────────────────
 
 interface ListingsFilterBarProps {
@@ -81,7 +67,27 @@ export function ListingsFilterBar({
     workspaceId,
     userId,
 }: ListingsFilterBarProps) {
+    const tf = useTranslations("filters");
+    const tl = useTranslations("listings");
+    const tpt = useTranslations("propertyTypes");
+    const tlt = useTranslations("listingTypes");
+    const tc = useTranslations("common");
     const [isPending, startTransition] = useTransition();
+
+    const LISTING_TYPES = useMemo(() => [
+        { value: "SELL", label: tlt("sell") },
+        { value: "RENT", label: tlt("rent") },
+        { value: "SELL_AND_RENT", label: tlt("sellAndRent") },
+    ], [tlt]);
+
+    const PROPERTY_TYPES = useMemo(() => [
+        { value: "HOUSE", label: tpt("house") },
+        { value: "CONDO", label: tpt("condo") },
+        { value: "TOWNHOUSE", label: tpt("townhouse") },
+        { value: "LAND", label: tpt("land") },
+        { value: "COMMERCIAL", label: tpt("commercial") },
+        { value: "OTHER", label: tpt("other") },
+    ], [tpt]);
 
     // Extract unique values from data for dynamic filters
     const uniqueZones = useMemo(
@@ -142,7 +148,7 @@ export function ListingsFilterBar({
 
     async function handleSaveFilter() {
         if (!saveName.trim()) {
-            toast.error("Enter a filter name.");
+            toast.error(tc("filterName"));
             return;
         }
         startTransition(async () => {
@@ -153,12 +159,12 @@ export function ListingsFilterBar({
                     config[f.id] = f.value as string[];
                 }
                 await createSavedFilter(workspaceId, userId, saveName.trim(), config, saveShared);
-                toast.success(`Filter "${saveName.trim()}" saved.`);
+                toast.success(tc("filterSaved"));
                 setSaveName("");
                 setSaveShared(false);
                 setSaveOpen(false);
             } catch {
-                toast.error("Failed to save filter.");
+                toast.error(tc("failedToSaveFilter"));
             }
         });
     }
@@ -175,9 +181,9 @@ export function ListingsFilterBar({
         startTransition(async () => {
             try {
                 await deleteSavedFilter(id);
-                toast.success("Filter deleted.");
+                toast.success(tc("clearFilters"));
             } catch {
-                toast.error("Failed to delete filter.");
+                toast.error(tc("failedToDeleteFilter"));
             }
         });
     }
@@ -189,7 +195,7 @@ export function ListingsFilterBar({
 
                 {/* Status (multi) */}
                 <MultiSelectDropdown
-                    label="Status"
+                    label={tc("status")}
                     options={LISTING_STATUSES}
                     selected={getFilterValues("listing_status")}
                     onToggle={(v) => toggleFilter("listing_status", v)}
@@ -197,7 +203,7 @@ export function ListingsFilterBar({
 
                 {/* Grade (multi) */}
                 <MultiSelectDropdown
-                    label="Grade"
+                    label={tl("grade")}
                     options={LISTING_GRADES}
                     selected={getFilterValues("listing_grade")}
                     onToggle={(v) => toggleFilter("listing_grade", v)}
@@ -205,7 +211,7 @@ export function ListingsFilterBar({
 
                 {/* Listing Type */}
                 <MultiSelectDropdown
-                    label="Type"
+                    label={tc("type")}
                     options={LISTING_TYPES}
                     selected={getFilterValues("listing_type")}
                     onToggle={(v) => toggleFilter("listing_type", v)}
@@ -213,7 +219,7 @@ export function ListingsFilterBar({
 
                 {/* Property Type */}
                 <MultiSelectDropdown
-                    label="Property"
+                    label={tl("property")}
                     options={PROPERTY_TYPES}
                     selected={getFilterValues("property_type")}
                     onToggle={(v) => toggleFilter("property_type", v)}
@@ -221,7 +227,7 @@ export function ListingsFilterBar({
 
                 {/* Zone */}
                 <MultiSelectDropdown
-                    label="Zone"
+                    label={tl("zone")}
                     options={uniqueZones.map((z) => ({ value: z, label: z }))}
                     selected={getFilterValues("zone")}
                     onToggle={(v) => toggleFilter("zone", v)}
@@ -229,7 +235,7 @@ export function ListingsFilterBar({
 
                 {/* Project */}
                 <MultiSelectDropdown
-                    label="Project"
+                    label={tl("project")}
                     options={uniqueProjects.map((p) => ({ value: p, label: p }))}
                     selected={getFilterValues("project_name")}
                     onToggle={(v) => toggleFilter("project_name", v)}
@@ -241,12 +247,12 @@ export function ListingsFilterBar({
                         <PopoverTrigger asChild>
                             <Button variant="ghost" size="sm" className="text-xs h-7 gap-1 text-orange-600">
                                 <Bookmark className="w-3 h-3" />
-                                Save
+                                {tc("save")}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-64 p-3 space-y-3" align="start">
                             <div className="space-y-1.5">
-                                <Label className="text-xs">Filter name</Label>
+                                <Label className="text-xs">{tc("filterName")}</Label>
                                 <Input
                                     value={saveName}
                                     onChange={(e) => setSaveName(e.target.value)}
@@ -257,7 +263,7 @@ export function ListingsFilterBar({
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label className="text-xs flex items-center gap-1.5">
-                                    <Users className="w-3 h-3" /> Share with team
+                                    <Users className="w-3 h-3" /> {tc("shareWithTeam")}
                                 </Label>
                                 <Switch checked={saveShared} onCheckedChange={setSaveShared} />
                             </div>
@@ -267,7 +273,7 @@ export function ListingsFilterBar({
                                 onClick={handleSaveFilter}
                                 disabled={isPending}
                             >
-                                <Plus className="w-3 h-3 mr-1" /> Save Filter
+                                <Plus className="w-3 h-3 mr-1" /> {tc("saveFilter")}
                             </Button>
                         </PopoverContent>
                     </Popover>
@@ -279,7 +285,7 @@ export function ListingsFilterBar({
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="text-xs h-7 ml-auto gap-1">
                                 <Bookmark className="w-3 h-3" />
-                                Saved ({savedFilters.length})
+                                {tc("savedFilters")} ({savedFilters.length})
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56">
@@ -322,7 +328,7 @@ export function ListingsFilterBar({
                         className="text-xs h-7 text-red-500 hover:text-red-600"
                         onClick={clearAll}
                     >
-                        <X className="w-3 h-3 mr-1" /> Clear All
+                        <X className="w-3 h-3 mr-1" /> {tc("clearAll")}
                     </Button>
                 )}
             </div>

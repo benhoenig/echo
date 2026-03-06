@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, IBM_Plex_Sans_Thai, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -31,13 +33,16 @@ export const metadata: Metadata = {
     "Real estate brokerage management platform built for the Thai market. Manage listings, nurture relationships, build your website, and leverage AI.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${inter.variable} ${ibmPlexSansThai.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
@@ -47,12 +52,14 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <QueryProvider>
-            <TooltipProvider delayDuration={300}>
-              {children}
-              <Toaster position="top-right" richColors closeButton />
-            </TooltipProvider>
-          </QueryProvider>
+          <NextIntlClientProvider messages={messages}>
+            <QueryProvider>
+              <TooltipProvider delayDuration={300}>
+                {children}
+                <Toaster position="top-right" richColors closeButton />
+              </TooltipProvider>
+            </QueryProvider>
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDistanceToNow } from "date-fns";
 import { format } from "date-fns";
 import type { Database } from "@/types/supabase";
+import { getTranslations } from "next-intl/server";
 
 type ActionType = Database["public"]["Enums"]["ActionType"];
 type EntityType = Database["public"]["Enums"]["EntityType"];
@@ -28,6 +29,7 @@ const ACTION_DOT_COLORS: Record<ActionType, string> = {
 };
 
 export async function ActivityFeed({ workspaceId, entityType, entityId }: ActivityFeedProps) {
+    const tc = await getTranslations("common");
     const supabase = await createClient();
 
     const { data: logs, error } = await supabase
@@ -51,11 +53,11 @@ export async function ActivityFeed({ workspaceId, entityType, entityId }: Activi
 
     if (error) {
         console.error("Failed to fetch activity logs:", error);
-        return <div className="text-sm text-destructive">Failed to load activity feed.</div>;
+        return <div className="text-sm text-destructive">{tc("failedToLoad")}</div>;
     }
 
     if (!logs || logs.length === 0) {
-        return <div className="text-sm text-muted-foreground italic">No activity yet.</div>;
+        return <div className="text-sm text-muted-foreground italic">{tc("noActivityYet")}</div>;
     }
 
     return (
@@ -66,7 +68,7 @@ export async function ActivityFeed({ workspaceId, entityType, entityId }: Activi
                 const user = Array.isArray(log.users) ? log.users[0] : log.users;
                 const actorName = user
                     ? `${user.first_name} ${user.last_name || ""}`.trim()
-                    : "System";
+                    : tc("system");
 
                 return (
                     <div key={log.id} className="flex items-start gap-3 py-2">

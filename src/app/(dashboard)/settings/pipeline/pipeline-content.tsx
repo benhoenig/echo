@@ -49,6 +49,7 @@ import {
     reorderPipelineStages,
 } from "../pipeline-actions";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import type { Tables } from "@/types/supabase";
 
 const STAGE_COLORS = [
@@ -76,6 +77,7 @@ function SortableStageRow({
     onDelete: (stageId: string, dealCount: number) => void;
     onToggleActive: (stageId: string, isActive: boolean) => void;
 }) {
+    const t = useTranslations("pipeline");
     const {
         attributes,
         listeners,
@@ -157,7 +159,7 @@ function SortableStageRow({
                 className="p-1"
                 onClick={() => onToggleActive(stage.id, isActive)}
                 disabled={isPending}
-                title={isActive ? "Deactivate stage" : "Reactivate stage"}
+                title={isActive ? t("deactivateStage") : t("reactivateStage")}
             >
                 {isActive ? (
                     <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
@@ -189,6 +191,8 @@ export function PipelineContent({
     workspaceId: string;
     dealCounts: Record<string, number>;
 }) {
+    const t = useTranslations("pipeline");
+    const tc = useTranslations("common");
     const [isPending, startTransition] = useTransition();
     const [editingStage, setEditingStage] = useState<Tables<"pipeline_stages"> | null>(null);
     const [selectedColor, setSelectedColor] = useState("#78716C");
@@ -290,7 +294,7 @@ export function PipelineContent({
             if (result?.error) {
                 toast.error(result.error);
             } else {
-                toast.success("Stage deleted.");
+                toast.success(t("stageDeleted"));
             }
             setDeleteConfirmOpen(false);
             setDeleteTarget(null);
@@ -304,14 +308,14 @@ export function PipelineContent({
                 if (result?.error) {
                     toast.error(result.error);
                 } else {
-                    toast.success("Stage deactivated.");
+                    toast.success(t("stageDeactivated"));
                 }
             } else {
                 const result = await reactivatePipelineStage(stageId);
                 if (result?.error) {
                     toast.error(result.error);
                 } else {
-                    toast.success("Stage reactivated.");
+                    toast.success(t("stageReactivated"));
                 }
             }
         });
@@ -349,7 +353,7 @@ export function PipelineContent({
                     ))}
                     {stagesList.length === 0 && (
                         <p className="text-sm text-muted-foreground text-center py-8">
-                            No stages configured yet
+                            {t("noStagesYet")}
                         </p>
                     )}
                     <Button
@@ -363,7 +367,7 @@ export function PipelineContent({
                         }}
                     >
                         <Plus className="w-4 h-4 mr-1" />
-                        Add Stage
+                        {t("addStage")}
                     </Button>
                 </div>
             </SortableContext>
@@ -380,16 +384,16 @@ export function PipelineContent({
             <Tabs defaultValue="buyer">
                 <TabsList>
                     <TabsTrigger value="buyer">
-                        Buyer Pipeline ({buyerStages.length})
+                        {t("buyerPipeline")} ({buyerStages.length})
                     </TabsTrigger>
                     <TabsTrigger value="seller">
-                        Seller Pipeline ({sellerStages.length})
+                        {t("sellerPipeline")} ({sellerStages.length})
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="buyer" className="mt-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">Buyer Deal Stages</CardTitle>
+                            <CardTitle className="text-base">{t("buyerDealStages")}</CardTitle>
                         </CardHeader>
                         <CardContent>{renderStages(buyerStages, "buyer")}</CardContent>
                     </Card>
@@ -397,7 +401,7 @@ export function PipelineContent({
                 <TabsContent value="seller" className="mt-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">Seller Deal Stages</CardTitle>
+                            <CardTitle className="text-base">{t("sellerDealStages")}</CardTitle>
                         </CardHeader>
                         <CardContent>{renderStages(sellerStages, "seller")}</CardContent>
                     </Card>
@@ -409,16 +413,16 @@ export function PipelineContent({
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            Add {addType === "buyer" ? "Buyer" : "Seller"} Stage
+                            {t("addStage")}
                         </DialogTitle>
                     </DialogHeader>
                     <form action={handleCreate} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Stage Name</Label>
+                            <Label htmlFor="name">{t("stageName")}</Label>
                             <Input id="name" name="name" placeholder="e.g. Viewing" required />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{tc("description")}</Label>
                             <Input
                                 id="description"
                                 name="description"
@@ -426,7 +430,7 @@ export function PipelineContent({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Color</Label>
+                            <Label>{tc("color")}</Label>
                             <div className="flex gap-2 flex-wrap">
                                 {STAGE_COLORS.map((c) => (
                                     <button
@@ -444,10 +448,10 @@ export function PipelineContent({
                         </div>
                         <div className="flex justify-end gap-2">
                             <DialogClose asChild>
-                                <Button type="button" variant="secondary">Cancel</Button>
+                                <Button type="button" variant="secondary">{tc("cancel")}</Button>
                             </DialogClose>
                             <Button type="submit" disabled={isPending}>
-                                {isPending ? "Adding..." : "Add Stage"}
+                                {isPending ? tc("saving") : t("addStage")}
                             </Button>
                         </div>
                     </form>
@@ -458,11 +462,11 @@ export function PipelineContent({
             <Dialog open={editOpen} onOpenChange={setEditOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Edit Stage</DialogTitle>
+                        <DialogTitle>{t("editStage")}</DialogTitle>
                     </DialogHeader>
                     <form action={handleUpdate} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="editName">Stage Name</Label>
+                            <Label htmlFor="editName">{t("stageName")}</Label>
                             <Input
                                 id="editName"
                                 name="name"
@@ -471,7 +475,7 @@ export function PipelineContent({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="editDescription">Description</Label>
+                            <Label htmlFor="editDescription">{tc("description")}</Label>
                             <Input
                                 id="editDescription"
                                 name="description"
@@ -479,7 +483,7 @@ export function PipelineContent({
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Color</Label>
+                            <Label>{tc("color")}</Label>
                             <div className="flex gap-2 flex-wrap">
                                 {STAGE_COLORS.map((c) => (
                                     <button
@@ -497,10 +501,10 @@ export function PipelineContent({
                         </div>
                         <div className="flex justify-end gap-2">
                             <DialogClose asChild>
-                                <Button type="button" variant="secondary">Cancel</Button>
+                                <Button type="button" variant="secondary">{tc("cancel")}</Button>
                             </DialogClose>
                             <Button type="submit" disabled={isPending}>
-                                {isPending ? "Saving..." : "Save Changes"}
+                                {isPending ? tc("saving") : tc("save")}
                             </Button>
                         </div>
                     </form>
@@ -519,8 +523,8 @@ export function PipelineContent({
                     <DialogHeader>
                         <DialogTitle>
                             {deleteTarget && deleteTarget.dealCount > 0
-                                ? "Cannot Delete Stage"
-                                : "Delete Stage"}
+                                ? t("cannotDelete")
+                                : t("deleteStage")}
                         </DialogTitle>
                     </DialogHeader>
                     {deleteTarget && deleteTarget.dealCount > 0 ? (
@@ -544,7 +548,7 @@ export function PipelineContent({
                             </div>
                             <div className="flex justify-end">
                                 <DialogClose asChild>
-                                    <Button variant="secondary">Close</Button>
+                                    <Button variant="secondary">{tc("close")}</Button>
                                 </DialogClose>
                             </div>
                         </div>
@@ -556,14 +560,14 @@ export function PipelineContent({
                             </p>
                             <div className="flex justify-end gap-2">
                                 <DialogClose asChild>
-                                    <Button variant="secondary">Cancel</Button>
+                                    <Button variant="secondary">{tc("cancel")}</Button>
                                 </DialogClose>
                                 <Button
                                     variant="destructive"
                                     onClick={confirmDelete}
                                     disabled={isPending}
                                 >
-                                    {isPending ? "Deleting..." : "Delete"}
+                                    {isPending ? tc("loading") : tc("delete")}
                                 </Button>
                             </div>
                         </div>

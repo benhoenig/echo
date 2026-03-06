@@ -1,5 +1,6 @@
 import { getCurrentUser, getWorkspace } from "@/lib/queries";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { WorkspaceSettingsForm } from "./workspace-form";
 
 export default async function WorkspaceSettingsPage() {
@@ -9,12 +10,14 @@ export default async function WorkspaceSettingsPage() {
     const workspace = await getWorkspace(user.workspace_id);
     if (!workspace) redirect("/login");
 
+    const t = await getTranslations("settings");
+
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-lg font-semibold">Workspace</h2>
+                <h2 className="text-lg font-semibold">{t("workspaceTitle")}</h2>
                 <p className="text-sm text-muted-foreground">
-                    Manage your workspace settings and preferences
+                    {t("workspaceSubtitle")}
                 </p>
             </div>
             <WorkspaceSettingsForm workspace={workspace} userId={user.id} />

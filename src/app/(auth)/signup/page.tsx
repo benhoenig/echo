@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { signup, signInWithGoogle } from "../actions";
 
 export default function SignupPage() {
+    const t = useTranslations("auth");
+    const tc = useTranslations("common");
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
@@ -19,7 +22,7 @@ export default function SignupPage() {
         // Client-side validation
         const password = formData.get("password") as string;
         if (password.length < 6) {
-            setError("Password must be at least 6 characters.");
+            setError(t("passwordTooShort"));
             return;
         }
 
@@ -44,8 +47,8 @@ export default function SignupPage() {
     return (
         <Card className="shadow-lg">
             <CardHeader className="text-center">
-                <CardTitle className="text-xl">Create your account</CardTitle>
-                <CardDescription>Start your ECHO workspace in seconds</CardDescription>
+                <CardTitle className="text-xl">{t("createAccount")}</CardTitle>
+                <CardDescription>{t("startWorkspace")}</CardDescription>
             </CardHeader>
             <CardContent>
                 {error && (
@@ -56,7 +59,7 @@ export default function SignupPage() {
                 <form action={handleSignup} className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
-                            <Label htmlFor="firstName">First name</Label>
+                            <Label htmlFor="firstName">{t("firstName")}</Label>
                             <Input
                                 id="firstName"
                                 name="firstName"
@@ -66,7 +69,7 @@ export default function SignupPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="lastName">Last name</Label>
+                            <Label htmlFor="lastName">{t("lastName")}</Label>
                             <Input
                                 id="lastName"
                                 name="lastName"
@@ -77,7 +80,7 @@ export default function SignupPage() {
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t("email")}</Label>
                         <Input
                             id="email"
                             name="email"
@@ -88,26 +91,26 @@ export default function SignupPage() {
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">{t("password")}</Label>
                         <Input
                             id="password"
                             name="password"
                             type="password"
-                            placeholder="Minimum 6 characters"
+                            placeholder={t("passwordMinLength")}
                             required
                             minLength={6}
                             disabled={isPending}
                         />
                     </div>
                     <Button type="submit" className="w-full" disabled={isPending}>
-                        {isPending ? "Creating account..." : "Create account"}
+                        {isPending ? t("creatingAccount") : t("createAccount")}
                     </Button>
                 </form>
 
                 <div className="relative my-4">
                     <Separator />
                     <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                        or
+                        {tc("or")}
                     </span>
                 </div>
 
@@ -135,16 +138,16 @@ export default function SignupPage() {
                             fill="#EA4335"
                         />
                     </svg>
-                    Continue with Google
+                    {t("continueWithGoogle")}
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground mt-4">
-                    Already have an account?{" "}
+                    {t("alreadyHaveAccount")}{" "}
                     <Link
                         href="/login"
                         className="text-orange-600 hover:text-orange-700 font-medium"
                     >
-                        Sign in
+                        {t("signIn")}
                     </Link>
                 </p>
             </CardContent>

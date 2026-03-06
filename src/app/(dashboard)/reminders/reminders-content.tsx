@@ -34,6 +34,7 @@ import {
 } from "@/lib/reminder-engine";
 import { getOverdueItems, type OverdueItem } from "./reminders-actions";
 import { markAsActioned } from "../reminder-actions";
+import { useTranslations } from "next-intl";
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
@@ -59,6 +60,7 @@ function UrgencyIcon({ urgency, className }: { urgency: Urgency; className?: str
 // ─── Stats bar ──────────────────────────────────────────────────────────────
 
 function StatsBar({ items }: { items: OverdueItem[] }) {
+    const t = useTranslations("reminders");
     const overdue = items.filter((i) => i.urgency === "overdue").length;
     const due = items.filter((i) => i.urgency === "due").length;
     const approaching = items.filter((i) => i.urgency === "approaching").length;
@@ -68,21 +70,21 @@ function StatsBar({ items }: { items: OverdueItem[] }) {
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-red-600 dark:text-red-400 mb-1">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm font-medium">Overdue</span>
+                    <span className="text-sm font-medium">{t("overdue")}</span>
                 </div>
                 <p className="text-2xl font-bold text-red-700 dark:text-red-300">{overdue}</p>
             </div>
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-1">
                     <AlertTriangle className="w-4 h-4" />
-                    <span className="text-sm font-medium">Due Today</span>
+                    <span className="text-sm font-medium">{t("dueToday")}</span>
                 </div>
                 <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">{due}</p>
             </div>
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 mb-1">
                     <Clock className="w-4 h-4" />
-                    <span className="text-sm font-medium">Approaching</span>
+                    <span className="text-sm font-medium">{t("approaching")}</span>
                 </div>
                 <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{approaching}</p>
             </div>
@@ -101,6 +103,7 @@ function ReminderItemRow({
     workspaceId: string;
     onActioned: () => void;
 }) {
+    const t = useTranslations("reminders");
     const [isPending, startTransition] = useTransition();
     const [showNote, setShowNote] = useState(false);
     const [note, setNote] = useState("");
@@ -173,7 +176,7 @@ function ReminderItemRow({
                             ) : (
                                 <Building2 className="w-3 h-3 mr-0.5 inline" />
                             )}
-                            {item.entityType === "DEAL" ? "Deal" : "Listing"}
+                            {item.entityType === "DEAL" ? t("deal") : t("listing")}
                         </Badge>
 
                         {/* Tier badge */}
@@ -192,7 +195,7 @@ function ReminderItemRow({
                                 variant="outline"
                                 className="text-[10px] px-1.5 py-0 shrink-0 border-stone-300 dark:border-stone-600"
                             >
-                                {item.dealType === "SELL_SIDE" ? "Seller" : "Buyer"}
+                                {item.dealType === "SELL_SIDE" ? t("seller") : t("buyer")}
                             </Badge>
                         )}
                     </div>
@@ -203,9 +206,9 @@ function ReminderItemRow({
                             {getUrgencyLabel(reminderStatus)}
                         </span>
                         <span>•</span>
-                        <span>{item.daysSinceLastAction}d since last action</span>
+                        <span>{t("daysSinceAction", { days: item.daysSinceLastAction })}</span>
                         <span>•</span>
-                        <span>Every {item.intervalDays ?? "—"}d</span>
+                        <span>{item.intervalDays != null ? t("everyDays", { days: item.intervalDays }) : "—"}</span>
                         {item.pipelineStageName && (
                             <>
                                 <span>•</span>
@@ -261,7 +264,7 @@ function ReminderItemRow({
                         className="h-7 text-xs text-stone-400 hover:text-stone-600"
                         onClick={() => setShowNote(!showNote)}
                     >
-                        {showNote ? "Hide" : "Note"}
+                        {showNote ? t("hide") : t("note")}
                     </Button>
                     <Button
                         size="sm"
@@ -275,7 +278,7 @@ function ReminderItemRow({
                         ) : (
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                         )}
-                        Done
+                        {t("done")}
                     </Button>
                 </div>
             </div>
@@ -286,6 +289,8 @@ function ReminderItemRow({
 // ─── Main Content ───────────────────────────────────────────────────────────
 
 export function RemindersContent({ workspaceId }: { workspaceId: string }) {
+    const t = useTranslations("reminders");
+    const tc = useTranslations("common");
     const [items, setItems] = useState<OverdueItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [moduleFilter, setModuleFilter] = useState<ModuleFilter>("ALL");
@@ -367,14 +372,14 @@ export function RemindersContent({ workspaceId }: { workspaceId: string }) {
                                 moduleFilter !== "ALL" && "border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/20"
                             )}
                         >
-                            {moduleFilter === "ALL" ? "All Types" : moduleFilter === "DEAL" ? "Deals" : "Listings"}
+                            {moduleFilter === "ALL" ? t("allTypes") : moduleFilter === "DEAL" ? t("deals") : t("listings")}
                             <ChevronDown className="w-3 h-3" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem onClick={() => setModuleFilter("ALL")}>All Types</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setModuleFilter("DEAL")}>Deals</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setModuleFilter("LISTING")}>Listings</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setModuleFilter("ALL")}>{t("allTypes")}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setModuleFilter("DEAL")}>{t("deals")}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setModuleFilter("LISTING")}>{t("listings")}</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -390,20 +395,20 @@ export function RemindersContent({ workspaceId }: { workspaceId: string }) {
                             )}
                         >
                             {urgencyFilter === "ALL"
-                                ? "All Urgency"
+                                ? t("allUrgency")
                                 : urgencyFilter === "overdue"
-                                    ? "Overdue"
+                                    ? t("overdue")
                                     : urgencyFilter === "due"
-                                        ? "Due Today"
-                                        : "Approaching"}
+                                        ? t("dueToday")
+                                        : t("approaching")}
                             <ChevronDown className="w-3 h-3" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem onClick={() => setUrgencyFilter("ALL")}>All Urgency</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setUrgencyFilter("overdue")}>Overdue</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setUrgencyFilter("due")}>Due Today</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setUrgencyFilter("approaching")}>Approaching</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setUrgencyFilter("ALL")}>{t("allUrgency")}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setUrgencyFilter("overdue")}>{t("overdue")}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setUrgencyFilter("due")}>{t("dueToday")}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setUrgencyFilter("approaching")}>{t("approaching")}</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -418,12 +423,12 @@ export function RemindersContent({ workspaceId }: { workspaceId: string }) {
                                 tierFilter !== "ALL" && "border-orange-300 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/20"
                             )}
                         >
-                            {tierFilter === "ALL" ? "All Tiers" : `Tier ${tierFilter}`}
+                            {tierFilter === "ALL" ? t("allTiers") : `Tier ${tierFilter}`}
                             <ChevronDown className="w-3 h-3" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem onClick={() => setTierFilter("ALL")}>All Tiers</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setTierFilter("ALL")}>{t("allTiers")}</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setTierFilter("A")}>Tier A</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setTierFilter("B")}>Tier B</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setTierFilter("C")}>Tier C</DropdownMenuItem>
@@ -442,7 +447,7 @@ export function RemindersContent({ workspaceId }: { workspaceId: string }) {
                             setTierFilter("ALL");
                         }}
                     >
-                        Clear filters
+                        {tc("clearFilters")}
                     </Button>
                 )}
 
@@ -458,12 +463,12 @@ export function RemindersContent({ workspaceId }: { workspaceId: string }) {
                         <ClipboardCheck className="w-8 h-8 text-emerald-500" />
                     </div>
                     <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-1">
-                        All caught up!
+                        {t("allCaughtUp")}
                     </h3>
                     <p className="text-sm text-stone-500 dark:text-stone-400 max-w-sm">
                         {items.length === 0
-                            ? "No deals or listings need follow-up right now. Great job staying on top of things!"
-                            : "No items match the current filters. Try adjusting or clearing your filters."}
+                            ? t("nothingNeedsFollowUp")
+                            : t("noMatchFilters")}
                     </p>
                 </div>
             ) : (

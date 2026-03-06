@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,6 +88,9 @@ export function CreateListingSheet({
     workspaceId,
     userId,
 }: CreateListingSheetProps) {
+    const t = useTranslations("listings");
+    const tc = useTranslations("common");
+    const tlt = useTranslations("listingTypes");
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const contacts = useContacts();
@@ -158,7 +162,7 @@ export function CreateListingSheet({
 
     function handleSave() {
         if (!effectiveName.trim() || !propertyType || !listingType || !sellerContactId) {
-            toast.error("Listing name, property type, listing type, and seller contact are required.");
+            toast.error(t("validationRequired"));
             return;
         }
 
@@ -196,13 +200,13 @@ export function CreateListingSheet({
                     last_updated_at: new Date().toISOString(),
                 });
 
-                toast.success("Listing created.");
+                toast.success(t("listingCreated"));
                 resetForm();
                 onOpenChange(false);
                 router.push(`/listings/${data.id}`);
             } catch (error) {
                 toast.error(
-                    error instanceof Error ? error.message : "Failed to create listing."
+                    error instanceof Error ? error.message : t("failedToCreate")
                 );
             }
         });
@@ -212,9 +216,9 @@ export function CreateListingSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle>New Listing</SheetTitle>
+                    <SheetTitle>{t("newListing")}</SheetTitle>
                     <SheetDescription>
-                        Add a new property listing. Select a project to auto-fill location details.
+                        {t("createDescription")}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -222,11 +226,11 @@ export function CreateListingSheet({
                     {/* Required */}
                     <div className="space-y-3 pb-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Required
+                            {tc("required")}
                         </h4>
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Listing Name <span className="text-red-500">*</span></Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("listingName")} <span className="text-red-500">*</span></Label>
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -236,9 +240,9 @@ export function CreateListingSheet({
                                     className="inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-700 font-medium transition-all duration-150 ease-in-out active:scale-[0.98]"
                                 >
                                     {isManualName ? (
-                                        <><Wand2 className="w-3 h-3" strokeWidth={1.75} />Use auto</>
+                                        <><Wand2 className="w-3 h-3" strokeWidth={1.75} />{t("useAuto")}</>
                                     ) : (
-                                        <><Pencil className="w-3 h-3" strokeWidth={1.75} />Edit manually</>
+                                        <><Pencil className="w-3 h-3" strokeWidth={1.75} />{t("editManually")}</>
                                     )}
                                 </button>
                             </div>
@@ -255,26 +259,26 @@ export function CreateListingSheet({
                                     </span>
                                     <span className="inline-flex items-center gap-1 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded-md font-medium shrink-0 ml-2">
                                         <Wand2 className="w-2.5 h-2.5" strokeWidth={1.75} />
-                                        Auto
+                                        {t("auto")}
                                     </span>
                                 </div>
                             )}
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Property Type <span className="text-red-500">*</span></Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("propertyType")} <span className="text-red-500">*</span></Label>
                                 <PropertyTypeSelect value={propertyType} onValueChange={setPropertyType} />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Listing Type <span className="text-red-500">*</span></Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("listingType")} <span className="text-red-500">*</span></Label>
                                 <Select value={listingType} onValueChange={setListingType}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="SELL">Sell</SelectItem>
-                                        <SelectItem value="RENT">Rent</SelectItem>
-                                        <SelectItem value="SELL_AND_RENT">Sell & Rent</SelectItem>
+                                        <SelectItem value="SELL">{tlt("sell")}</SelectItem>
+                                        <SelectItem value="RENT">{tlt("rent")}</SelectItem>
+                                        <SelectItem value="SELL_AND_RENT">{tlt("sellAndRent")}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -284,17 +288,17 @@ export function CreateListingSheet({
                     {/* Project */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Project
+                            {t("project")}
                         </h4>
                         <div className="space-y-1.5">
-                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Select Project</Label>
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("selectProject")}</Label>
                             <Select value={projectId} onValueChange={handleProjectChange}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="No project (standalone)" />
+                                    <SelectValue placeholder={t("noProjectStandalone")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="__none__" className="text-muted-foreground">
-                                        No project (standalone)
+                                        {t("noProjectStandalone")}
                                     </SelectItem>
                                     {projects.map((p) => (
                                         <SelectItem key={p.id} value={p.id}>
@@ -305,7 +309,7 @@ export function CreateListingSheet({
                             </Select>
                             {projectId && (
                                 <p className="text-xs text-stone-500">
-                                    Zone, BTS, MRT auto-filled from project
+                                    {t("autoFilledFromProject")}
                                 </p>
                             )}
                         </div>
@@ -314,7 +318,7 @@ export function CreateListingSheet({
                     {/* Seller */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Seller Contact <span className="text-red-500">*</span>
+                            {t("sellerContact")} <span className="text-red-500">*</span>
                         </h4>
                         <Select value={sellerContactId} onValueChange={setSellerContactId}>
                             <SelectTrigger>
@@ -335,24 +339,24 @@ export function CreateListingSheet({
                     {/* Location */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Location
+                            {t("location")}
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Zone</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("zone")}</Label>
                                 <Input value={zone} onChange={(e) => setZone(e.target.value)} placeholder="Sukhumvit" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">BTS</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("bts")}</Label>
                                 <Input value={bts} onChange={(e) => setBts(e.target.value)} placeholder="Siam" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">MRT</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("mrt")}</Label>
                                 <Input value={mrt} onChange={(e) => setMrt(e.target.value)} />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Street / Soi</Label>
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("streetSoi")}</Label>
                             <Input value={streetSoi} onChange={(e) => setStreetSoi(e.target.value)} placeholder="ทองหล่อ ซ.22" />
                         </div>
                     </div>
@@ -360,47 +364,47 @@ export function CreateListingSheet({
                     {/* Unit Details */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Unit Details
+                            {t("unitDetails")}
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Unit No</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("unitNo")}</Label>
                                 <Input value={unitNo} onChange={(e) => setUnitNo(e.target.value)} placeholder="2808" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Beds</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("beds")}</Label>
                                 <Input type="number" value={bedrooms} onChange={(e) => setBedrooms(e.target.value)} placeholder="1" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Baths</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("baths")}</Label>
                                 <Input type="number" value={bathrooms} onChange={(e) => setBathrooms(e.target.value)} placeholder="1" />
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Size (sqm)</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("sqm")}</Label>
                                 <Input type="number" value={sizeSqm} onChange={(e) => setSizeSqm(e.target.value)} placeholder="34" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Floor</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("floor")}</Label>
                                 <Input type="number" value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="28" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Building</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("building")}</Label>
                                 <Input value={building} onChange={(e) => setBuilding(e.target.value)} placeholder="A" />
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">View</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("view")}</Label>
                                 <Input value={viewField} onChange={(e) => setViewField(e.target.value)} placeholder="City View" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Direction</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("direction")}</Label>
                                 <Input value={direction} onChange={(e) => setDirection(e.target.value)} placeholder="North" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Condition</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("condition")}</Label>
                                 <Input value={unitCondition} onChange={(e) => setUnitCondition(e.target.value)} placeholder="Furnished" />
                             </div>
                         </div>
@@ -409,24 +413,24 @@ export function CreateListingSheet({
                     {/* Pricing */}
                     <div className="space-y-3 py-4">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Pricing
+                            {t("pricing")}
                         </h4>
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Asking Price (฿)</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("askingPriceFull")}</Label>
                                 <Input type="number" value={askingPrice} onChange={(e) => setAskingPrice(e.target.value)} placeholder="5,200,000" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Rental (฿/mo)</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("rentalPerMonth")}</Label>
                                 <Input type="number" value={rentalPrice} onChange={(e) => setRentalPrice(e.target.value)} placeholder="25,000" />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Commission %</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("commissionPercent")}</Label>
                                 <Input type="number" step="0.5" value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} placeholder="3" />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Price Remark (เงื่อนไขค่าโอนฯ)</Label>
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("priceRemark")}</Label>
                             <Textarea
                                 value={priceRemark}
                                 onChange={(e) => setPriceRemark(e.target.value)}
@@ -439,11 +443,11 @@ export function CreateListingSheet({
 
                 <SheetFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        {tc("cancel")}
                     </Button>
                     <Button onClick={handleSave} disabled={isPending}>
                         {isPending && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
-                        Create Listing
+                        {t("createListing")}
                     </Button>
                 </SheetFooter>
             </SheetContent>

@@ -30,6 +30,7 @@ import {
     AlertCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // ─── Icon map ────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,8 @@ export function SuggestedActionsPanel({
     intervalDays,
     playbooks = [],
 }: SuggestedActionsPanelProps) {
+    const t = useTranslations("reminders");
+    const tc = useTranslations("common");
     const pathname = usePathname();
     const [isPending, startTransition] = useTransition();
     const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
@@ -92,7 +95,7 @@ export function SuggestedActionsPanel({
         startTransition(async () => {
             try {
                 await markAsActioned(entityType, entityId, workspaceId, pathname);
-                toast.success("Marked as actioned — follow-up clock reset");
+                toast.success(t("markedAsActioned"));
             } catch (error) {
                 toast.error(
                     error instanceof Error ? error.message : "Failed to mark as actioned"
@@ -112,7 +115,7 @@ export function SuggestedActionsPanel({
                     <div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                                Follow-Up Status
+                                {t("followUpStatus")}
                             </span>
                             <Badge variant="secondary" className={urgencyStyles.badge}>
                                 {urgencyLabel}
@@ -120,12 +123,12 @@ export function SuggestedActionsPanel({
                         </div>
                         <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
                             {lastActionDate
-                                ? `Last actioned ${status.daysSinceLastAction}d ago`
-                                : "No action recorded yet"}
+                                ? t("lastActioned", { days: status.daysSinceLastAction })
+                                : t("noActionRecorded")}
                             {intervalDays != null && (
                                 <>
                                     {" · "}
-                                    Playbook interval: every {intervalDays}d
+                                    {t("playbookInterval", { days: intervalDays })}
                                 </>
                             )}
                         </p>
@@ -140,7 +143,7 @@ export function SuggestedActionsPanel({
                     className="gap-2"
                 >
                     <CheckCircle2 className="h-4 w-4" strokeWidth={1.75} />
-                    {isPending ? "Saving..." : "Mark as Actioned"}
+                    {isPending ? tc("saving") : t("markAsActioned")}
                 </Button>
             </div>
 
@@ -150,7 +153,7 @@ export function SuggestedActionsPanel({
                     <div className="mb-4 flex items-center gap-2">
                         <ClipboardCheck className="h-4 w-4 text-stone-500" strokeWidth={1.75} />
                         <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-100">
-                            Suggested Actions for This Stage
+                            {t("suggestedActions")}
                         </h4>
                     </div>
 
@@ -185,7 +188,7 @@ export function SuggestedActionsPanel({
                                                     variant="secondary"
                                                     className="bg-orange-100 text-orange-700 text-[10px] px-1.5 py-0 dark:bg-orange-900/30 dark:text-orange-400"
                                                 >
-                                                    Required
+                                                    {tc("required")}
                                                 </Badge>
                                             )}
                                         </div>
@@ -204,8 +207,8 @@ export function SuggestedActionsPanel({
                                                 className="mt-1.5 text-xs text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition-colors"
                                             >
                                                 {isExpanded
-                                                    ? "Hide template"
-                                                    : "View template"}
+                                                    ? t("hideTemplate")
+                                                    : t("viewTemplate")}
                                             </button>
                                         )}
                                         {isExpanded && action.actionTemplate && (
@@ -226,10 +229,10 @@ export function SuggestedActionsPanel({
                 <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50/50 p-5 text-center dark:border-stone-700 dark:bg-stone-900/50">
                     <ClipboardCheck className="mx-auto h-8 w-8 text-stone-300 dark:text-stone-600" strokeWidth={1.75} />
                     <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
-                        No suggested actions configured for this pipeline stage.
+                        {t("noSuggestedActions")}
                     </p>
                     <p className="mt-1 text-xs text-stone-400 dark:text-stone-500">
-                        Configure actions in Settings → Stage Action Playbook.
+                        {t("configureActions")}
                     </p>
                 </div>
             )}

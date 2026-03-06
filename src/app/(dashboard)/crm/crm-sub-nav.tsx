@@ -4,14 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Users, Handshake } from "lucide-react";
-
-const tabs = [
-    { label: "Deals", href: "/crm/deals", icon: Handshake },
-    { label: "Contacts", href: "/crm/contacts", icon: Users },
-];
+import { useTranslations } from "next-intl";
 
 export function CrmSubNav() {
     const pathname = usePathname();
+    const t = useTranslations("crm");
+
+    const tabs = [
+        { label: t("deals"), href: "/crm/deals", icon: Handshake },
+        { label: t("contacts"), href: "/crm/contacts", icon: Users },
+    ];
 
     return (
         <div className="flex items-center gap-1 border-b border-stone-200 dark:border-stone-800 mb-6">

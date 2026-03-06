@@ -15,6 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import { CreateProjectDialog } from "./create-project-dialog";
 import { PROPERTY_TYPES } from "@/components/shared/property-type-select";
+import { useTranslations } from "next-intl";
 
 type ProjectWithZone = {
     id: string;
@@ -55,6 +56,8 @@ function formatPrice(price: number | null) {
 }
 
 export function ProjectsContent({ initialProjects, workspaceId, userId }: ProjectsContentProps) {
+    const t = useTranslations("projects");
+    const tc = useTranslations("common");
     const router = useRouter();
     const [search, setSearch] = useState("");
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -77,17 +80,15 @@ export function ProjectsContent({ initialProjects, workspaceId, userId }: Projec
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">
-                        Projects
+                        {t("title")}
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        {initialProjects.length} project
-                        {initialProjects.length !== 1 ? "s" : ""} in your
-                        database
+                        {t("countInDatabase", { count: initialProjects.length })}
                     </p>
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)}>
                     <Plus className="w-4 h-4 mr-1.5" />
-                    New Project
+                    {t("newProject")}
                 </Button>
             </div>
 
@@ -95,7 +96,7 @@ export function ProjectsContent({ initialProjects, workspaceId, userId }: Projec
             <div className="relative max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                    placeholder="Search projects..."
+                    placeholder={t("searchProjects")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-9"
@@ -112,13 +113,13 @@ export function ProjectsContent({ initialProjects, workspaceId, userId }: Projec
                         />
                         <p className="text-sm font-medium text-foreground mt-4">
                             {search
-                                ? "No projects match your search"
-                                : "No projects yet"}
+                                ? t("noProjectsMatch")
+                                : t("noProjectsYet")}
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">
                             {search
-                                ? "Try a different search term."
-                                : "Add your first project to get started."}
+                                ? tc("tryDifferentSearch")
+                                : t("addFirstProject")}
                         </p>
                         {!search && (
                             <Button
@@ -127,7 +128,7 @@ export function ProjectsContent({ initialProjects, workspaceId, userId }: Projec
                                 onClick={() => setCreateDialogOpen(true)}
                             >
                                 <Plus className="w-4 h-4 mr-1.5" />
-                                New Project
+                                {t("newProject")}
                             </Button>
                         )}
                     </div>
@@ -137,25 +138,25 @@ export function ProjectsContent({ initialProjects, workspaceId, userId }: Projec
                             <thead>
                                 <tr className="border-b border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-800/30">
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                        Project Name
+                                        {t("projectName")}
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                        Type
+                                        {tc("type")}
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                                         Zone
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                        Developer
+                                        {t("developer")}
                                     </th>
                                     <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                        Units
+                                        {t("units")}
                                     </th>
                                     <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                        Avg ฿/sqm
+                                        {t("avgPricePerSqm")}
                                     </th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
-                                        BTS / MRT
+                                        {t("btsMrt")}
                                     </th>
                                 </tr>
                             </thead>

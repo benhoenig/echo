@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { createContact, checkDuplicateContacts } from "./contact-actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslations } from "next-intl";
 
 interface CreateContactSheetProps {
     open: boolean;
@@ -36,27 +37,31 @@ interface CreateContactSheetProps {
 
 const CONTACT_TYPE_OPTIONS = ["Buyer", "Seller", "Both", "Referrer"] as const;
 
-const CONTACT_SOURCE_OPTIONS = [
-    { value: "LINE", label: "LINE" },
-    { value: "WEBSITE", label: "Website" },
-    { value: "REFERRAL", label: "Referral" },
-    { value: "FACEBOOK", label: "Facebook" },
-    { value: "WALK_IN", label: "Walk-in" },
-    { value: "COLD_CALL", label: "Cold Call" },
-] as const;
-
-const CONTACT_STATUS_OPTIONS = [
-    { value: "ACTIVE", label: "Active" },
-    { value: "ON_HOLD", label: "On Hold" },
-    { value: "UNQUALIFIED", label: "Unqualified" },
-] as const;
-
 export function CreateContactSheet({
     open,
     onOpenChange,
     workspaceId,
     userId,
 }: CreateContactSheetProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+    const tf = useTranslations("filters");
+
+    const CONTACT_SOURCE_OPTIONS = [
+        { value: "LINE", label: tf("line") },
+        { value: "WEBSITE", label: tf("website") },
+        { value: "REFERRAL", label: tf("referral") },
+        { value: "FACEBOOK", label: tf("facebook") },
+        { value: "WALK_IN", label: tf("walkIn") },
+        { value: "COLD_CALL", label: tf("coldCall") },
+    ] as const;
+
+    const CONTACT_STATUS_OPTIONS = [
+        { value: "ACTIVE", label: tf("active") },
+        { value: "ON_HOLD", label: tf("onHold") },
+        { value: "UNQUALIFIED", label: tf("unqualified") },
+    ] as const;
+
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -108,18 +113,18 @@ export function CreateContactSheet({
     function toggleContactType(type: string) {
         setContactTypes((prev) =>
             prev.includes(type)
-                ? prev.filter((t) => t !== type)
+                ? prev.filter((tp) => tp !== type)
                 : [...prev, type]
         );
     }
 
     function handleSubmit() {
         if (!firstName.trim() || !lastName.trim()) {
-            toast.error("First name and last name are required.");
+            toast.error(t("nameRequired"));
             return;
         }
         if (contactTypes.length === 0) {
-            toast.error("Please select at least one contact type.");
+            toast.error(t("typeRequired"));
             return;
         }
 
@@ -158,7 +163,7 @@ export function CreateContactSheet({
                     last_updated_at: new Date().toISOString(),
                 });
 
-                toast.success("Contact created.");
+                toast.success(t("contactCreated"));
                 resetForm();
                 onOpenChange(false);
                 router.refresh();
@@ -166,7 +171,7 @@ export function CreateContactSheet({
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to create contact."
+                        : t("failedToCreateContact")
                 );
             }
         });
@@ -176,9 +181,9 @@ export function CreateContactSheet({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent className="overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle>New Contact</SheetTitle>
+                    <SheetTitle>{t("newContact")}</SheetTitle>
                     <SheetDescription>
-                        Add a new contact to your workspace.
+                        {t("addContactDescription")}
                     </SheetDescription>
                 </SheetHeader>
 
@@ -189,8 +194,7 @@ export function CreateContactSheet({
                             <AlertTriangle className="h-4 w-4" />
                             <AlertDescription>
                                 <p className="font-medium mb-1">
-                                    Possible duplicate contact
-                                    {duplicates.length > 1 ? "s" : ""} found:
+                                    {t("duplicateFound")}
                                 </p>
                                 <ul className="text-xs space-y-1">
                                     {duplicates.map((d) => (
@@ -204,8 +208,7 @@ export function CreateContactSheet({
                                     ))}
                                 </ul>
                                 <p className="text-xs mt-2">
-                                    Click &ldquo;Create Anyway&rdquo; to
-                                    proceed.
+                                    {t("duplicateDescription")}
                                 </p>
                             </AlertDescription>
                         </Alert>
@@ -214,7 +217,7 @@ export function CreateContactSheet({
                     {/* Contact Type */}
                     <div className="space-y-2 pb-4 border-b border-stone-100 dark:border-stone-800">
                         <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                            Contact Type *
+                            {t("contactType")}
                         </Label>
                         <div className="flex gap-3">
                             {CONTACT_TYPE_OPTIONS.map((type) => (
@@ -237,12 +240,12 @@ export function CreateContactSheet({
                     {/* Name */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Name
+                            {tc("name")}
                         </h4>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label htmlFor="firstName" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    First Name *
+                                    {t("firstNameRequired")}
                                 </Label>
                                 <Input
                                     id="firstName"
@@ -256,7 +259,7 @@ export function CreateContactSheet({
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor="lastName" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Last Name *
+                                    {t("lastNameRequired")}
                                 </Label>
                                 <Input
                                     id="lastName"
@@ -271,7 +274,7 @@ export function CreateContactSheet({
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="nickname" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Nickname
+                                {t("nickname")}
                             </Label>
                             <Input
                                 id="nickname"
@@ -285,12 +288,12 @@ export function CreateContactSheet({
                     {/* Contact Info */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Contact Info
+                            {t("contactInfo")}
                         </h4>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label htmlFor="phonePrimary" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Phone (Primary)
+                                    {t("phonePrimary")}
                                 </Label>
                                 <Input
                                     id="phonePrimary"
@@ -304,7 +307,7 @@ export function CreateContactSheet({
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor="phoneSecondary" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Phone (Secondary)
+                                    {t("phoneSecondary")}
                                 </Label>
                                 <Input
                                     id="phoneSecondary"
@@ -312,14 +315,14 @@ export function CreateContactSheet({
                                     onChange={(e) =>
                                         setPhoneSecondary(e.target.value)
                                     }
-                                    placeholder="Optional"
+                                    placeholder={tc("optional")}
                                 />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
                                 <Label htmlFor="email" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    Email
+                                    {tc("email")}
                                 </Label>
                                 <Input
                                     id="email"
@@ -334,7 +337,7 @@ export function CreateContactSheet({
                             </div>
                             <div className="space-y-1.5">
                                 <Label htmlFor="lineId" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    LINE ID
+                                    {t("lineId")}
                                 </Label>
                                 <Input
                                     id="lineId"
@@ -346,7 +349,7 @@ export function CreateContactSheet({
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="nationality" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                Nationality
+                                {t("nationality")}
                             </Label>
                             <Input
                                 id="nationality"
@@ -360,17 +363,17 @@ export function CreateContactSheet({
                     {/* Source & Status */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                            Classification
+                            {t("classification")}
                         </h4>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Source</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("source")}</Label>
                                 <Select
                                     value={contactSource}
                                     onValueChange={setContactSource}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select source" />
+                                        <SelectValue placeholder={t("selectSource")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {CONTACT_SOURCE_OPTIONS.map((opt) => (
@@ -385,13 +388,13 @@ export function CreateContactSheet({
                                 </Select>
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">Status</Label>
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{tc("status")}</Label>
                                 <Select
                                     value={contactStatus}
                                     onValueChange={setContactStatus}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select status" />
+                                        <SelectValue placeholder={t("selectStatus")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {CONTACT_STATUS_OPTIONS.map((opt) => (
@@ -411,13 +414,13 @@ export function CreateContactSheet({
                     {/* Notes */}
                     <div className="space-y-1.5 py-4">
                         <Label htmlFor="notes" className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                            Notes
+                            {tc("notes")}
                         </Label>
                         <Textarea
                             id="notes"
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Any additional notes..."
+                            placeholder=""
                             rows={3}
                         />
                     </div>
@@ -431,15 +434,15 @@ export function CreateContactSheet({
                             onOpenChange(false);
                         }}
                     >
-                        Cancel
+                        {tc("cancel")}
                     </Button>
                     <Button onClick={handleSubmit} disabled={isPending}>
                         {isPending && (
                             <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                         )}
                         {duplicates.length > 0
-                            ? "Create Anyway"
-                            : "Create Contact"}
+                            ? t("createAnyway")
+                            : t("createContact")}
                     </Button>
                 </SheetFooter>
             </SheetContent>

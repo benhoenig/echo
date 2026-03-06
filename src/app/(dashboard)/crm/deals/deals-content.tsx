@@ -39,6 +39,7 @@ import { createSavedFilter, deleteSavedFilter } from "./saved-filter-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CrmSubNav } from "../crm-sub-nav";
+import { useTranslations } from "next-intl";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DealRow = any;
@@ -71,13 +72,6 @@ interface DealsContentProps {
     userId: string;
 }
 
-const GROUP_OPTIONS = [
-    { value: "__none__", label: "None" },
-    { value: "deal_status", label: "Status" },
-    { value: "stage_name", label: "Pipeline Stage" },
-    { value: "potential_display", label: "Potential Tier" },
-];
-
 export function DealsContent({
     initialDeals,
     archivedDeals,
@@ -89,6 +83,19 @@ export function DealsContent({
     workspaceId,
     userId,
 }: DealsContentProps) {
+    const t = useTranslations("crm");
+    const tc = useTranslations("common");
+
+    const GROUP_OPTIONS = useMemo(
+        () => [
+            { value: "__none__", label: tc("none") },
+            { value: "deal_status", label: tc("status") },
+            { value: "stage_name", label: t("pipelineStageLabel") },
+            { value: "potential_display", label: t("potentialTier") },
+        ],
+        [t, tc]
+    );
+
     const [search, setSearch] = useState("");
     const [sheetOpen, setSheetOpen] = useState(false);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -162,13 +169,13 @@ export function DealsContent({
         startTransition(async () => {
             try {
                 await restoreDeal(dealId);
-                toast.success("Deal restored.");
+                toast.success(t("dealRestored"));
                 router.refresh();
             } catch (error) {
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to restore deal."
+                        : t("failedToRestoreDeal")
                 );
             }
         });
@@ -179,12 +186,12 @@ export function DealsContent({
         if (config.columnFilters) setColumnFilters(config.columnFilters);
         if (config.dealTypeFilter) setDealTypeFilter(config.dealTypeFilter);
         if (config.grouping) setGrouping(config.grouping);
-        toast.success(`Loaded filter "${filter.filter_name}"`);
+        toast.success(t("loadedFilter", { name: filter.filter_name }));
     }
 
     function handleSaveFilter() {
         if (!newFilterName.trim()) {
-            toast.error("Filter name is required.");
+            toast.error(t("filterNameRequired"));
             return;
         }
 
@@ -200,7 +207,7 @@ export function DealsContent({
                     },
                     newFilterShared
                 );
-                toast.success("Filter saved.");
+                toast.success(t("filterSaved"));
                 setNewFilterName("");
                 setNewFilterShared(false);
                 setSaveFilterOpen(false);
@@ -209,7 +216,7 @@ export function DealsContent({
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to save filter."
+                        : t("failedToSaveFilter")
                 );
             }
         });
@@ -219,13 +226,13 @@ export function DealsContent({
         startTransition(async () => {
             try {
                 await deleteSavedFilter(filterId);
-                toast.success(`Deleted filter "${filterName}"`);
+                toast.success(t("deletedFilter", { name: filterName }));
                 router.refresh();
             } catch (error) {
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to delete filter."
+                        : t("failedToDeleteFilter")
                 );
             }
         });
@@ -243,12 +250,12 @@ export function DealsContent({
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-semibold text-foreground">
-                        {showArchived ? "Archived Deals" : "Deals"}
+                        {showArchived ? t("archivedDeals") : t("deals")}
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         {showArchived
-                            ? `${archivedDeals.length} archived deal${archivedDeals.length !== 1 ? "s" : ""}`
-                            : `${filteredDeals.length} deal${filteredDeals.length !== 1 ? "s" : ""}`}
+                            ? t("archivedDealCount", { count: archivedDeals.length })
+                            : t("dealCount", { count: filteredDeals.length })}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -264,13 +271,13 @@ export function DealsContent({
                                 className="text-xs text-muted-foreground flex items-center gap-1"
                             >
                                 <Archive className="w-3.5 h-3.5" />
-                                Archived
+                                {tc("showArchived")}
                             </Label>
                         </div>
                     )}
                     <Button size="sm" onClick={() => setSheetOpen(true)}>
                         <Plus className="w-4 h-4 mr-1.5" />
-                        New Deal
+                        {t("newDeal")}
                     </Button>
                 </div>
             </div>
@@ -279,9 +286,9 @@ export function DealsContent({
             <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1 w-fit">
                 {(
                     [
-                        { value: "ALL", label: "All Deals" },
-                        { value: "BUY_SIDE", label: "Buy-side" },
-                        { value: "SELL_SIDE", label: "Sell-side" },
+                        { value: "ALL", label: t("allDeals") },
+                        { value: "BUY_SIDE", label: t("buySide") },
+                        { value: "SELL_SIDE", label: t("sellSide") },
                     ] as const
                 ).map((tab) => (
                     <button
@@ -303,7 +310,7 @@ export function DealsContent({
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search deals..."
+                        placeholder={t("searchDeals")}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-9 h-9 text-sm"
@@ -319,7 +326,7 @@ export function DealsContent({
                     >
                         <SelectTrigger className="w-[160px] h-9 text-xs">
                             <Layers className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-                            <SelectValue placeholder="Group by..." />
+                            <SelectValue placeholder={tc("groupBy")} />
                         </SelectTrigger>
                         <SelectContent>
                             {GROUP_OPTIONS.map((opt) => (
@@ -344,7 +351,7 @@ export function DealsContent({
                                     ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground"
                             }`}
-                            title="Kanban view"
+                            title={t("kanbanView")}
                         >
                             <LayoutGrid className="w-4 h-4" />
                         </button>
@@ -355,7 +362,7 @@ export function DealsContent({
                                     ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
                                     : "text-muted-foreground hover:text-foreground"
                             }`}
-                            title="Table view"
+                            title={t("tableView")}
                         >
                             <Table2 className="w-4 h-4" />
                         </button>
@@ -384,7 +391,7 @@ export function DealsContent({
                                     className="h-8 text-xs"
                                 >
                                     <Bookmark className="w-3.5 h-3.5 mr-1" />
-                                    Saved
+                                    {t("saved")}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent
@@ -393,7 +400,7 @@ export function DealsContent({
                             >
                                 <div className="space-y-1">
                                     <p className="text-xs font-medium text-muted-foreground px-2 py-1">
-                                        Saved Filters
+                                        {tc("savedFilters")}
                                     </p>
                                     {savedFilters.map(
                                         (sf: SavedFilter) => (
@@ -410,7 +417,7 @@ export function DealsContent({
                                                     {sf.filter_name}
                                                     {sf.is_shared && (
                                                         <span className="text-muted-foreground ml-1">
-                                                            (shared)
+                                                            ({t("shared")})
                                                         </span>
                                                     )}
                                                 </button>
@@ -448,7 +455,7 @@ export function DealsContent({
                                     className="h-8 text-xs"
                                 >
                                     <BookmarkPlus className="w-3.5 h-3.5 mr-1" />
-                                    Save Filter
+                                    {tc("saveFilter")}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent
@@ -457,10 +464,10 @@ export function DealsContent({
                             >
                                 <div className="space-y-3">
                                     <p className="text-xs font-medium">
-                                        Save Current Filter
+                                        {t("saveCurrentFilter")}
                                     </p>
                                     <Input
-                                        placeholder="Filter name..."
+                                        placeholder={tc("filterName")}
                                         value={newFilterName}
                                         onChange={(e) =>
                                             setNewFilterName(e.target.value)
@@ -481,7 +488,7 @@ export function DealsContent({
                                             htmlFor="filter-shared"
                                             className="text-xs text-muted-foreground"
                                         >
-                                            Share with team
+                                            {tc("shareWithTeam")}
                                         </Label>
                                     </div>
                                     <Button
@@ -490,7 +497,7 @@ export function DealsContent({
                                         onClick={handleSaveFilter}
                                         disabled={isPending}
                                     >
-                                        Save
+                                        {tc("save")}
                                     </Button>
                                 </div>
                             </PopoverContent>
@@ -508,13 +515,13 @@ export function DealsContent({
                         </div>
                         <p className="text-sm font-medium text-foreground">
                             {showArchived
-                                ? "No archived deals"
-                                : "No deals yet"}
+                                ? t("noArchivedDeals")
+                                : t("noDealsYet")}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                             {showArchived
-                                ? "Archived deals will appear here."
-                                : "Create your first deal to get started."}
+                                ? t("archivedDealsAppearHere")
+                                : t("createFirstDeal")}
                         </p>
                         {!showArchived && (
                             <Button
@@ -523,7 +530,7 @@ export function DealsContent({
                                 onClick={() => setSheetOpen(true)}
                             >
                                 <Plus className="w-4 h-4 mr-1.5" />
-                                New Deal
+                                {t("newDeal")}
                             </Button>
                         )}
                     </div>
