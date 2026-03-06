@@ -62,9 +62,7 @@ export function CreateDealSheet({
     const router = useRouter();
 
     const [dealName, setDealName] = useState("");
-    const [dealType, setDealType] = useState<"BUY_SIDE" | "SELL_SIDE">("BUY_SIDE");
     const [buyerContactId, setBuyerContactId] = useState("");
-    const [sellerContactId, setSellerContactId] = useState("");
     const [listingId, setListingId] = useState("");
     const [assignedToId, setAssignedToId] = useState("");
     const [leadSource, setLeadSource] = useState("");
@@ -72,15 +70,10 @@ export function CreateDealSheet({
     const [commissionRate, setCommissionRate] = useState("");
     const [notes, setNotes] = useState("");
 
-    // Get the default stage for the selected deal type
+    // Get the default stage for buy-side deals
     const relevantStages = useMemo(
-        () =>
-            pipelineStages.filter((s) =>
-                dealType === "BUY_SIDE"
-                    ? s.pipelineType === "BUYER"
-                    : s.pipelineType === "SELLER"
-            ),
-        [pipelineStages, dealType]
+        () => pipelineStages.filter((s) => s.pipelineType === "BUYER"),
+        [pipelineStages]
     );
 
     const defaultStage = relevantStages.find((s) => s.isDefault) ?? relevantStages[0];
@@ -89,23 +82,15 @@ export function CreateDealSheet({
 
     // Auto-generate deal name
     const autoName = useMemo(() => {
-        const contactId =
-            dealType === "BUY_SIDE" ? buyerContactId : sellerContactId;
-        const contact = contacts.find((c) => c.id === contactId);
+        const contact = contacts.find((c) => c.id === buyerContactId);
         const listing = listings.find((l) => l.id === listingId);
-        const parts = [
-            contact?.name,
-            listing?.name,
-            dealType === "BUY_SIDE" ? t("buy") : t("sell"),
-        ].filter(Boolean);
+        const parts = [contact?.name, listing?.name, t("buy")].filter(Boolean);
         return parts.join(" — ");
-    }, [dealType, buyerContactId, sellerContactId, listingId, contacts, listings, t]);
+    }, [buyerContactId, listingId, contacts, listings, t]);
 
     function resetForm() {
         setDealName("");
-        setDealType("BUY_SIDE");
         setBuyerContactId("");
-        setSellerContactId("");
         setListingId("");
         setAssignedToId("");
         setLeadSource("");
@@ -137,9 +122,8 @@ export function CreateDealSheet({
 
                 await createDeal(workspaceId, {
                     deal_name: finalName,
-                    deal_type: dealType,
+                    deal_type: "BUY_SIDE",
                     buyer_contact_id: buyerContactId || null,
-                    seller_contact_id: sellerContactId || null,
                     listing_id: listingId || null,
                     pipeline_stage_id: stageId,
                     deal_status: "ACTIVE",
@@ -176,83 +160,31 @@ export function CreateDealSheet({
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto px-6 py-4">
-                    {/* Deal Type */}
-                    <div className="space-y-1.5 pb-4 border-b border-stone-100 dark:border-stone-800">
-                        <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">{t("dealType")}</Label>
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setDealType("BUY_SIDE")}
-                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-all duration-150 ease-in-out active:scale-[0.98] ${
-                                    dealType === "BUY_SIDE"
-                                        ? "border-orange-500 bg-orange-500/10 text-orange-600"
-                                        : "border-stone-200 dark:border-stone-700 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800"
-                                }`}
-                            >
-                                {t("buySide")}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setDealType("SELL_SIDE")}
-                                className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-all duration-150 ease-in-out active:scale-[0.98] ${
-                                    dealType === "SELL_SIDE"
-                                        ? "border-orange-500 bg-orange-500/10 text-orange-600"
-                                        : "border-stone-200 dark:border-stone-700 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800"
-                                }`}
-                            >
-                                {t("sellSide")}
-                            </button>
-                        </div>
-                    </div>
-
                     {/* Contact & Listing */}
                     <div className="space-y-3 py-4 border-b border-stone-100 dark:border-stone-800">
                         <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
                             {t("contactAndListing")}
                         </h4>
-                        {dealType === "BUY_SIDE" ? (
-                            <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    {t("buyerContact")}
-                                </Label>
-                                <Select
-                                    value={buyerContactId}
-                                    onValueChange={setBuyerContactId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={t("selectBuyer")} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {contacts.map((c) => (
-                                            <SelectItem key={c.id} value={c.id}>
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        ) : (
-                            <div className="space-y-1.5">
-                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                                    {t("sellerContact")}
-                                </Label>
-                                <Select
-                                    value={sellerContactId}
-                                    onValueChange={setSellerContactId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={t("selectSeller")} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {contacts.map((c) => (
-                                            <SelectItem key={c.id} value={c.id}>
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
+                        <div className="space-y-1.5">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
+                                {t("buyerContact")}
+                            </Label>
+                            <Select
+                                value={buyerContactId}
+                                onValueChange={setBuyerContactId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={t("selectBuyer")} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {contacts.map((c) => (
+                                        <SelectItem key={c.id} value={c.id}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
                         {/* Listing */}
                         <div className="space-y-1.5">

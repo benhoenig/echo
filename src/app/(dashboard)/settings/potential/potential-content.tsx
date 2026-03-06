@@ -32,16 +32,14 @@ export function PotentialContent({
     const MODULE_LABELS: Record<string, string> = {
         LISTINGS: t("listings"),
         BUYER_CRM: t("buyerCrm"),
-        SELLER_CRM: t("sellerCrm"),
     };
 
     const MODULE_TIER_LABELS: Record<string, string> = {
         LISTINGS: t("listingsTiers"),
         BUYER_CRM: t("buyerCrmTiers"),
-        SELLER_CRM: t("sellerCrmTiers"),
     };
 
-    const modules = ["LISTINGS", "BUYER_CRM", "SELLER_CRM"];
+    const modules = ["LISTINGS", "BUYER_CRM"];
 
     const handleSave = (formData: FormData) => {
         setError(null);

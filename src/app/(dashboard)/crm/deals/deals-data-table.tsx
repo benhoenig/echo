@@ -429,7 +429,6 @@ function StageSelectCell({
 
     const relevantStages = pipelineStages.filter((s) => {
         if (dealType === "BUY_SIDE") return s.pipelineType === "BUYER";
-        if (dealType === "SELL_SIDE") return s.pipelineType === "SELLER";
         return true;
     });
 
@@ -545,30 +544,12 @@ export function DealsDataTable({
                 enableHiding: false,
             },
             {
-                accessorKey: "deal_type",
-                header: tc("type"),
-                cell: ({ row }) => (
-                    <Badge
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                    >
-                        {row.original.deal_type === "BUY_SIDE"
-                            ? t("buy")
-                            : t("sell")}
-                    </Badge>
-                ),
-            },
-            {
                 id: "contact_name",
                 header: t("contact"),
                 cell: ({ row }) => {
-                    const buyer = row.original.buyer_contact;
-                    const seller = row.original.seller_contact;
-                    const contact =
-                        row.original.deal_type === "BUY_SIDE" ? buyer : seller;
                     return (
                         <span className="text-sm">
-                            {getContactName(contact)}
+                            {getContactName(row.original.buyer_contact)}
                         </span>
                     );
                 },

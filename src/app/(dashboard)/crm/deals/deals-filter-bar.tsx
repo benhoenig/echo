@@ -29,7 +29,6 @@ interface DealsFilterBarProps {
     columnFilters: ColumnFiltersState;
     onColumnFiltersChange: (filters: ColumnFiltersState) => void;
     pipelineStages: PipelineStage[];
-    dealTypeFilter: string;
 }
 
 function getFilterValue(
@@ -62,17 +61,12 @@ export function DealsFilterBar({
     columnFilters,
     onColumnFiltersChange,
     pipelineStages,
-    dealTypeFilter,
 }: DealsFilterBarProps) {
     const tf = useTranslations("filters");
     const hasFilters = columnFilters.length > 0;
 
-    // Filter stages by current deal type tab
-    const relevantStages = pipelineStages.filter((s) => {
-        if (dealTypeFilter === "BUY_SIDE") return s.pipelineType === "BUYER";
-        if (dealTypeFilter === "SELL_SIDE") return s.pipelineType === "SELLER";
-        return true;
-    });
+    // Only buyer stages exist
+    const relevantStages = pipelineStages.filter((s) => s.pipelineType === "BUYER");
 
     return (
         <div className="flex items-center gap-2 flex-wrap">

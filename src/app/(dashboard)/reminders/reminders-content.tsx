@@ -189,15 +189,6 @@ function ReminderItemRow({
                             </Badge>
                         )}
 
-                        {/* Deal type */}
-                        {item.dealType && (
-                            <Badge
-                                variant="outline"
-                                className="text-[10px] px-1.5 py-0 shrink-0 border-stone-300 dark:border-stone-600"
-                            >
-                                {item.dealType === "SELL_SIDE" ? t("seller") : t("buyer")}
-                            </Badge>
-                        )}
                     </div>
 
                     {/* Details line */}

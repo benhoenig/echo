@@ -37,7 +37,6 @@ interface PipelineStage {
 interface DealsKanbanBoardProps {
     deals: DealRow[];
     pipelineStages: PipelineStage[];
-    dealTypeFilter: "ALL" | "BUY_SIDE" | "SELL_SIDE";
     onCardClick?: (deal: DealRow) => void;
 }
 
@@ -90,11 +89,7 @@ function KanbanDealCard({ deal, onCardClick }: { deal: DealRow; onCardClick?: (d
           }
         : {};
 
-    const contact =
-        deal.deal_type === "BUY_SIDE"
-            ? deal.buyer_contact
-            : deal.seller_contact;
-    const contactName = getContactName(contact);
+    const contactName = getContactName(deal.buyer_contact);
     const assignedName = deal.assigned_user
         ? [deal.assigned_user.first_name, deal.assigned_user.last_name]
               .filter(Boolean)
@@ -167,11 +162,7 @@ function DragOverlayCard({ deal }: { deal: DealRow | undefined }) {
     const t = useTranslations("crm");
     if (!deal) return null;
 
-    const contact =
-        deal.deal_type === "BUY_SIDE"
-            ? deal.buyer_contact
-            : deal.seller_contact;
-    const contactName = getContactName(contact);
+    const contactName = getContactName(deal.buyer_contact);
 
     return (
         <div className="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 p-3 shadow-xl rotate-2 w-[264px]">
@@ -284,7 +275,6 @@ function KanbanColumn({
 export function DealsKanbanBoard({
     deals,
     pipelineStages,
-    dealTypeFilter,
     onCardClick,
 }: DealsKanbanBoardProps) {
     const t = useTranslations("crm");
@@ -301,16 +291,10 @@ export function DealsKanbanBoard({
         useSensor(KeyboardSensor)
     );
 
-    // Filter stages by deal type
+    // Filter to buyer stages only
     const relevantStages = useMemo(() => {
-        return pipelineStages.filter((s: PipelineStage) => {
-            if (dealTypeFilter === "BUY_SIDE")
-                return s.pipelineType === "BUYER";
-            if (dealTypeFilter === "SELL_SIDE")
-                return s.pipelineType === "SELLER";
-            return true;
-        });
-    }, [pipelineStages, dealTypeFilter]);
+        return pipelineStages.filter((s: PipelineStage) => s.pipelineType === "BUYER");
+    }, [pipelineStages]);
 
     // Group deals by stage, accounting for optimistic moves
     const dealsByStage = useMemo(() => {

@@ -24,7 +24,6 @@ export async function getDeals(workspaceId: string) {
             `*,
             pipeline_stages!deals_pipeline_stage_id_fkey(id, pipeline_stage_name, stage_color, pipeline_type, stage_order),
             buyer_contact:contacts!deals_buyer_contact_id_fkey(id, first_name, last_name, nickname),
-            seller_contact:contacts!deals_seller_contact_id_fkey(id, first_name, last_name, nickname),
             listing:listings!deals_listing_id_fkey(id, listing_name),
             assigned_user:users!deals_assigned_to_id_fkey(first_name, last_name)`
         )
@@ -44,7 +43,6 @@ export async function getArchivedDeals(workspaceId: string) {
             `*,
             pipeline_stages!deals_pipeline_stage_id_fkey(id, pipeline_stage_name, stage_color, pipeline_type),
             buyer_contact:contacts!deals_buyer_contact_id_fkey(id, first_name, last_name, nickname),
-            seller_contact:contacts!deals_seller_contact_id_fkey(id, first_name, last_name, nickname),
             assigned_user:users!deals_assigned_to_id_fkey(first_name, last_name)`
         )
         .eq("workspace_id", workspaceId)
@@ -63,7 +61,6 @@ export async function getDeal(id: string) {
             `*,
             pipeline_stages!deals_pipeline_stage_id_fkey(id, pipeline_stage_name, stage_color, pipeline_type, stage_order),
             buyer_contact:contacts!deals_buyer_contact_id_fkey(id, first_name, last_name, nickname, phone_primary, email),
-            seller_contact:contacts!deals_seller_contact_id_fkey(id, first_name, last_name, nickname, phone_primary, email),
             listing:listings!deals_listing_id_fkey(id, listing_name),
             assigned_user:users!deals_assigned_to_id_fkey(id, first_name, last_name)`
         )

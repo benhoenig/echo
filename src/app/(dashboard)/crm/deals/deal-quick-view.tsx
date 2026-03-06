@@ -221,9 +221,7 @@ export function DealQuickView({
 
     if (!deal) return null;
 
-    const isBuySide = deal.deal_type === "BUY_SIDE";
     const buyerContact = deal.buyer_contact;
-    const sellerContact = deal.seller_contact;
     const assignedName = deal.assigned_user
         ? [deal.assigned_user.first_name, deal.assigned_user.last_name]
               .filter(Boolean)
@@ -241,7 +239,7 @@ export function DealQuickView({
         toast.success(tc("linkCopied"));
     };
 
-    const tabCount = isBuySide ? 3 : 2;
+    const tabCount = 3;
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -254,13 +252,6 @@ export function DealQuickView({
                                 {deal.deal_name || t("untitledDeal")}
                             </SheetTitle>
                             <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                {/* Deal Type */}
-                                <Badge
-                                    variant="outline"
-                                    className="text-xs font-medium"
-                                >
-                                    {isBuySide ? t("buySide") : t("sellSide")}
-                                </Badge>
                                 {/* Pipeline Stage */}
                                 <Badge
                                     variant="secondary"
@@ -337,13 +328,13 @@ export function DealQuickView({
                         defaultValue="overview"
                         className="w-full"
                         onValueChange={(v) => {
-                            if (v === "requirements" && isBuySide) {
+                            if (v === "requirements") {
                                 loadRequirements();
                             }
                         }}
                     >
                         <TabsList
-                            className={`grid w-full mb-6 ${tabCount === 3 ? "grid-cols-3" : "grid-cols-2"}`}
+                            className="grid w-full mb-6 grid-cols-3"
                         >
                             <TabsTrigger value="overview" className="gap-2">
                                 <Info className="w-4 h-4" />
@@ -351,17 +342,15 @@ export function DealQuickView({
                                     {tc("overview")}
                                 </span>
                             </TabsTrigger>
-                            {isBuySide && (
-                                <TabsTrigger
-                                    value="requirements"
-                                    className="gap-2"
-                                >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    <span className="hidden sm:inline">
-                                        {t("requirements")}
-                                    </span>
-                                </TabsTrigger>
-                            )}
+                            <TabsTrigger
+                                value="requirements"
+                                className="gap-2"
+                            >
+                                <ShoppingCart className="w-4 h-4" />
+                                <span className="hidden sm:inline">
+                                    {t("requirements")}
+                                </span>
+                            </TabsTrigger>
                             <TabsTrigger value="activity" className="gap-2">
                                 <MessageSquare className="w-4 h-4" />
                                 <span className="hidden sm:inline">
@@ -421,21 +410,13 @@ export function DealQuickView({
                                 </div>
                             </div>
 
-                            {/* Contact Cards */}
-                            <div className="grid grid-cols-2 gap-4">
-                                {buyerContact && (
-                                    <ContactCard
-                                        label={t("buyer")}
-                                        contact={buyerContact}
-                                    />
-                                )}
-                                {sellerContact && (
-                                    <ContactCard
-                                        label={t("seller")}
-                                        contact={sellerContact}
-                                    />
-                                )}
-                            </div>
+                            {/* Contact Card */}
+                            {buyerContact && (
+                                <ContactCard
+                                    label={t("buyer")}
+                                    contact={buyerContact}
+                                />
+                            )}
 
                             {/* Linked Listing */}
                             {deal.listing && (
@@ -472,30 +453,28 @@ export function DealQuickView({
                             )}
                         </TabsContent>
 
-                        {/* ── Requirements Tab (BUY_SIDE only) ──── */}
-                        {isBuySide && (
-                            <TabsContent
-                                value="requirements"
-                                className="space-y-4 min-h-[400px]"
-                            >
-                                {isLoadingRequirements ? (
-                                    <div className="py-12 flex justify-center text-muted-foreground text-sm">
-                                        {t("loadingRequirements")}
-                                    </div>
-                                ) : buyerRequirements ? (
-                                    <RequirementsDisplay
-                                        req={buyerRequirements}
-                                        timelineLabels={TIMELINE_LABELS}
-                                        purposeLabels={PURPOSE_LABELS}
-                                        financingLabels={FINANCING_LABELS}
-                                    />
-                                ) : (
-                                    <div className="py-12 text-center text-sm text-muted-foreground">
-                                        {t("noRequirementsSet")}
-                                    </div>
-                                )}
-                            </TabsContent>
-                        )}
+                        {/* ── Requirements Tab ──────────────────── */}
+                        <TabsContent
+                            value="requirements"
+                            className="space-y-4 min-h-[400px]"
+                        >
+                            {isLoadingRequirements ? (
+                                <div className="py-12 flex justify-center text-muted-foreground text-sm">
+                                    {t("loadingRequirements")}
+                                </div>
+                            ) : buyerRequirements ? (
+                                <RequirementsDisplay
+                                    req={buyerRequirements}
+                                    timelineLabels={TIMELINE_LABELS}
+                                    purposeLabels={PURPOSE_LABELS}
+                                    financingLabels={FINANCING_LABELS}
+                                />
+                            ) : (
+                                <div className="py-12 text-center text-sm text-muted-foreground">
+                                    {t("noRequirementsSet")}
+                                </div>
+                            )}
+                        </TabsContent>
 
                         {/* ── Activity Tab ────────────────────────── */}
                         <TabsContent

@@ -83,16 +83,7 @@ async function main() {
         { id: '44444444-4444-4444-8444-666666666666', workspaceId: bkkRealty.id, name: 'Closed', displayOrder: 6, type: PipelineType.BUYER, color: '#10b981', createdById: users[0].id, updatedById: users[0].id }
     ]
 
-    // 5. Seller Pipeline Stages
-    const sellerStages = [
-        { id: '55555555-5555-4555-8555-111111111111', workspaceId: bkkRealty.id, name: 'Listing Received', displayOrder: 1, type: PipelineType.SELLER, color: '#3b82f6', createdById: users[0].id, updatedById: users[0].id },
-        { id: '55555555-5555-4555-8555-222222222222', workspaceId: bkkRealty.id, name: 'Pricing', displayOrder: 2, type: PipelineType.SELLER, color: '#8b5cf6', createdById: users[0].id, updatedById: users[0].id },
-        { id: '55555555-5555-4555-8555-333333333333', workspaceId: bkkRealty.id, name: 'Active', displayOrder: 3, type: PipelineType.SELLER, color: '#10b981', createdById: users[0].id, updatedById: users[0].id },
-        { id: '55555555-5555-4555-8555-444444444444', workspaceId: bkkRealty.id, name: 'Offer Received', displayOrder: 4, type: PipelineType.SELLER, color: '#f59e0b', createdById: users[0].id, updatedById: users[0].id },
-        { id: '55555555-5555-4555-8555-555555555555', workspaceId: bkkRealty.id, name: 'Closed', displayOrder: 5, type: PipelineType.SELLER, color: '#84cc16', createdById: users[0].id, updatedById: users[0].id }
-    ]
-
-    for (const stage of [...buyerStages, ...sellerStages]) {
+    for (const stage of buyerStages) {
         await prisma.pipelineStage.upsert({
             where: { id: stage.id },
             update: {},
@@ -138,16 +129,11 @@ async function main() {
     // 7. Stage Action Playbooks
     const playbooks = [
         { id: '77777777-7777-4777-8777-111111111111', workspaceId: bkkRealty.id, pipelineStageId: buyerStages[0].id, actionType: PlaybookActionType.LINE_MESSAGE, label: 'Welcome Message', description: 'Send initial introduction and ask for preferences.', messageTemplate: 'Hi! I am Somchai from BKK Realty. I noticed your interest. Could you share more about what you are looking for?', reminderOverrideDays: 1, isRequired: true, createdById: users[0].id, updatedById: users[0].id },
-        { id: '77777777-7777-4777-8777-222222222222', workspaceId: bkkRealty.id, pipelineStageId: buyerStages[2].id, actionType: PlaybookActionType.CUSTOM, label: 'Follow up on sent units', description: 'Ask if they liked the units you sent.', messageTemplate: 'Hi, just checking if you had a chance to look at the properties I sent over?', reminderOverrideDays: 3, isRequired: false, createdById: users[0].id, updatedById: users[0].id },
-        { id: '77777777-7777-4777-8777-333333333333', workspaceId: bkkRealty.id, pipelineStageId: sellerStages[0].id, actionType: PlaybookActionType.SEND_CONTRACT, label: 'Send Owner Agreement', description: 'Send the exclusive agreement or listing agreement to the owner.', messageTemplate: 'Please find attached the listing agreement.', reminderOverrideDays: 1, isRequired: true, createdById: users[0].id, updatedById: users[0].id },
-        { id: '77777777-7777-4777-8777-444444444444', workspaceId: bkkRealty.id, pipelineStageId: sellerStages[2].id, actionType: PlaybookActionType.SEND_REPORT, label: 'Monthly Status Update', description: 'Inform owner of traffic and inquiries for their listing.', messageTemplate: 'Here is the monthly activity report for your property.', reminderOverrideDays: 30, isRequired: false, createdById: users[0].id, updatedById: users[0].id }
+        { id: '77777777-7777-4777-8777-222222222222', workspaceId: bkkRealty.id, pipelineStageId: buyerStages[2].id, actionType: PlaybookActionType.CUSTOM, label: 'Follow up on sent units', description: 'Ask if they liked the units you sent.', messageTemplate: 'Hi, just checking if you had a chance to look at the properties I sent over?', reminderOverrideDays: 3, isRequired: false, createdById: users[0].id, updatedById: users[0].id }
     ]
 
     let playbookOrder = 1;
     for (const pb of playbooks) {
-        // Determine pipeline type based on the array
-        const isBuyerStage = pb.pipelineStageId === buyerStages[0].id || pb.pipelineStageId === buyerStages[2].id;
-
         await prisma.stageActionPlaybook.upsert({
             where: { id: pb.id },
             update: {},
@@ -156,7 +142,7 @@ async function main() {
                 workspaceId: pb.workspaceId,
                 module: 'DEALS',
                 pipelineStageId: pb.pipelineStageId,
-                dealType: isBuyerStage ? 'BUY_SIDE' : 'SELL_SIDE',
+                dealType: 'BUY_SIDE',
                 actionType: pb.actionType,
                 actionLabel: pb.label,
                 actionDescription: pb.description,
@@ -682,97 +668,6 @@ async function main() {
             preApprovalExpiryDate: null as Date | null,
         },
 
-        // Sell-side deals
-        {
-            id: 'dddddddd-dddd-4ddd-8ddd-666666666666',
-            workspaceId: bkkRealty.id,
-            dealName: 'Prawit — Ideo Q Siam 1BR — Sell',
-            dealType: DealType.SELL_SIDE,
-            sellerContactId: contacts[0].id,
-            listingId: listings[0].id, // Ideo Q Siam 1BR High Floor
-            pipelineStageId: sellerStages[2].id, // Active
-            dealStatus: DealStatus.ACTIVE,
-            potentialTier: PotentialTierValue.B,
-            leadSource: ContactSource.WALK_IN,
-            estimatedDealValue: 5200000,
-            commissionRate: 3,
-            estimatedCommission: 156000,
-            assignedToId: users[0].id,
-            createdById: users[0].id,
-            notes: 'Owner wants to sell quickly. Willing to negotiate on price.',
-        },
-        {
-            id: 'dddddddd-dddd-4ddd-8ddd-777777777777',
-            workspaceId: bkkRealty.id,
-            dealName: 'Kannika — Noble Revo Studio — Sell',
-            dealType: DealType.SELL_SIDE,
-            sellerContactId: contacts[1].id,
-            listingId: listings[5].id, // Noble Revo Studio
-            pipelineStageId: sellerStages[1].id, // Pricing
-            dealStatus: DealStatus.ACTIVE,
-            potentialTier: PotentialTierValue.C,
-            leadSource: ContactSource.REFERRAL,
-            estimatedDealValue: 3500000,
-            commissionRate: 3,
-            estimatedCommission: 105000,
-            assignedToId: users[1].id,
-            createdById: users[0].id,
-            notes: 'Inherited unit. Needs guidance on pricing. Bare shell condition.',
-        },
-        {
-            id: 'dddddddd-dddd-4ddd-8ddd-888888888888',
-            workspaceId: bkkRealty.id,
-            dealName: 'David Chen — Ashton Asoke 2BR — Sell',
-            dealType: DealType.SELL_SIDE,
-            sellerContactId: contacts[4].id,
-            listingId: listings[3].id, // Ashton Asoke 2BR Park View
-            pipelineStageId: sellerStages[3].id, // Offer Received
-            dealStatus: DealStatus.ACTIVE,
-            potentialTier: PotentialTierValue.A,
-            leadSource: ContactSource.WEBSITE,
-            estimatedDealValue: 15500000,
-            commissionRate: 3,
-            estimatedCommission: 465000,
-            assignedToId: users[0].id,
-            createdById: users[0].id,
-            notes: 'Relocating back to Taiwan. Has received an offer from Sarah Miller. In negotiation.',
-        },
-        {
-            id: 'dddddddd-dddd-4ddd-8ddd-999999999999',
-            workspaceId: bkkRealty.id,
-            dealName: 'Tanawat — Noble Revo 1BR — Sell',
-            dealType: DealType.SELL_SIDE,
-            sellerContactId: contacts[2].id,
-            listingId: listings[6].id, // Noble Revo 1BR (SOLD)
-            pipelineStageId: sellerStages[4].id, // Closed
-            dealStatus: DealStatus.CLOSED_WON,
-            potentialTier: PotentialTierValue.A,
-            leadSource: ContactSource.LINE,
-            estimatedDealValue: 4800000,
-            commissionRate: 3,
-            estimatedCommission: 144000,
-            assignedToId: users[1].id,
-            createdById: users[0].id,
-            notes: 'Successfully sold. Commission collected.',
-        },
-        {
-            id: 'dddddddd-dddd-4ddd-8ddd-aaaaaaaaaaaa',
-            workspaceId: bkkRealty.id,
-            dealName: 'Siriporn — The Line PP 1BR — Sell',
-            dealType: DealType.SELL_SIDE,
-            sellerContactId: contacts[3].id,
-            listingId: listings[7].id, // The Line PP 1BR
-            pipelineStageId: sellerStages[0].id, // Listing Received
-            dealStatus: DealStatus.ACTIVE,
-            potentialTier: PotentialTierValue.B,
-            leadSource: ContactSource.FACEBOOK,
-            estimatedDealValue: 5500000,
-            commissionRate: 3,
-            estimatedCommission: 165000,
-            assignedToId: users[2].id,
-            createdById: users[2].id,
-            notes: 'New listing. Need to do pricing analysis and photography.',
-        },
     ]
 
     for (const deal of deals) {
@@ -785,7 +680,6 @@ async function main() {
                 dealName: deal.dealName,
                 dealType: deal.dealType,
                 buyerContactId: (deal as any).buyerContactId ?? null,
-                sellerContactId: (deal as any).sellerContactId ?? null,
                 listingId: deal.listingId ?? null,
                 pipelineStageId: deal.pipelineStageId,
                 dealStatus: deal.dealStatus,

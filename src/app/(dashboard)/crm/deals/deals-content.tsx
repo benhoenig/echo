@@ -101,9 +101,6 @@ export function DealsContent({
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [grouping, setGrouping] = useState<GroupingState>([]);
     const [showArchived, setShowArchived] = useState(false);
-    const [dealTypeFilter, setDealTypeFilter] = useState<
-        "ALL" | "BUY_SIDE" | "SELL_SIDE"
-    >("ALL");
     const [isPending, startTransition] = useTransition();
     const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
     const [quickViewDeal, setQuickViewDeal] = useState<DealRow | null>(null);
@@ -116,25 +113,16 @@ export function DealsContent({
 
     const activeData = showArchived ? archivedDeals : initialDeals;
 
-    const filteredByType = useMemo(() => {
-        if (dealTypeFilter === "ALL") return activeData;
-        return activeData.filter(
-            (d: DealRow) => d.deal_type === dealTypeFilter
-        );
-    }, [activeData, dealTypeFilter]);
-
     const filteredDeals = useMemo(() => {
-        if (!search.trim()) return filteredByType;
+        if (!search.trim()) return activeData;
         const q = search.toLowerCase();
-        return filteredByType.filter(
+        return activeData.filter(
             (d: DealRow) =>
                 d.deal_name?.toLowerCase().includes(q) ||
                 d.buyer_contact?.first_name?.toLowerCase().includes(q) ||
-                d.buyer_contact?.last_name?.toLowerCase().includes(q) ||
-                d.seller_contact?.first_name?.toLowerCase().includes(q) ||
-                d.seller_contact?.last_name?.toLowerCase().includes(q)
+                d.buyer_contact?.last_name?.toLowerCase().includes(q)
         );
-    }, [filteredByType, search]);
+    }, [activeData, search]);
 
     // Apply column filters manually for kanban (TanStack Table handles them internally for table view)
     const kanbanDeals = useMemo(() => {
@@ -184,7 +172,6 @@ export function DealsContent({
     function loadSavedFilter(filter: SavedFilter) {
         const config = filter.filter_config;
         if (config.columnFilters) setColumnFilters(config.columnFilters);
-        if (config.dealTypeFilter) setDealTypeFilter(config.dealTypeFilter);
         if (config.grouping) setGrouping(config.grouping);
         toast.success(t("loadedFilter", { name: filter.filter_name }));
     }
@@ -202,7 +189,6 @@ export function DealsContent({
                     newFilterName.trim(),
                     {
                         columnFilters,
-                        dealTypeFilter,
                         grouping,
                     },
                     newFilterShared
@@ -240,7 +226,6 @@ export function DealsContent({
 
     const hasActiveFilters =
         columnFilters.length > 0 ||
-        dealTypeFilter !== "ALL" ||
         grouping.length > 0;
 
     return (
@@ -280,29 +265,6 @@ export function DealsContent({
                         {t("newDeal")}
                     </Button>
                 </div>
-            </div>
-
-            {/* Deal Type Tabs */}
-            <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 rounded-lg p-1 w-fit">
-                {(
-                    [
-                        { value: "ALL", label: t("allDeals") },
-                        { value: "BUY_SIDE", label: t("buySide") },
-                        { value: "SELL_SIDE", label: t("sellSide") },
-                    ] as const
-                ).map((tab) => (
-                    <button
-                        key={tab.value}
-                        onClick={() => setDealTypeFilter(tab.value)}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                            dealTypeFilter === tab.value
-                                ? "bg-white dark:bg-stone-700 text-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
             </div>
 
             {/* Search, Group & View Toggle */}
@@ -377,7 +339,6 @@ export function DealsContent({
                     columnFilters={columnFilters}
                     onColumnFiltersChange={setColumnFilters}
                     pipelineStages={pipelineStages}
-                    dealTypeFilter={dealTypeFilter}
                 />
 
                 <div className="flex items-center gap-1 ml-auto">
@@ -539,7 +500,6 @@ export function DealsContent({
                 <DealsKanbanBoard
                     deals={kanbanDeals}
                     pipelineStages={pipelineStages}
-                    dealTypeFilter={dealTypeFilter}
                     onCardClick={setQuickViewDeal}
                 />
             ) : (

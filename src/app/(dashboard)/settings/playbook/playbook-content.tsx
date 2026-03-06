@@ -47,56 +47,36 @@ import {
     type PipelineStageOption,
 } from "./playbook-actions";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants (values only — labels come from i18n) ─────────────────────────
 
-const ACTION_TYPES = [
-    { value: "CALL", label: "Call" },
-    { value: "LINE_MESSAGE", label: "LINE Message" },
-    { value: "EMAIL", label: "Email" },
-    { value: "SITE_VISIT", label: "Site Visit" },
-    { value: "SEND_REPORT", label: "Send Report" },
-    { value: "SEND_LISTING", label: "Send Listing" },
-    { value: "SCHEDULE_VIEWING", label: "Schedule Viewing" },
-    { value: "SEND_CONTRACT", label: "Send Contract" },
-    { value: "INTERNAL_NOTE", label: "Internal Note" },
-    { value: "CUSTOM", label: "Custom" },
+const ACTION_TYPE_VALUES = [
+    "CALL", "LINE_MESSAGE", "EMAIL", "SITE_VISIT", "SEND_REPORT",
+    "SEND_LISTING", "SCHEDULE_VIEWING", "SEND_CONTRACT", "INTERNAL_NOTE", "CUSTOM",
 ] as const;
 
-const LISTING_STATUSES = [
-    { value: "NEW", label: "New" },
-    { value: "ACTIVE", label: "Active" },
-    { value: "RESERVED", label: "Reserved" },
-    { value: "SOLD", label: "Sold" },
-    { value: "EXPIRED", label: "Expired" },
-    { value: "WITHDRAWN", label: "Withdrawn" },
-] as const;
+const ACTION_TYPE_KEYS: Record<string, string> = {
+    CALL: "call", LINE_MESSAGE: "lineMessage", EMAIL: "email",
+    SITE_VISIT: "siteVisit", SEND_REPORT: "sendReport", SEND_LISTING: "sendListing",
+    SCHEDULE_VIEWING: "scheduleViewing", SEND_CONTRACT: "sendContract",
+    INTERNAL_NOTE: "internalNote", CUSTOM: "custom",
+};
 
-const PROPERTY_TYPES = [
-    { value: "HOUSE", label: "House" },
-    { value: "CONDO", label: "Condo" },
-    { value: "TOWNHOUSE", label: "Townhouse" },
-    { value: "LAND", label: "Land" },
-    { value: "COMMERCIAL", label: "Commercial" },
-    { value: "OTHER", label: "Other" },
-] as const;
+const LISTING_STATUS_VALUES = ["NEW", "ACTIVE", "RESERVED", "SOLD", "EXPIRED", "WITHDRAWN"] as const;
+const LISTING_STATUS_KEYS: Record<string, string> = {
+    NEW: "new", ACTIVE: "active", RESERVED: "reserved", SOLD: "sold", EXPIRED: "expired", WITHDRAWN: "withdrawn",
+};
 
-const POTENTIAL_TIERS = [
-    { value: "A", label: "Tier A" },
-    { value: "B", label: "Tier B" },
-    { value: "C", label: "Tier C" },
-    { value: "D", label: "Tier D" },
-] as const;
+const PROPERTY_TYPE_VALUES = ["HOUSE", "CONDO", "TOWNHOUSE", "LAND", "COMMERCIAL", "OTHER"] as const;
+const PROPERTY_TYPE_KEYS: Record<string, string> = {
+    HOUSE: "house", CONDO: "condo", TOWNHOUSE: "townhouse", LAND: "land", COMMERCIAL: "commercial", OTHER: "other",
+};
 
-const LISTING_TYPES = [
-    { value: "SELL", label: "Sell" },
-    { value: "RENT", label: "Rent" },
-    { value: "SELL_AND_RENT", label: "Sell & Rent" },
-] as const;
+const POTENTIAL_TIER_VALUES = ["A", "B", "C", "D"] as const;
 
-const DEAL_TYPES = [
-    { value: "BUY_SIDE", label: "Buyer" },
-    { value: "SELL_SIDE", label: "Seller" },
-] as const;
+const LISTING_TYPE_VALUES = ["SELL", "RENT", "SELL_AND_RENT"] as const;
+const LISTING_TYPE_KEYS: Record<string, string> = {
+    SELL: "sell", RENT: "rent", SELL_AND_RENT: "sellAndRent",
+};
 
 // ─── Empty form state ────────────────────────────────────────────────────────
 
@@ -122,6 +102,7 @@ function emptyForm(): PlaybookFormData {
 // ─── Filter badge helper ─────────────────────────────────────────────────────
 
 function FilterBadges({ item }: { item: PlaybookItem }) {
+    const t = useTranslations("playbook");
     const badges: { label: string; className: string }[] = [];
 
     if (item.pipelineStageName) {
@@ -131,20 +112,17 @@ function FilterBadges({ item }: { item: PlaybookItem }) {
         badges.push({ label: item.listingStatus, className: "border-blue-300 text-blue-600 dark:border-blue-700 dark:text-blue-400" });
     }
     if (item.potentialTier) {
-        badges.push({ label: `Tier ${item.potentialTier}`, className: "border-amber-300 text-amber-600 dark:border-amber-700 dark:text-amber-400" });
+        badges.push({ label: t("tierLabel", { tier: item.potentialTier }), className: "border-amber-300 text-amber-600 dark:border-amber-700 dark:text-amber-400" });
     }
     if (item.propertyType) {
         badges.push({ label: item.propertyType, className: "border-stone-300 text-stone-600 dark:border-stone-600 dark:text-stone-400" });
-    }
-    if (item.dealType) {
-        badges.push({ label: item.dealType === "BUY_SIDE" ? "Buyer" : "Seller", className: "border-stone-300 text-stone-600 dark:border-stone-600 dark:text-stone-400" });
     }
     if (item.listingType) {
         badges.push({ label: item.listingType, className: "border-stone-300 text-stone-600 dark:border-stone-600 dark:text-stone-400" });
     }
 
     if (badges.length === 0) {
-        return <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-stone-200 text-stone-400">All (no filter)</Badge>;
+        return <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-stone-200 text-stone-400">{t("allNoFilter")}</Badge>;
     }
 
     return (
@@ -183,7 +161,7 @@ function PlaybookRow({
                 await updatePlaybookAction(item.id, workspaceId, { isActive: checked });
                 onRefresh();
             } catch {
-                toast.error("Failed to update playbook");
+                toast.error(t("failedToUpdatePlaybook"));
             }
         });
     };
@@ -194,9 +172,9 @@ function PlaybookRow({
                 await deletePlaybookAction(item.id, workspaceId);
                 setShowDeleteConfirm(false);
                 onRefresh();
-                toast.success("Playbook deleted");
+                toast.success(t("playbookDeleted"));
             } catch {
-                toast.error("Failed to delete playbook");
+                toast.error(t("failedToDeletePlaybook"));
             }
         });
     };
@@ -222,19 +200,19 @@ function PlaybookRow({
                         </Badge>
                         {item.isRequired && (
                             <Badge className="text-[10px] px-1.5 py-0 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                                Required
+                                {t("required")}
                             </Badge>
                         )}
                         {!item.isActive && (
                             <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-stone-300 text-stone-400">
-                                Disabled
+                                {t("disabled")}
                             </Badge>
                         )}
                     </div>
 
                     {/* Trigger filters */}
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase tracking-wider text-stone-400 shrink-0">Triggers:</span>
+                        <span className="text-[10px] uppercase tracking-wider text-stone-400 shrink-0">{t("triggers")}:</span>
                         <FilterBadges item={item} />
                     </div>
 
@@ -243,18 +221,18 @@ function PlaybookRow({
                         {item.overrideIntervalDays != null ? (
                             <span className="flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                Every {item.overrideIntervalDays}d
+                                {t("everyXDays", { days: item.overrideIntervalDays })}
                             </span>
                         ) : (
                             <span className="flex items-center gap-1 text-stone-400">
                                 <Clock className="w-3 h-3" />
-                                No timing
+                                {t("noTiming")}
                             </span>
                         )}
                         {item.isRecurring && (
                             <span className="flex items-center gap-1 text-blue-500">
                                 <Repeat className="w-3 h-3" />
-                                Recurring
+                                {t("recurring")}
                             </span>
                         )}
                     </div>
@@ -280,7 +258,7 @@ function PlaybookRow({
                         className="h-8 w-8 p-0 text-stone-400 hover:text-stone-600"
                         onClick={() => setShowEdit(true)}
                         disabled={isPending}
-                        title="Edit"
+                        title={tc("edit")}
                     >
                         <Pencil className="w-4 h-4" />
                     </Button>
@@ -316,7 +294,7 @@ function PlaybookRow({
                         <DialogTitle>{t("deletePlaybook")}</DialogTitle>
                     </DialogHeader>
                     <p className="text-sm text-stone-500">
-                        Delete &quot;{item.actionLabel}&quot;? This action cannot be undone.
+                        {t("deleteConfirm", { name: item.actionLabel })}
                     </p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
@@ -366,16 +344,16 @@ function EditPlaybookDialog({
 
     const handleSave = () => {
         if (!form.actionLabel.trim()) {
-            toast.error("Action name is required");
+            toast.error(t("actionNameRequired"));
             return;
         }
         startTransition(async () => {
             try {
                 await updatePlaybookAction(item.id, workspaceId, form);
-                toast.success("Playbook updated");
+                toast.success(t("playbookUpdated"));
                 onSaved();
             } catch (error) {
-                toast.error(error instanceof Error ? error.message : "Failed to update playbook");
+                toast.error(error instanceof Error ? error.message : t("failedToUpdatePlaybook"));
             }
         });
     };
@@ -395,7 +373,7 @@ function EditPlaybookDialog({
                         <div className="flex items-center gap-2 text-sm font-semibold text-stone-700 dark:text-stone-300">
                             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-orange-100 text-orange-600 text-[10px] font-bold dark:bg-orange-900/30 dark:text-orange-400">1</span>
                             {t("triggerLogic")}
-                            <span className="text-xs font-normal text-stone-400">(optional filters)</span>
+                            <span className="text-xs font-normal text-stone-400">({t("optionalFilters")})</span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -436,7 +414,7 @@ function EditPlaybookDialog({
                             <Label className="text-xs">{tc("description")} ({tc("optional").toLowerCase()})</Label>
                             <Textarea
                                 className="min-h-[60px] text-sm"
-                                placeholder="Explain what this action involves..."
+                                placeholder={t("descriptionPlaceholder")}
                                 value={form.actionDescription ?? ""}
                                 onChange={(e) => setForm({ ...form, actionDescription: e.target.value || null })}
                             />
@@ -444,10 +422,10 @@ function EditPlaybookDialog({
 
                         {/* Template */}
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Message Template ({tc("optional").toLowerCase()})</Label>
+                            <Label className="text-xs">{t("messageTemplate")} ({tc("optional").toLowerCase()})</Label>
                             <Textarea
                                 className="min-h-[60px] text-sm font-mono"
-                                placeholder="Template for the message or script..."
+                                placeholder={t("templatePlaceholder")}
                                 value={form.actionTemplate ?? ""}
                                 onChange={(e) => setForm({ ...form, actionTemplate: e.target.value || null })}
                             />
@@ -501,6 +479,9 @@ function PlaybookFormFields({
     section: "trigger" | "action";
 }) {
     const t = useTranslations("playbook");
+    const tPropTypes = useTranslations("propertyTypes");
+    const tListStatuses = useTranslations("listingStatuses");
+    const tListTypes = useTranslations("listingTypes");
     const isDeals = form.module === "DEALS";
 
     if (section === "trigger") {
@@ -508,11 +489,11 @@ function PlaybookFormFields({
             <>
                 {/* Module */}
                 <div className="space-y-1.5">
-                    <Label className="text-xs">Module</Label>
+                    <Label className="text-xs">{t("module")}</Label>
                     <Select
                         value={form.module}
                         onValueChange={(v: "DEALS" | "LISTINGS") =>
-                            setForm({ ...form, module: v, pipelineStageId: null, listingStatus: null, dealType: null, listingType: null })
+                            setForm({ ...form, module: v, pipelineStageId: null, listingStatus: null, listingType: null })
                         }
                     >
                         <SelectTrigger className="h-9">
@@ -520,10 +501,10 @@ function PlaybookFormFields({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="DEALS">
-                                <span className="flex items-center gap-1.5"><Users className="w-3 h-3" /> Deals</span>
+                                <span className="flex items-center gap-1.5"><Users className="w-3 h-3" /> {t("deals")}</span>
                             </SelectItem>
                             <SelectItem value="LISTINGS">
-                                <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3" /> Listings</span>
+                                <span className="flex items-center gap-1.5"><Building2 className="w-3 h-3" /> {t("listings")}</span>
                             </SelectItem>
                         </SelectContent>
                     </Select>
@@ -532,7 +513,7 @@ function PlaybookFormFields({
                 {/* Pipeline Stage (Deals) or Listing Status (Listings) */}
                 {isDeals ? (
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Pipeline Stage</Label>
+                        <Label className="text-xs">{t("pipelineStage")}</Label>
                         <Select
                             value={form.pipelineStageId ?? "__none__"}
                             onValueChange={(v) => setForm({ ...form, pipelineStageId: v === "__none__" ? null : v })}
@@ -550,7 +531,6 @@ function PlaybookFormFields({
                                                 style={{ backgroundColor: s.stageColor || "#78716C" }}
                                             />
                                             {s.name}
-                                            <span className="text-stone-400 text-[10px]">({s.pipelineType})</span>
                                         </span>
                                     </SelectItem>
                                 ))}
@@ -559,7 +539,7 @@ function PlaybookFormFields({
                     </div>
                 ) : (
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Listing Status</Label>
+                        <Label className="text-xs">{t("listingStatus")}</Label>
                         <Select
                             value={form.listingStatus ?? "__none__"}
                             onValueChange={(v) => setForm({ ...form, listingStatus: v === "__none__" ? null : v })}
@@ -569,8 +549,8 @@ function PlaybookFormFields({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="__none__">{t("anyStatus")}</SelectItem>
-                                {LISTING_STATUSES.map((s) => (
-                                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                {LISTING_STATUS_VALUES.map((v) => (
+                                    <SelectItem key={v} value={v}>{tListStatuses(LISTING_STATUS_KEYS[v])}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -579,7 +559,7 @@ function PlaybookFormFields({
 
                 {/* Potential Tier */}
                 <div className="space-y-1.5">
-                    <Label className="text-xs">Potential Tier</Label>
+                    <Label className="text-xs">{t("potentialTier")}</Label>
                     <Select
                         value={form.potentialTier ?? "__none__"}
                         onValueChange={(v) => setForm({ ...form, potentialTier: v === "__none__" ? null : v })}
@@ -589,8 +569,8 @@ function PlaybookFormFields({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="__none__">{t("anyTier")}</SelectItem>
-                            {POTENTIAL_TIERS.map((t) => (
-                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                            {POTENTIAL_TIER_VALUES.map((v) => (
+                                <SelectItem key={v} value={v}>{t("tierLabel", { tier: v })}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -598,7 +578,7 @@ function PlaybookFormFields({
 
                 {/* Property Type */}
                 <div className="space-y-1.5">
-                    <Label className="text-xs">Property Type</Label>
+                    <Label className="text-xs">{t("propertyType")}</Label>
                     <Select
                         value={form.propertyType ?? "__none__"}
                         onValueChange={(v) => setForm({ ...form, propertyType: v === "__none__" ? null : v })}
@@ -608,35 +588,17 @@ function PlaybookFormFields({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="__none__">{t("anyType")}</SelectItem>
-                            {PROPERTY_TYPES.map((t) => (
-                                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                            {PROPERTY_TYPE_VALUES.map((v) => (
+                                <SelectItem key={v} value={v}>{tPropTypes(PROPERTY_TYPE_KEYS[v])}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 </div>
 
-                {/* Deal Type or Listing Type */}
-                {isDeals ? (
+                {/* Listing Type (listings only) */}
+                {!isDeals && (
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Deal Type</Label>
-                        <Select
-                            value={form.dealType ?? "__none__"}
-                            onValueChange={(v) => setForm({ ...form, dealType: v === "__none__" ? null : v })}
-                        >
-                            <SelectTrigger className="h-9">
-                                <SelectValue placeholder={t("anyDealType")} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="__none__">{t("anyDealType")}</SelectItem>
-                                {DEAL_TYPES.map((t) => (
-                                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                ) : (
-                    <div className="space-y-1.5">
-                        <Label className="text-xs">Listing Type</Label>
+                        <Label className="text-xs">{t("listingType")}</Label>
                         <Select
                             value={form.listingType ?? "__none__"}
                             onValueChange={(v) => setForm({ ...form, listingType: v === "__none__" ? null : v })}
@@ -646,8 +608,8 @@ function PlaybookFormFields({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="__none__">{t("anyListingType")}</SelectItem>
-                                {LISTING_TYPES.map((t) => (
-                                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                                {LISTING_TYPE_VALUES.map((v) => (
+                                    <SelectItem key={v} value={v}>{tListTypes(LISTING_TYPE_KEYS[v])}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -665,7 +627,7 @@ function PlaybookFormFields({
                 <Label className="text-xs">{t("actionName")}</Label>
                 <Input
                     className="h-9"
-                    placeholder="e.g. Follow up call"
+                    placeholder={t("actionNamePlaceholder")}
                     value={form.actionLabel}
                     onChange={(e) => setForm({ ...form, actionLabel: e.target.value })}
                 />
@@ -682,8 +644,8 @@ function PlaybookFormFields({
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        {ACTION_TYPES.map((t) => (
-                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        {ACTION_TYPE_VALUES.map((v) => (
+                            <SelectItem key={v} value={v}>{t(ACTION_TYPE_KEYS[v])}</SelectItem>
                         ))}
                     </SelectContent>
                 </Select>
@@ -696,7 +658,7 @@ function PlaybookFormFields({
                     className="h-9"
                     type="number"
                     min={1}
-                    placeholder="e.g. 3"
+                    placeholder={t("intervalPlaceholder")}
                     value={form.overrideIntervalDays ?? ""}
                     onChange={(e) =>
                         setForm({
@@ -706,7 +668,7 @@ function PlaybookFormFields({
                     }
                 />
                 <p className="text-[10px] text-stone-400">
-                    How many days after entering state before reminding
+                    {t("intervalHelp")}
                 </p>
             </div>
 
@@ -716,7 +678,7 @@ function PlaybookFormFields({
                     <Label className="text-xs">
                         {t("recurring")}
                         <span className="block text-[10px] text-stone-400 font-normal">
-                            Re-triggers every X days after each action
+                            {t("recurringHelp")}
                         </span>
                     </Label>
                     <Switch
@@ -726,9 +688,9 @@ function PlaybookFormFields({
                 </div>
                 <div className="flex items-center justify-between">
                     <Label className="text-xs">
-                        Required
+                        {t("required")}
                         <span className="block text-[10px] text-stone-400 font-normal">
-                            Highlight as mandatory in the UI
+                            {t("requiredHelp")}
                         </span>
                     </Label>
                     <Switch
@@ -761,17 +723,17 @@ function CreatePlaybookForm({
 
     const handleSubmit = () => {
         if (!form.actionLabel.trim()) {
-            toast.error("Action name is required");
+            toast.error(t("actionNameRequired"));
             return;
         }
 
         startTransition(async () => {
             try {
                 await createPlaybookAction(workspaceId, form);
-                toast.success("Playbook action created");
+                toast.success(t("playbookCreated"));
                 onCreated();
             } catch (error) {
-                toast.error(error instanceof Error ? error.message : "Failed to create playbook");
+                toast.error(error instanceof Error ? error.message : t("failedToCreatePlaybook"));
             }
         });
     };

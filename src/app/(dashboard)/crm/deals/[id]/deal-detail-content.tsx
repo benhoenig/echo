@@ -124,14 +124,8 @@ export function DealDetailContent({
 
     // Core deal fields
     const [dealName, setDealName] = useState(deal.deal_name ?? "");
-    const [dealType, setDealType] = useState<"BUY_SIDE" | "SELL_SIDE">(
-        deal.deal_type ?? "BUY_SIDE"
-    );
     const [buyerContactId, setBuyerContactId] = useState(
         deal.buyer_contact_id ?? ""
-    );
-    const [sellerContactId, setSellerContactId] = useState(
-        deal.seller_contact_id ?? ""
     );
     const [listingId, setListingId] = useState(deal.listing_id ?? "");
     const [dealStatus, setDealStatus] = useState(deal.deal_status ?? "ACTIVE");
@@ -157,13 +151,8 @@ export function DealDetailContent({
     );
 
     const relevantStages = useMemo(
-        () =>
-            pipelineStages.filter((s) =>
-                dealType === "BUY_SIDE"
-                    ? s.pipelineType === "BUYER"
-                    : s.pipelineType === "SELLER"
-            ),
-        [pipelineStages, dealType]
+        () => pipelineStages.filter((s) => s.pipelineType === "BUYER"),
+        [pipelineStages]
     );
 
     // Buyer requirement fields
@@ -296,9 +285,7 @@ export function DealDetailContent({
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const updates: Record<string, any> = {
                     deal_name: dealName.trim(),
-                    deal_type: dealType,
                     buyer_contact_id: buyerContactId || null,
-                    seller_contact_id: sellerContactId || null,
                     listing_id: listingId || null,
                     deal_status: dealStatus,
                     closed_lost_reason:
@@ -312,52 +299,49 @@ export function DealDetailContent({
                     estimated_commission: estCommission,
                     assigned_to_id: assignedToId || null,
                     notes: notes.trim() || null,
-                };
-
-                // Include buyer requirements for buy-side deals
-                if (dealType === "BUY_SIDE") {
-                    updates.budget_min = budgetMin
+                    // Buyer requirements
+                    budget_min: budgetMin
                         ? parseFloat(budgetMin)
-                        : null;
-                    updates.budget_max = budgetMax
+                        : null,
+                    budget_max: budgetMax
                         ? parseFloat(budgetMax)
-                        : null;
-                    updates.preferred_zone_ids = preferredZoneIds;
-                    updates.preferred_property_type = preferredPropertyType;
-                    updates.preferred_bedrooms = preferredBedrooms
+                        : null,
+                    preferred_zone_ids: preferredZoneIds,
+                    preferred_property_type: preferredPropertyType,
+                    preferred_bedrooms: preferredBedrooms
                         ? parseInt(preferredBedrooms)
-                        : null;
-                    updates.preferred_size_min = preferredSizeMin
+                        : null,
+                    preferred_size_min: preferredSizeMin
                         ? parseFloat(preferredSizeMin)
-                        : null;
-                    updates.preferred_size_max = preferredSizeMax
+                        : null,
+                    preferred_size_max: preferredSizeMax
                         ? parseFloat(preferredSizeMax)
-                        : null;
-                    updates.preferred_floor_min = preferredFloorMin
+                        : null,
+                    preferred_floor_min: preferredFloorMin
                         ? parseInt(preferredFloorMin)
-                        : null;
-                    updates.preferred_floor_max = preferredFloorMax
+                        : null,
+                    preferred_floor_max: preferredFloorMax
                         ? parseInt(preferredFloorMax)
-                        : null;
-                    updates.preferred_facilities = preferredFacilities;
-                    updates.has_pet = hasPet;
-                    updates.has_ev_car = hasEvCar;
-                    updates.parking_slots_needed = parkingSlotsNeeded
+                        : null,
+                    preferred_facilities: preferredFacilities,
+                    has_pet: hasPet,
+                    has_ev_car: hasEvCar,
+                    parking_slots_needed: parkingSlotsNeeded
                         ? parseInt(parkingSlotsNeeded)
-                        : null;
-                    updates.pain_points = painPoints.trim() || null;
-                    updates.special_requirements =
-                        specialRequirements.trim() || null;
-                    updates.timeline = timeline || null;
-                    updates.purpose_of_purchase = purposeOfPurchase || null;
-                    updates.financing_method = financingMethod || null;
-                    updates.pre_approved_amount = preApprovedAmount
+                        : null,
+                    pain_points: painPoints.trim() || null,
+                    special_requirements:
+                        specialRequirements.trim() || null,
+                    timeline: timeline || null,
+                    purpose_of_purchase: purposeOfPurchase || null,
+                    financing_method: financingMethod || null,
+                    pre_approved_amount: preApprovedAmount
                         ? parseFloat(preApprovedAmount)
-                        : null;
-                    updates.pre_approval_expiry_date = preApprovalExpiryDate
+                        : null,
+                    pre_approval_expiry_date: preApprovalExpiryDate
                         ? new Date(preApprovalExpiryDate).toISOString()
-                        : null;
-                }
+                        : null,
+                };
 
                 await updateDeal(deal.id, updates);
                 toast.success("Deal updated.");
@@ -405,18 +389,7 @@ export function DealDetailContent({
               .join(" ")
         : null;
 
-    const sellerName = deal.seller_contact
-        ? deal.seller_contact.nickname ||
-          [
-              deal.seller_contact.first_name,
-              deal.seller_contact.last_name,
-          ]
-              .filter(Boolean)
-              .join(" ")
-        : null;
-
     const currentStage = deal.pipeline_stages;
-    const isBuySide = dealType === "BUY_SIDE";
 
     return (
         <div className="space-y-6">
@@ -434,14 +407,6 @@ export function DealDetailContent({
                             {deal.deal_name}
                         </h1>
                         <div className="flex items-center gap-2 mt-1">
-                            <Badge
-                                variant="secondary"
-                                className="text-[10px] px-1.5 py-0"
-                            >
-                                {deal.deal_type === "BUY_SIDE"
-                                    ? "Buy-side"
-                                    : "Sell-side"}
-                            </Badge>
                             {currentStage && (
                                 <Badge
                                     variant="outline"
@@ -501,12 +466,10 @@ export function DealDetailContent({
                         <Handshake className="w-3.5 h-3.5" />
                         Details
                     </TabsTrigger>
-                    {isBuySide && (
-                        <TabsTrigger value="requirements" className="gap-1.5">
-                            <ShoppingCart className="w-3.5 h-3.5" />
-                            Buyer Requirements
-                        </TabsTrigger>
-                    )}
+                    <TabsTrigger value="requirements" className="gap-1.5">
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                        Buyer Requirements
+                    </TabsTrigger>
                     <TabsTrigger value="pipeline" className="gap-1.5">
                         <GitBranch className="w-3.5 h-3.5" />
                         Pipeline
@@ -532,37 +495,6 @@ export function DealDetailContent({
                             Deal Information
                         </h2>
 
-                        {/* Deal Type Toggle */}
-                        <div className="space-y-2 mb-5">
-                            <Label className="text-sm font-medium">
-                                Deal Type
-                            </Label>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setDealType("BUY_SIDE")}
-                                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
-                                        dealType === "BUY_SIDE"
-                                            ? "border-orange-500 bg-orange-500/10 text-orange-600"
-                                            : "border-stone-200 dark:border-stone-700 text-muted-foreground hover:bg-stone-50 dark:hover:bg-stone-800"
-                                    }`}
-                                >
-                                    Buy-side
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setDealType("SELL_SIDE")}
-                                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
-                                        dealType === "SELL_SIDE"
-                                            ? "border-orange-500 bg-orange-500/10 text-orange-600"
-                                            : "border-stone-200 dark:border-stone-700 text-muted-foreground hover:bg-stone-50 dark:hover:bg-stone-800"
-                                    }`}
-                                >
-                                    Sell-side
-                                </button>
-                            </div>
-                        </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {/* Deal Name */}
                             <div className="space-y-1.5">
@@ -585,31 +517,6 @@ export function DealDetailContent({
                                 <Select
                                     value={buyerContactId}
                                     onValueChange={setBuyerContactId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="None" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {contacts.map((c) => (
-                                            <SelectItem
-                                                key={c.id}
-                                                value={c.id}
-                                            >
-                                                {c.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Seller Contact */}
-                            <div className="space-y-1.5">
-                                <Label className="text-xs text-muted-foreground">
-                                    Seller Contact
-                                </Label>
-                                <Select
-                                    value={sellerContactId}
-                                    onValueChange={setSellerContactId}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="None" />
@@ -864,19 +771,6 @@ export function DealDetailContent({
                                 </Link>
                             </div>
                         )}
-                        {sellerName && (
-                            <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-4">
-                                <p className="text-xs text-muted-foreground mb-1">
-                                    Seller
-                                </p>
-                                <Link
-                                    href={`/crm/contacts/${deal.seller_contact_id}`}
-                                    className="text-sm font-medium text-orange-600 hover:underline"
-                                >
-                                    {sellerName}
-                                </Link>
-                            </div>
-                        )}
                         {deal.listing_id && deal.listing && (
                             <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-4">
                                 <p className="text-xs text-muted-foreground mb-1">
@@ -895,8 +789,7 @@ export function DealDetailContent({
                 </TabsContent>
 
                 {/* ─── Buyer Requirements Tab ─── */}
-                {isBuySide && (
-                    <TabsContent value="requirements" className="space-y-6">
+                <TabsContent value="requirements" className="space-y-6">
                         {/* Budget & Size */}
                         <div className="bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-6">
                             <h2 className="text-sm font-semibold text-foreground mb-4">
@@ -1302,7 +1195,6 @@ export function DealDetailContent({
                             </div>
                         </div>
                     </TabsContent>
-                )}
 
                 {/* Pipeline Tab */}
                 <TabsContent value="pipeline" className="space-y-6">

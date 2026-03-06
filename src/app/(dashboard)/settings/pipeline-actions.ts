@@ -206,7 +206,7 @@ export async function ensureDefaultPotentialConfigs(workspaceId: string) {
     if (count && count > 0) return;
 
     // Seed defaults for all modules
-    const modules = ["listings", "buyer_crm", "seller_crm"] as const;
+    const modules = ["listings", "buyer_crm"] as const;
     const tiers = [
         { label: "A", name: "Hot", color: "#EF4444", interval: 3, order: 1 },
         { label: "B", name: "Warm", color: "#F97316", interval: 7, order: 2 },
@@ -251,37 +251,15 @@ export async function ensureDefaultPipelineStages(workspaceId: string) {
         { name: "Transfer", order: 8, color: "#10B981" },
     ];
 
-    const sellerStages = [
-        { name: "New Listing", order: 1, color: "#78716C" },
-        { name: "Preparing", order: 2, color: "#3B82F6" },
-        { name: "Active", order: 3, color: "#22C55E" },
-        { name: "Showing", order: 4, color: "#8B5CF6" },
-        { name: "Offer Received", order: 5, color: "#EAB308" },
-        { name: "Negotiation", order: 6, color: "#F59E0B" },
-        { name: "Contract", order: 7, color: "#F97316" },
-        { name: "Transfer", order: 8, color: "#10B981" },
-    ];
-
-    const rows = [
-        ...buyerStages.map((s) => ({
-            workspace_id: workspaceId,
-            pipeline_stage_name: s.name,
-            pipeline_type: "BUYER" as any,
-            stage_order: s.order,
-            stage_color: s.color,
-            is_default: true,
-            updated_at: new Date().toISOString(),
-        })),
-        ...sellerStages.map((s) => ({
-            workspace_id: workspaceId,
-            pipeline_stage_name: s.name,
-            pipeline_type: "SELLER" as any,
-            stage_order: s.order,
-            stage_color: s.color,
-            is_default: true,
-            updated_at: new Date().toISOString(),
-        })),
-    ];
+    const rows = buyerStages.map((s) => ({
+        workspace_id: workspaceId,
+        pipeline_stage_name: s.name,
+        pipeline_type: "BUYER" as any,
+        stage_order: s.order,
+        stage_color: s.color,
+        is_default: true,
+        updated_at: new Date().toISOString(),
+    }));
 
     await supabase.from("pipeline_stages").insert(rows);
 }

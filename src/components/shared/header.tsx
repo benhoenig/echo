@@ -29,11 +29,13 @@ import {
 import { CommandPalette } from "@/components/shared/command-palette";
 import { logout } from "@/app/(auth)/actions";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function Header() {
     const { theme, setTheme } = useTheme();
     const [commandOpen, setCommandOpen] = useState(false);
     const router = useRouter();
+    const t = useTranslations("header");
 
     return (
         <>
@@ -48,7 +50,7 @@ export function Header() {
                         className="hidden sm:flex items-center gap-2 text-muted-foreground hover:text-foreground h-9 px-3 rounded-lg border border-border bg-muted/50"
                     >
                         <Search className="w-4 h-4" strokeWidth={1.75} />
-                        <span className="text-sm">Search...</span>
+                        <span className="text-sm">{t("search")}</span>
                         <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
                             ⌘K
                         </kbd>
@@ -69,7 +71,7 @@ export function Header() {
                                 <Search className="w-[18px] h-[18px]" strokeWidth={1.75} />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Search (⌘K)</TooltipContent>
+                        <TooltipContent>{t("search")} ({t("searchShortcut")})</TooltipContent>
                     </Tooltip>
 
                     {/* Dark mode toggle */}
@@ -91,7 +93,7 @@ export function Header() {
                                 />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Toggle theme</TooltipContent>
+                        <TooltipContent>{t("toggleTheme")}</TooltipContent>
                     </Tooltip>
 
                     {/* Notifications */}
@@ -115,16 +117,16 @@ export function Header() {
                         <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem>
                                 <User className="w-4 h-4 mr-2" strokeWidth={1.75} />
-                                Profile
+                                {t("profile")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => router.push("/settings")}>
                                 <Settings className="w-4 h-4 mr-2" strokeWidth={1.75} />
-                                Settings
+                                {t("settings")}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive" onClick={() => logout()}>
                                 <LogOut className="w-4 h-4 mr-2" strokeWidth={1.75} />
-                                Log out
+                                {t("logOut")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

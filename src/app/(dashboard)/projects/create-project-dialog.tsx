@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { createProject } from "./project-actions";
 import { PropertyTypeSelect } from "@/components/shared/property-type-select";
 import { ZoneSelector } from "@/components/shared/zone-selector";
+import { useTranslations } from "next-intl";
 import type { Database } from "@/types/supabase";
 
 type PropertyType = Database["public"]["Enums"]["PropertyType"];
@@ -37,6 +38,8 @@ export function CreateProjectDialog({
 }: CreateProjectDialogProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
+    const t = useTranslations("projects");
+    const tc = useTranslations("common");
 
     // Required fields
     const [nameThai, setNameThai] = useState("");
@@ -69,7 +72,7 @@ export function CreateProjectDialog({
 
     function handleSave() {
         if (!nameThai.trim() || !nameEnglish.trim() || !propertyType) {
-            toast.error("Thai name, English name, and property type are required.");
+            toast.error(t("validationError"));
             return;
         }
 
@@ -93,7 +96,7 @@ export function CreateProjectDialog({
                     last_updated_at: new Date().toISOString(),
                 });
 
-                toast.success("Project created successfully.");
+                toast.success(t("created"));
                 resetForm();
                 onOpenChange(false);
                 router.push(`/projects/${data.id}`);
@@ -101,7 +104,7 @@ export function CreateProjectDialog({
                 toast.error(
                     error instanceof Error
                         ? error.message
-                        : "Failed to create project."
+                        : t("failedToCreate")
                 );
             }
         });
@@ -111,10 +114,9 @@ export function CreateProjectDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>New Project</DialogTitle>
+                    <DialogTitle>{t("newProject")}</DialogTitle>
                     <DialogDescription>
-                        Add a new condominium or development to your database.
-                        You can fill in more details on the project page.
+                        {t("dialogDescription")}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -122,28 +124,28 @@ export function CreateProjectDialog({
                     {/* Required fields */}
                     <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Required Information
+                            {t("requiredInformation")}
                         </h3>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
                                 <Label htmlFor="name-thai">
-                                    Thai Name <span className="text-red-500">*</span>
+                                    {t("thaiName")} <span className="text-red-500">*</span>
                                 </Label>
                                 <Input
                                     id="name-thai"
-                                    placeholder="ชื่อโครงการ"
+                                    placeholder={t("thaiNamePlaceholder")}
                                     value={nameThai}
                                     onChange={(e) => setNameThai(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="name-english">
-                                    English Name <span className="text-red-500">*</span>
+                                    {t("englishName")} <span className="text-red-500">*</span>
                                 </Label>
                                 <Input
                                     id="name-english"
-                                    placeholder="Project name"
+                                    placeholder={t("englishNamePlaceholder")}
                                     value={nameEnglish}
                                     onChange={(e) => setNameEnglish(e.target.value)}
                                 />
@@ -153,7 +155,7 @@ export function CreateProjectDialog({
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
                                 <Label>
-                                    Property Type <span className="text-red-500">*</span>
+                                    {t("propertyType")} <span className="text-red-500">*</span>
                                 </Label>
                                 <PropertyTypeSelect
                                     value={propertyType}
@@ -161,7 +163,7 @@ export function CreateProjectDialog({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Zone</Label>
+                                <Label>{t("zone")}</Label>
                                 <ZoneSelector
                                     value={zoneId}
                                     onValueChange={setZoneId}
@@ -173,12 +175,12 @@ export function CreateProjectDialog({
                     {/* Optional fields */}
                     <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Basic Details
+                            {t("basicDetails")}
                         </h3>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label htmlFor="developer">Developer</Label>
+                                <Label htmlFor="developer">{t("developer")}</Label>
                                 <Input
                                     id="developer"
                                     placeholder="e.g. Ananda"
@@ -187,7 +189,7 @@ export function CreateProjectDialog({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="year-built">Year Built</Label>
+                                <Label htmlFor="year-built">{t("yearBuilt")}</Label>
                                 <Input
                                     id="year-built"
                                     type="number"
@@ -200,7 +202,7 @@ export function CreateProjectDialog({
 
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label htmlFor="bts">BTS Station</Label>
+                                <Label htmlFor="bts">{t("btsStation")}</Label>
                                 <Input
                                     id="bts"
                                     placeholder="e.g. Siam"
@@ -209,7 +211,7 @@ export function CreateProjectDialog({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="mrt">MRT Station</Label>
+                                <Label htmlFor="mrt">{t("mrtStation")}</Label>
                                 <Input
                                     id="mrt"
                                     placeholder="e.g. Sukhumvit"
@@ -221,7 +223,7 @@ export function CreateProjectDialog({
 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="space-y-2">
-                                <Label htmlFor="buildings">Buildings</Label>
+                                <Label htmlFor="buildings">{t("buildings")}</Label>
                                 <Input
                                     id="buildings"
                                     type="number"
@@ -231,7 +233,7 @@ export function CreateProjectDialog({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="floors">Floors</Label>
+                                <Label htmlFor="floors">{t("floors")}</Label>
                                 <Input
                                     id="floors"
                                     type="number"
@@ -241,7 +243,7 @@ export function CreateProjectDialog({
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="units">Units</Label>
+                                <Label htmlFor="units">{t("units")}</Label>
                                 <Input
                                     id="units"
                                     type="number"
@@ -259,13 +261,13 @@ export function CreateProjectDialog({
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                     >
-                        Cancel
+                        {tc("cancel")}
                     </Button>
                     <Button onClick={handleSave} disabled={isPending}>
                         {isPending && (
                             <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                         )}
-                        Create Project
+                        {t("createProject")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

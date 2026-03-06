@@ -23,7 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Dialog,
     DialogContent,
@@ -203,7 +202,7 @@ export function PipelineContent({
         stageId: string;
         dealCount: number;
     } | null>(null);
-    const [addType, setAddType] = useState<"buyer" | "seller">("buyer");
+    const [addType] = useState<"buyer">("buyer");
     const [error, setError] = useState<string | null>(null);
 
     // Local state for optimistic reorder
@@ -222,15 +221,12 @@ export function PipelineContent({
     const buyerStages = stages
         .filter((s) => s.pipeline_type === "BUYER")
         .sort((a, b) => a.stage_order - b.stage_order);
-    const sellerStages = stages
-        .filter((s) => s.pipeline_type === "SELLER")
-        .sort((a, b) => a.stage_order - b.stage_order);
 
-    const handleDragEnd = (event: DragEndEvent, type: "buyer" | "seller") => {
+    const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
 
-        const currentList = type === "buyer" ? buyerStages : sellerStages;
+        const currentList = buyerStages;
         const oldIndex = currentList.findIndex((s) => s.id === active.id);
         const newIndex = currentList.findIndex((s) => s.id === over.id);
 
@@ -240,7 +236,7 @@ export function PipelineContent({
 
         // Optimistic UI update
         setStages((prev) => {
-            const otherType = prev.filter((s) => s.pipeline_type !== type.toUpperCase());
+            const otherType = prev.filter((s) => s.pipeline_type !== "BUYER");
             const updatedList = reordered.map((s, i) => ({ ...s, stage_order: i + 1 }));
             return [...otherType, ...updatedList];
         });
@@ -323,12 +319,11 @@ export function PipelineContent({
 
     const renderStages = (
         stagesList: Tables<"pipeline_stages">[],
-        type: "buyer" | "seller"
     ) => (
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragEnd={(event) => handleDragEnd(event, type)}
+            onDragEnd={(event) => handleDragEnd(event)}
         >
             <SortableContext
                 items={stagesList.map((s) => s.id)}
@@ -361,7 +356,6 @@ export function PipelineContent({
                         size="sm"
                         className="w-full mt-2"
                         onClick={() => {
-                            setAddType(type);
                             setSelectedColor("#78716C");
                             setAddOpen(true);
                         }}
@@ -381,32 +375,12 @@ export function PipelineContent({
                     {error}
                 </div>
             )}
-            <Tabs defaultValue="buyer">
-                <TabsList>
-                    <TabsTrigger value="buyer">
-                        {t("buyerPipeline")} ({buyerStages.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="seller">
-                        {t("sellerPipeline")} ({sellerStages.length})
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent value="buyer" className="mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">{t("buyerDealStages")}</CardTitle>
-                        </CardHeader>
-                        <CardContent>{renderStages(buyerStages, "buyer")}</CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="seller" className="mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">{t("sellerDealStages")}</CardTitle>
-                        </CardHeader>
-                        <CardContent>{renderStages(sellerStages, "seller")}</CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">{t("buyerDealStages")}</CardTitle>
+                </CardHeader>
+                <CardContent>{renderStages(buyerStages)}</CardContent>
+            </Card>
 
             {/* Add Stage Dialog */}
             <Dialog open={addOpen} onOpenChange={setAddOpen}>
