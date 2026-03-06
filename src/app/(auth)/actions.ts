@@ -51,15 +51,20 @@ export async function signup(formData: FormData) {
     // a session is returned. Create their user record and workspace directly
     // since /auth/callback won't be triggered.
     const confirmedUser = signUpData?.user;
-    if (confirmedUser && signUpData?.session) {
+    const hasSession = !!signUpData?.session;
+    console.log("[Signup] User:", confirmedUser?.id, "Session:", hasSession, "Email confirmed:", confirmedUser?.email_confirmed_at);
+
+    if (confirmedUser && hasSession) {
         const adminClient = createAdminClient();
 
         // Check if user record already exists (safety check)
-        const { data: existingUser } = await adminClient
+        const { data: existingUser, error: existingError } = await adminClient
             .from("users")
             .select("id")
             .eq("id", confirmedUser.id)
             .single();
+
+        console.log("[Signup] Existing user check:", existingUser, "Error:", existingError?.message);
 
         if (!existingUser) {
             // Create workspace
@@ -70,6 +75,8 @@ export async function signup(formData: FormData) {
                 })
                 .select("id")
                 .single();
+
+            console.log("[Signup] Workspace created:", workspace, "Error:", wsError?.message);
 
             if (workspace && !wsError) {
                 const { error: insertError } = await adminClient.from("users").insert({
@@ -82,11 +89,7 @@ export async function signup(formData: FormData) {
                     is_active: true,
                 });
 
-                if (insertError) {
-                    console.error("[Signup] Failed to insert user record:", insertError);
-                }
-            } else {
-                console.error("[Signup] Failed to create workspace:", wsError);
+                console.log("[Signup] User insert error:", insertError?.message ?? "none");
             }
         }
 
@@ -94,6 +97,7 @@ export async function signup(formData: FormData) {
         redirect("/dashboard");
     }
 
+    console.log("[Signup] No session, redirecting to confirm page");
     revalidatePath("/", "layout");
     redirect("/auth/confirm?email=" + encodeURIComponent(email));
 }
