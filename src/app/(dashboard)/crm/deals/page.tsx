@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/queries";
-import { getDeals, getArchivedDeals } from "./deal-actions";
+import { getDeals } from "./deal-actions";
 import { getSavedFilters } from "./saved-filter-actions";
 import { DealsContent } from "./deals-content";
 import { redirect } from "next/navigation";
@@ -9,9 +9,8 @@ export default async function DealsPage() {
     const user = await getCurrentUser();
     if (!user) redirect("/login");
 
-    const [deals, archivedDeals, savedFilters, rawStages, rawContacts] = await Promise.all([
+    const [deals, savedFilters, rawStages, rawContacts, rawUsers, rawListings] = await Promise.all([
         getDeals(user.workspace_id),
-        getArchivedDeals(user.workspace_id),
         getSavedFilters(user.workspace_id),
         prisma.pipelineStage.findMany({
             where: { workspaceId: user.workspace_id, isActive: true },
@@ -36,6 +35,16 @@ export default async function DealsPage() {
             },
             orderBy: { firstName: "asc" },
         }),
+        prisma.user.findMany({
+            where: { workspaceId: user.workspace_id },
+            select: { id: true, firstName: true, lastName: true },
+            orderBy: { firstName: "asc" },
+        }),
+        prisma.listing.findMany({
+            where: { workspaceId: user.workspace_id, archived: false },
+            select: { id: true, listingName: true },
+            orderBy: { listingName: "asc" },
+        }),
     ]);
 
     const pipelineStages = rawStages.map((s) => ({
@@ -56,25 +65,11 @@ export default async function DealsPage() {
         contactType: c.contactType,
     }));
 
-    // Fetch team members for assignment
-    const rawUsers = await prisma.user.findMany({
-        where: { workspaceId: user.workspace_id },
-        select: { id: true, firstName: true, lastName: true },
-        orderBy: { firstName: "asc" },
-    });
-
     const agents = rawUsers.map((u) => ({
         id: u.id,
         name:
             [u.firstName, u.lastName].filter(Boolean).join(" ") || "Unknown",
     }));
-
-    // Fetch listings for linking
-    const rawListings = await prisma.listing.findMany({
-        where: { workspaceId: user.workspace_id, archived: false },
-        select: { id: true, listingName: true },
-        orderBy: { listingName: "asc" },
-    });
 
     const listings = rawListings.map((l) => ({
         id: l.id,
@@ -84,7 +79,6 @@ export default async function DealsPage() {
     return (
         <DealsContent
             initialDeals={deals}
-            archivedDeals={archivedDeals}
             pipelineStages={pipelineStages}
             contacts={contacts}
             agents={agents}

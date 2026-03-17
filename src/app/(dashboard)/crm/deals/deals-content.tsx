@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition, useEffect } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -34,7 +34,7 @@ import { DealsKanbanBoard } from "./deals-kanban-board";
 import { DealsFilterBar } from "./deals-filter-bar";
 import { CreateDealSheet } from "./create-deal-sheet";
 import { DealQuickView } from "./deal-quick-view";
-import { restoreDeal } from "./deal-actions";
+import { restoreDeal, getArchivedDeals } from "./deal-actions";
 import { createSavedFilter, deleteSavedFilter } from "./saved-filter-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -58,7 +58,6 @@ interface PipelineStage {
 
 interface DealsContentProps {
     initialDeals: DealRow[];
-    archivedDeals: DealRow[];
     pipelineStages: PipelineStage[];
     contacts: Array<{
         id: string;
@@ -74,7 +73,6 @@ interface DealsContentProps {
 
 export function DealsContent({
     initialDeals,
-    archivedDeals,
     pipelineStages,
     contacts,
     agents,
@@ -101,6 +99,8 @@ export function DealsContent({
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [grouping, setGrouping] = useState<GroupingState>([]);
     const [showArchived, setShowArchived] = useState(false);
+    const [archivedDeals, setArchivedDeals] = useState<DealRow[]>([]);
+    const [archivedLoading, setArchivedLoading] = useState(false);
     const [isPending, startTransition] = useTransition();
     const [viewMode, setViewMode] = useState<"table" | "kanban">("kanban");
     const [quickViewDeal, setQuickViewDeal] = useState<DealRow | null>(null);
@@ -147,11 +147,24 @@ export function DealsContent({
         return result;
     }, [filteredDeals, columnFilters]);
 
-    useEffect(() => {
-        if (showArchived && archivedDeals.length === 0) {
-            setShowArchived(false);
+    // Lazy-load archived deals when toggled on
+    function handleToggleArchived(checked: boolean) {
+        setShowArchived(checked);
+        if (checked && archivedDeals.length === 0) {
+            setArchivedLoading(true);
+            startTransition(async () => {
+                try {
+                    const data = await getArchivedDeals(workspaceId);
+                    setArchivedDeals(data);
+                } catch {
+                    toast.error(t("failedToLoadArchivedDeals"));
+                    setShowArchived(false);
+                } finally {
+                    setArchivedLoading(false);
+                }
+            });
         }
-    }, [showArchived, archivedDeals.length]);
+    }
 
     function handleRestore(dealId: string) {
         startTransition(async () => {
@@ -244,22 +257,21 @@ export function DealsContent({
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    {archivedDeals.length > 0 && (
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                checked={showArchived}
-                                onCheckedChange={setShowArchived}
-                                id="show-archived"
-                            />
-                            <Label
-                                htmlFor="show-archived"
-                                className="text-xs text-muted-foreground flex items-center gap-1"
-                            >
-                                <Archive className="w-3.5 h-3.5" />
-                                {tc("showArchived")}
-                            </Label>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={showArchived}
+                            onCheckedChange={handleToggleArchived}
+                            id="show-archived"
+                            disabled={archivedLoading}
+                        />
+                        <Label
+                            htmlFor="show-archived"
+                            className="text-xs text-muted-foreground flex items-center gap-1"
+                        >
+                            <Archive className="w-3.5 h-3.5" />
+                            {archivedLoading ? tc("loading") : tc("showArchived")}
+                        </Label>
+                    </div>
                     <Button size="sm" onClick={() => setSheetOpen(true)}>
                         <Plus className="w-4 h-4 mr-1.5" />
                         {t("newDeal")}

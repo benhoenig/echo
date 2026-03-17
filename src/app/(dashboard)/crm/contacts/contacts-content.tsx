@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition, useEffect } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -17,7 +17,7 @@ import type { ColumnFiltersState, GroupingState } from "@tanstack/react-table";
 import { ContactsDataTable } from "./contacts-data-table";
 import { ContactsFilterBar } from "./contacts-filter-bar";
 import { CreateContactSheet } from "./create-contact-sheet";
-import { restoreContact, archiveContact } from "./contact-actions";
+import { restoreContact, archiveContact, getArchivedContacts } from "./contact-actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CrmSubNav } from "../crm-sub-nav";
@@ -28,14 +28,12 @@ type ContactRow = any;
 
 interface ContactsContentProps {
     initialContacts: ContactRow[];
-    archivedContacts: ContactRow[];
     workspaceId: string;
     userId: string;
 }
 
 export function ContactsContent({
     initialContacts,
-    archivedContacts,
     workspaceId,
     userId,
 }: ContactsContentProps) {
@@ -57,6 +55,8 @@ export function ContactsContent({
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [grouping, setGrouping] = useState<GroupingState>([]);
     const [showArchived, setShowArchived] = useState(false);
+    const [archivedContacts, setArchivedContacts] = useState<ContactRow[]>([]);
+    const [archivedLoading, setArchivedLoading] = useState(false);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
@@ -76,11 +76,24 @@ export function ContactsContent({
         );
     }, [activeData, search]);
 
-    useEffect(() => {
-        if (showArchived && archivedContacts.length === 0) {
-            setShowArchived(false);
+    // Lazy-load archived contacts when toggled on
+    function handleToggleArchived(checked: boolean) {
+        setShowArchived(checked);
+        if (checked && archivedContacts.length === 0) {
+            setArchivedLoading(true);
+            startTransition(async () => {
+                try {
+                    const data = await getArchivedContacts(workspaceId);
+                    setArchivedContacts(data);
+                } catch {
+                    toast.error(t("failedToLoadArchivedContacts"));
+                    setShowArchived(false);
+                } finally {
+                    setArchivedLoading(false);
+                }
+            });
         }
-    }, [showArchived, archivedContacts.length]);
+    }
 
     function handleRestore(contactId: string) {
         startTransition(async () => {
@@ -146,22 +159,21 @@ export function ContactsContent({
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    {archivedContacts.length > 0 && (
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                id="show-archived-contacts"
-                                checked={showArchived}
-                                onCheckedChange={setShowArchived}
-                            />
-                            <Label
-                                htmlFor="show-archived-contacts"
-                                className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5"
-                            >
-                                <Archive className="w-3.5 h-3.5" />
-                                {tc("showArchived")} ({archivedContacts.length})
-                            </Label>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            id="show-archived-contacts"
+                            checked={showArchived}
+                            onCheckedChange={handleToggleArchived}
+                            disabled={archivedLoading}
+                        />
+                        <Label
+                            htmlFor="show-archived-contacts"
+                            className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5"
+                        >
+                            <Archive className="w-3.5 h-3.5" />
+                            {archivedLoading ? tc("loading") : tc("showArchived")}
+                        </Label>
+                    </div>
                     {!showArchived && (
                         <Button onClick={() => setSheetOpen(true)}>
                             <Plus className="w-4 h-4 mr-1.5" />
